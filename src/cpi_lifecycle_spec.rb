@@ -47,7 +47,7 @@ describe 'Your OpenStack' do
 
   end
 
-  xit 'can save a stemcell' do
+  it 'can save a stemcell' do
     stemcell_manifest = Psych.load_file(File.join(@stemcell_path, "stemcell.MF"))
     @@stemcell_cid = with_cpi('Stemcell could not be uploaded') {
       cpi.create_stemcell(File.join(@stemcell_path, "image"), stemcell_manifest["cloud_properties"])
@@ -60,9 +60,7 @@ describe 'Your OpenStack' do
     @@vm_cid = with_cpi("VM could not be created.") {
       cpi.create_vm(
           'agent-id',
-          # TODO stemcell should be uploaded during test run
-          # stemcell_cid,
-          '9d151067-60ad-43c1-bb75-d3bcd0c6148f',
+          @@stemcell_cid,
           {'instance_type' => 'm1.small'},
           network_spec,
           [],
@@ -133,7 +131,7 @@ describe 'Your OpenStack' do
     }
   end
 
-  xit 'can delete a stemcell' do
+  it 'can delete a stemcell' do
     with_cpi('Stemcell could not be deleted') {
       cpi.delete_stemcell(@@stemcell_cid)
     }
