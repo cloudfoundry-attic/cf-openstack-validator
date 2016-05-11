@@ -4,10 +4,13 @@
 
 # Prerequisites
 
-1. Create an OpenStack project/tenant
-1. Create a network
-1. Create a key pair `cf-validator`
-1. Create a security group `cf-validator`
+* Create an OpenStack project/tenant
+* Create a network
+* Create a key pair
+```
+ssh-keygen -t rsa -b 4096 -N "" -f cf-validator.rsa_id
+```
+* Upload the generated public key to OpenStack as `cf-validator`
 
 # Usage
 
@@ -24,9 +27,6 @@
         "username": "<replace-me>",
         "api_key": "<replace-me>",
         "default_key_name": "cf-validator",
-        "default_security_groups": [
-          "cf-validator"
-        ],
         "wait_resource_poll_interval": 5,
         "ignore_server_availability_zone": false,
         "endpoint_type": "publicURL",
