@@ -55,4 +55,4 @@ BOSH_PACKAGES_DIR=$temp_dir/packages \
 BOSH_OPENSTACK_STEMCELL_PATH=$temp_dir/stemcell \
 BOSH_OPENSTACK_CPI_PATH=$temp_dir/cpi \
 BOSH_OPENSTACK_CPI_CONFIG=$cpi_config \
-  $bundle_cmd exec rspec $SCRIPT_DIR/cpi_lifecycle_spec.rb --order defined --color --format documentation 2> $temp_dir/logs/testsuite.log
+  $bundle_cmd exec rspec $SCRIPT_DIR/specs --order defined --color --format documentation 2> $temp_dir/logs/testsuite.log
