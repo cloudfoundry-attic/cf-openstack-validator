@@ -52,6 +52,7 @@ bundle_cmd="$temp_dir/packages/ruby_openstack_cpi/bin/bundle"
 $bundle_cmd install 2>&1 > $temp_dir/logs/bundle_install.log
 
 BOSH_PACKAGES_DIR=$temp_dir/packages \
+BOSH_OPENSTACK_CPI_LOG_PATH=$temp_dir/logs \
 BOSH_OPENSTACK_STEMCELL_PATH=$temp_dir/stemcell \
 BOSH_OPENSTACK_CPI_PATH=$temp_dir/cpi \
 BOSH_OPENSTACK_CPI_CONFIG=$cpi_config \

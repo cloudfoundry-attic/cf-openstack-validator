@@ -20,6 +20,7 @@ describe 'Your OpenStack' do
     @stemcell_path = ENV['BOSH_OPENSTACK_STEMCELL_PATH']
     @cpi_path = ENV['BOSH_OPENSTACK_CPI_PATH']
     @validator_options = YAML.load_file(ENV['BOSH_OPENSTACK_CPI_CONFIG'])['validator']
+    @log_path = ENV['BOSH_OPENSTACK_CPI_LOG_PATH']
 
     _, @server_thread = create_server
   }
@@ -41,7 +42,7 @@ describe 'Your OpenStack' do
 
   let(:cpi) do
     # TODO cpi log should go to $temp_dir/logs
-    Bosh::Clouds::Config.configure(OpenStruct.new(:logger => Logger.new(STDERR), :cpi_task_log => 'cpi.log'))
+    Bosh::Clouds::Config.configure(OpenStruct.new(:logger => Logger.new(STDERR), :cpi_task_log => "#{@log_path}/cpi.log"))
 
     Bosh::Clouds::ExternalCpi.new(@cpi_path, 'director-UUID')
 
