@@ -17,10 +17,10 @@ end
 describe 'Your OpenStack' do
 
   before(:all) {
-    @stemcell_path = ENV['BOSH_OPENSTACK_STEMCELL_PATH']
-    @cpi_path = ENV['BOSH_OPENSTACK_CPI_PATH']
+    @stemcell_path     = ENV['BOSH_OPENSTACK_STEMCELL_PATH']
+    @cpi_path          = ENV['BOSH_OPENSTACK_CPI_PATH']
     @validator_options = YAML.load_file(ENV['BOSH_OPENSTACK_CPI_CONFIG'])['validator']
-    @log_path = ENV['BOSH_OPENSTACK_CPI_LOG_PATH']
+    @log_path          = ENV['BOSH_OPENSTACK_CPI_LOG_PATH']
 
     _, @server_thread = create_server
   }
@@ -36,6 +36,21 @@ describe 'Your OpenStack' do
             'cloud_properties' => {
                 'net_id' => @validator_options['network_id']
             }
+        }
+    }
+  end
+
+  let(:network_spec_with_floating_ip) do
+    {
+        'default' => {
+            'type' => 'dynamic',
+            'cloud_properties' => {
+                'net_id' => @validator_options['network_id']
+            }
+        },
+        'vip' => {
+          'type' => 'vip',
+          'ip' => @validator_options['floating_ip'],
         }
     }
   end
@@ -138,6 +153,35 @@ describe 'Your OpenStack' do
     }
   end
 
+  it 'can attach floating IP to a VM' do
+    vm_cid_with_floating_ip = with_cpi("Floating IP could not be attached.") {
+      cpi.create_vm(
+        'agent-id',
+        @@stemcell_cid,
+      { 'instance_type' => 'm1.small' },
+        network_spec_with_floating_ip,
+        [],
+        {}
+      )
+    }
+    begin
+      20.times do
+        execute_ssh_command_on_vm(@validator_options["private_key_path"], @validator_options["floating_ip"], "echo hi")
+        break if $?.exitstatus == 0
+        sleep(3)
+      end
+      expect($?.exitstatus).to eq(0), "SSH didn't succeed. The return code is #{$?.exitstatus}"
+    ensure
+      with_cpi("VM '#{vm_cid_with_floating_ip}' could not be deleted.") {
+        cpi.delete_vm(vm_cid_with_floating_ip)
+      }
+    end
+  end
+end
+
+
+def execute_ssh_command_on_vm(private_key_path, ip, command)
+  `ssh -o StrictHostKeyChecking=no -i #{private_key_path} vcap@#{ip} -C "#{command}"`
 end
 
 def create_server
