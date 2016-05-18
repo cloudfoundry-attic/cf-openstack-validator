@@ -147,18 +147,12 @@ describe 'Your OpenStack' do
     }
   end
 
-  it 'can delete a stemcell' do
-    with_cpi('Stemcell could not be deleted') {
-      cpi.delete_stemcell(@@stemcell_cid)
-    }
-  end
-
   it 'can attach floating IP to a VM' do
     vm_cid_with_floating_ip = with_cpi("Floating IP could not be attached.") {
       cpi.create_vm(
         'agent-id',
         @@stemcell_cid,
-      { 'instance_type' => 'm1.small' },
+        { 'instance_type' => 'm1.small' },
         network_spec_with_floating_ip,
         [],
         {}
@@ -176,6 +170,12 @@ describe 'Your OpenStack' do
         cpi.delete_vm(vm_cid_with_floating_ip)
       }
     end
+  end
+
+  it 'can delete a stemcell' do
+    with_cpi('Stemcell could not be deleted') {
+      cpi.delete_stemcell(@@stemcell_cid)
+    }
   end
 end
 
