@@ -23,10 +23,19 @@ describe 'Your OpenStack' do
     @log_path          = ENV['BOSH_OPENSTACK_CPI_LOG_PATH']
 
     _, @server_thread = create_server
+    cpi
   }
 
   after(:all) {
     Thread.kill(@server_thread)
+  }
+
+  after(:all) {
+    if @@vm_cid_with_floating_ip
+      with_cpi("VM '#{@@vm_cid_with_floating_ip}' could not be deleted.") {
+        cpi.delete_vm(@@vm_cid_with_floating_ip)
+      }
+    end
   }
 
   let(:network_spec) do
@@ -55,12 +64,13 @@ describe 'Your OpenStack' do
     }
   end
 
-  let(:cpi) do
-    # TODO cpi log should go to $temp_dir/logs
-    Bosh::Clouds::Config.configure(OpenStruct.new(:logger => Logger.new(STDERR), :cpi_task_log => "#{@log_path}/cpi.log"))
+  def cpi
+    @cpi ||= begin
+      # TODO cpi log should go to $temp_dir/logs
+      Bosh::Clouds::Config.configure(OpenStruct.new(:logger => Logger.new(STDERR), :cpi_task_log => "#{@log_path}/cpi.log"))
 
-    Bosh::Clouds::ExternalCpi.new(@cpi_path, 'director-UUID')
-
+      Bosh::Clouds::ExternalCpi.new(@cpi_path, 'director-UUID')
+    end
   end
 
   it 'can save a stemcell' do
@@ -148,7 +158,7 @@ describe 'Your OpenStack' do
   end
 
   it 'can attach floating IP to a VM' do
-    vm_cid_with_floating_ip = with_cpi("Floating IP could not be attached.") {
+    @@vm_cid_with_floating_ip = with_cpi("Floating IP could not be attached.") {
       cpi.create_vm(
         'agent-id',
         @@stemcell_cid,
@@ -158,18 +168,14 @@ describe 'Your OpenStack' do
         {}
       )
     }
-    begin
-      20.times do
-        execute_ssh_command_on_vm(@validator_options["private_key_path"], @validator_options["floating_ip"], "echo hi")
-        break if $?.exitstatus == 0
-        sleep(3)
-      end
-      expect($?.exitstatus).to eq(0), "SSH didn't succeed. The return code is #{$?.exitstatus}"
-    ensure
-      with_cpi("VM '#{vm_cid_with_floating_ip}' could not be deleted.") {
-        cpi.delete_vm(vm_cid_with_floating_ip)
-      }
+    #wait for SSH server ot get ready for connections
+    20.times do
+      execute_ssh_command_on_vm(@validator_options["private_key_path"], @validator_options["floating_ip"], "echo hi")
+      break if $?.exitstatus == 0
+      sleep(3)
     end
+
+    expect($?.exitstatus).to eq(0), "SSH didn't succeed. The return code is #{$?.exitstatus}"
   end
 
   it 'can create large disk' do
