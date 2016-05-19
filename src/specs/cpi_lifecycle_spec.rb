@@ -178,6 +178,14 @@ describe 'Your OpenStack' do
     expect($?.exitstatus).to eq(0), "SSH didn't succeed. The return code is #{$?.exitstatus}"
   end
 
+  it 'can access the internet' do
+    curl_result = execute_ssh_command_on_vm(@validator_options["private_key_path"],
+                                            @validator_options["floating_ip"], "curl -v http://github.com 2>&1")
+
+    expect(curl_result).to include('Connected to github.com'),
+                           "Failed to curl github.com. Curl response is: #{curl_result}"
+  end
+
   it 'can create large disk' do
     large_disk_cid = with_cpi("Large disk could not be created.\n" +
         'Hint: If you are using DevStack, you need to manually set a' +
