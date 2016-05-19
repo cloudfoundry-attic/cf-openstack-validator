@@ -172,6 +172,18 @@ describe 'Your OpenStack' do
     end
   end
 
+  it 'can create large disk' do
+    large_disk_cid = with_cpi("Large disk could not be created.\n" +
+        'Hint: If you are using DevStack, you need to manually set a' +
+        'larger backing file size in your localrc.') {
+      cpi.create_disk(30720, {})
+    }
+
+    with_cpi("Large disk '#{large_disk_cid}' could not be deleted.") {
+      cpi.delete_disk(large_disk_cid)
+    }
+  end
+
   it 'can delete a stemcell' do
     with_cpi('Stemcell could not be deleted') {
       cpi.delete_stemcell(@@stemcell_cid)
