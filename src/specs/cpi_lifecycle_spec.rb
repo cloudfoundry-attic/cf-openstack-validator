@@ -3,7 +3,7 @@ require 'common/common'
 require 'cloud'
 require 'ostruct'
 require 'psych'
-require 'JSON'
+require 'json'
 require 'rspec/core'
 require 'yaml'
 
