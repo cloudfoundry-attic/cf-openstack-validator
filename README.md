@@ -16,6 +16,7 @@ ssh-keygen -t rsa -b 4096 -N "" -f cf-validator.rsa_id
 
 * `git clone https://github.com/cloudfoundry-incubator/cf-openstack-validator.git`
 * `cd cf-openstack-validator`
+* Copy the generated private key into the `cf-openstack-validator` folder.
 * Create file `cpi.json` with the following content and replace occurences of `<replace-me>` with appropriate values (see prerequisites)
 ```
 {
@@ -49,7 +50,9 @@ ssh-keygen -t rsa -b 4096 -N "" -f cf-validator.rsa_id
     }
   },
   "validator": {
-    "network_id": "<replace-me>"
+    "network_id": "<replace-me>",
+    "floating_ip": "<replace-me>",
+    "private_key_name": "cf-validator.rsa_id"
   }
 }
 ```

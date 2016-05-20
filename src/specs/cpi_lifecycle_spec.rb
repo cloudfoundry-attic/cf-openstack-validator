@@ -170,7 +170,7 @@ describe 'Your OpenStack' do
     }
     #wait for SSH server ot get ready for connections
     20.times do
-      execute_ssh_command_on_vm(@validator_options["private_key_path"], @validator_options["floating_ip"], "echo hi")
+      execute_ssh_command_on_vm(private_key_path, @validator_options["floating_ip"], "echo hi")
       break if $?.exitstatus == 0
       sleep(3)
     end
@@ -179,7 +179,7 @@ describe 'Your OpenStack' do
   end
 
   it 'can access the internet' do
-    curl_result = execute_ssh_command_on_vm(@validator_options["private_key_path"],
+    curl_result = execute_ssh_command_on_vm(private_key_path,
                                             @validator_options["floating_ip"], "curl -v http://github.com 2>&1")
 
     expect(curl_result).to include('Connected to github.com'),
@@ -205,6 +205,10 @@ describe 'Your OpenStack' do
   end
 end
 
+def private_key_path
+  private_key_name = @validator_options["private_key_name"]
+  File.join(File.dirname(__FILE__), "..", "..", private_key_name)
+end
 
 def execute_ssh_command_on_vm(private_key_path, ip, command)
   `ssh -o StrictHostKeyChecking=no -i #{private_key_path} vcap@#{ip} -C "#{command}"`
