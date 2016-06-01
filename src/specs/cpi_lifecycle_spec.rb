@@ -20,6 +20,16 @@ describe 'Your OpenStack' do
     @validator_options = validator_options
     @log_path          = log_path
 
+    @globals = {
+        vm_cid: nil,
+        has_vm: nil,
+        vm_cid_with_floating_ip: nil,
+        has_disk: nil,
+        snapshot_cid: nil,
+        disk_cid: nil,
+        stemcell_cid: nil
+    }
+
     _, @server_thread = create_server
     @cpi = cpi(@cpi_path, @log_path)
   }
@@ -29,26 +39,26 @@ describe 'Your OpenStack' do
   }
 
   after(:all) {
-    if @@vm_cid_with_floating_ip
-      with_cpi("VM '#{@@vm_cid_with_floating_ip}' could not be deleted.") {
-        @cpi.delete_vm(@@vm_cid_with_floating_ip)
+    if @globals[:vm_cid_with_floating_ip]
+      with_cpi("VM '#{@globals[:vm_cid_with_floating_ip]}' could not be deleted.") {
+        @cpi.delete_vm(@globals[:vm_cid_with_floating_ip])
       }
     end
   }
 
   it 'can save a stemcell' do
     stemcell_manifest = Psych.load_file(File.join(@stemcell_path, "stemcell.MF"))
-    self.stemcell_cid = with_cpi('Stemcell could not be uploaded') {
+    @globals[:stemcell_cid] = with_cpi('Stemcell could not be uploaded') {
       @cpi.create_stemcell(File.join(@stemcell_path, "image"), stemcell_manifest["cloud_properties"])
     }
-    expect(stemcell_cid).to be
+    expect(@globals[:stemcell_cid]).to be
   end
 
   it 'can create a VM' do
-    @@vm_cid = with_cpi("VM could not be created.") {
+    @globals[:vm_cid] = with_cpi("VM could not be created.") {
       @cpi.create_vm(
           'agent-id',
-          stemcell_cid,
+          @globals[:stemcell_cid],
           {'instance_type' => 'm1.small'},
           network_spec,
           [],
@@ -56,74 +66,74 @@ describe 'Your OpenStack' do
       )
     }
 
-    expect(@@vm_cid).to be
+    expect(@globals[:vm_cid]).to be
   end
 
   it 'has vm cid' do
     with_cpi('VM cid could not be found.') {
-      @@has_vm = @cpi.has_vm?(@@vm_cid)
+      @globals[:has_vm] = @cpi.has_vm?(@globals[:vm_cid])
     }
 
-    expect(@@has_vm).to be true
+    expect(@globals[:has_vm]).to be true
   end
 
   it 'can create a disk' do
-    @@disk_cid = with_cpi('Disk could not be created.') {
-      @cpi.create_disk(2048, {}, @@vm_cid)
+    @globals[:disk_cid] = with_cpi('Disk could not be created.') {
+      @cpi.create_disk(2048, {}, @globals[:vm_cid])
     }
 
-    expect(@@disk_cid).to be
+    expect(@globals[:disk_cid]).to be
   end
 
   it 'has disk cid' do
     with_cpi('Disk cid could not be found.') {
-      @@has_disk = @cpi.has_disk?(@@disk_cid)
+      @globals[:has_disk] = @cpi.has_disk?(@globals[:disk_cid])
     }
 
-    expect(@@has_disk).to be true
+    expect(@globals[:has_disk]).to be true
   end
 
   it 'can attach the disk to the vm' do
-    with_cpi("Disk '#{@@disk_cid}' could not be attached to VM '#{@@vm_cid}'.") {
-      @cpi.attach_disk(@@vm_cid, @@disk_cid)
+    with_cpi("Disk '#{@globals[:disk_cid]}' could not be attached to VM '#{@globals[:vm_cid]}'.") {
+      @cpi.attach_disk(@globals[:vm_cid], @globals[:disk_cid])
     }
   end
 
   it 'can detach the disk from the VM' do
-    with_cpi("Disk '#{@@disk_cid}' could not be detached from VM '#{@@vm_cid}'.") {
-      @cpi.detach_disk(@@vm_cid, @@disk_cid)
+    with_cpi("Disk '#{@globals[:disk_cid]}' could not be detached from VM '#{@globals[:vm_cid]}'.") {
+      @cpi.detach_disk(@globals[:vm_cid], @globals[:disk_cid])
     }
   end
 
   it 'can take a snapshot' do
-    @@snapshot_cid = with_cpi("Snapshot for disk '#{@@disk_cid}' could not be taken.") {
-      @cpi.snapshot_disk(@@disk_cid, {})
+    @globals[:snapshot_cid] = with_cpi("Snapshot for disk '#{@globals[:disk_cid]}' could not be taken.") {
+      @cpi.snapshot_disk(@globals[:disk_cid], {})
     }
   end
 
   it 'can delete a snapshot' do
-    with_cpi("Snapshot '#{@@snapshot_cid}' for disk '#{@@disk_cid}' could not be deleted.") {
-      @cpi.delete_snapshot(@@snapshot_cid)
+    with_cpi("Snapshot '#{@globals[:snapshot_cid]}' for disk '#{@globals[:disk_cid]}' could not be deleted.") {
+      @cpi.delete_snapshot(@globals[:snapshot_cid])
     }
   end
 
   it 'can delete the disk' do
-    with_cpi("Disk '#{@@disk_cid}' could not be deleted.") {
-      @cpi.delete_disk(@@disk_cid)
+    with_cpi("Disk '#{@globals[:disk_cid]}' could not be deleted.") {
+      @cpi.delete_disk(@globals[:disk_cid])
     }
   end
 
   it 'can delete the VM' do
-    with_cpi("VM '#{@@vm_cid}' could not be deleted.") {
-      @cpi.delete_vm(@@vm_cid)
+    with_cpi("VM '#{@globals[:vm_cid]}' could not be deleted.") {
+      @cpi.delete_vm(@globals[:vm_cid])
     }
   end
 
   it 'can attach floating IP to a VM' do
-    @@vm_cid_with_floating_ip = with_cpi("Floating IP could not be attached.") {
+    @globals[:vm_cid_with_floating_ip] = with_cpi("Floating IP could not be attached.") {
       @cpi.create_vm(
         'agent-id',
-        stemcell_cid,
+        @globals[:stemcell_cid],
         { 'instance_type' => 'm1.small' },
         network_spec_with_floating_ip,
         [],
@@ -162,7 +172,7 @@ describe 'Your OpenStack' do
 
   it 'can delete a stemcell' do
     with_cpi('Stemcell could not be deleted') {
-      @cpi.delete_stemcell(stemcell_cid)
+      @cpi.delete_stemcell(@globals[:stemcell_cid])
     }
   end
 end

@@ -2,14 +2,6 @@ require 'logger'
 require 'common/common'
 require 'cloud'
 
-def stemcell_cid=(stemcell_cid)
-  @@stemcell_cid = stemcell_cid
-end
-
-def stemcell_cid
-  @@stemcell_cid
-end
-
 def stemcell_path
   ENV['BOSH_OPENSTACK_STEMCELL_PATH']
 end
