@@ -90,6 +90,7 @@ def delete_vm(vm_cid)
   if vm_cid
     begin
       @cpi.delete_vm(vm_cid)
+      untrack_resource(:instances, vm_cid)
     rescue
     end
   end

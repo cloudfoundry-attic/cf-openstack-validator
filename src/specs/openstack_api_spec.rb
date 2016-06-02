@@ -1,3 +1,4 @@
+require_relative 'spec_helper'
 require_relative 'openstack_spec_helper'
 
 describe 'Your OpenStack' do
