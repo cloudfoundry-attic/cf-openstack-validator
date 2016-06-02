@@ -5,6 +5,7 @@ require 'rspec/core'
 require 'yaml'
 
 require_relative 'cpi_spec_helper'
+require_relative 'openstack_spec_helper'
 
 def with_cpi(error_message)
   yield if block_given?
@@ -32,6 +33,7 @@ describe 'Your OpenStack' do
 
     _, @server_thread = create_server
     @cpi = cpi(@cpi_path, @log_path)
+    @compute = compute(openstack_params)
   }
 
   after(:all) {
@@ -39,11 +41,7 @@ describe 'Your OpenStack' do
   }
 
   after(:all) {
-    if @globals[:vm_cid_with_floating_ip]
-      with_cpi("VM '#{@globals[:vm_cid_with_floating_ip]}' could not be deleted.") {
-        @cpi.delete_vm(@globals[:vm_cid_with_floating_ip])
-      }
-    end
+    delete_vm @globals[:vm_cid_with_floating_ip]
   }
 
   it 'can save a stemcell' do
@@ -93,7 +91,7 @@ describe 'Your OpenStack' do
     expect(@globals[:has_disk]).to be true
   end
 
-  it 'can attach the disk to the vm' do
+  it 'can attach the disk to the VM' do
     with_cpi("Disk '#{@globals[:disk_cid]}' could not be attached to VM '#{@globals[:vm_cid]}'.") {
       @cpi.attach_disk(@globals[:vm_cid], @globals[:disk_cid])
     }
@@ -156,6 +154,28 @@ describe 'Your OpenStack' do
 
     expect(curl_result).to include('Connected to github.com'),
                            "Failed to curl github.com. Curl response is: #{curl_result}"
+  end
+
+  it 'allows one VM to reach port 22 of another VM within the same network' do
+    second_vm_cid = with_cpi("Second VM could not be created.") {
+      @cpi.create_vm(
+          'agent-id',
+          @globals[:stemcell_cid],
+          { 'instance_type' => 'm1.small' },
+          network_spec,
+          [],
+          {}
+      )
+    }
+
+    second_vm = @compute.servers.get(second_vm_cid)
+    second_vm_ip = second_vm.addresses.values.first.first['addr']
+
+    nc_result = execute_ssh_command_on_vm(private_key_path, @validator_options["floating_ip"], "nc -zv #{second_vm_ip} 22 2>&1")
+
+    expect(nc_result).to include("Connection to #{second_vm_ip} 22 port [tcp/ssh] succeeded!")
+
+    delete_vm(second_vm_cid)
   end
 
   it 'can create large disk' do

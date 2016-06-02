@@ -24,6 +24,7 @@ def private_key_path
 end
 
 def execute_ssh_command_on_vm(private_key_path, ip, command)
+  `ssh-keygen -R #{ip}`
   `ssh -o StrictHostKeyChecking=no -i #{private_key_path} vcap@#{ip} -C "#{command}"`
 end
 
@@ -83,6 +84,15 @@ def create_server
   }
 
   [server, accept_thread]
+end
+
+def delete_vm(vm_cid)
+  if vm_cid
+    begin
+      @cpi.delete_vm(vm_cid)
+    rescue
+    end
+  end
 end
 
 def create_headers(headers)
