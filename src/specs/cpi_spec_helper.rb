@@ -1,6 +1,7 @@
 require 'logger'
 require 'common/common'
 require 'cloud'
+require 'open3'
 
 def stemcell_path
   ENV['BOSH_OPENSTACK_STEMCELL_PATH']
@@ -23,9 +24,23 @@ def private_key_path
   File.join(File.dirname(__FILE__), "..", "..", private_key_name)
 end
 
+def retry_command(time_in_seconds = 60, frequency=3)
+  start_time = Time.new
+  if block_given?
+     loop do
+       output, err, status = yield
+
+       if status.exitstatus == 0 || Time.now - start_time > time_in_seconds
+          break [output, err, status]
+       end
+
+       sleep(frequency)
+     end
+  end
+end
+
 def execute_ssh_command_on_vm(private_key_path, ip, command)
-  `ssh-keygen -R #{ip}`
-  `ssh -o StrictHostKeyChecking=no -i #{private_key_path} vcap@#{ip} -C "#{command}"`
+  Open3.capture3 "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i #{private_key_path} vcap@#{ip} -C '#{command}'"
 end
 
 def network_spec

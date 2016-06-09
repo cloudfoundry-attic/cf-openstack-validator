@@ -14,7 +14,6 @@ private
 
 def convert_to_fog_params(options)
   {
-      :provider => 'OpenStack',
       :openstack_auth_url => options['auth_url'],
       :openstack_username => options['username'],
       :openstack_api_key => options['api_key'],
