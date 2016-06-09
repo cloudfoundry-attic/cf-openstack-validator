@@ -12,8 +12,9 @@ describe 'Your OpenStack' do
 
     it 'is high enough' do
       begin
+        servers = @compute.servers
         100.times {
-          @compute.servers
+          servers.reload
         }
       rescue Excon::Errors::RequestEntityTooLarge => e
         fail("Your OpenStack API rate limit is too low. OpenStack error: #{e.message}")
