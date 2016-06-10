@@ -204,7 +204,7 @@ describe 'Your OpenStack' do
     second_vm_ip = second_vm.addresses.values.first.first['addr']
     second_vm.wait_for { ready? }
 
-    _, err, status = execute_ssh_command_on_vm(private_key_path, @validator_options["floating_ip"], "nc -zv #{second_vm_ip} 22")
+    _, err, status = retry_command { execute_ssh_command_on_vm(private_key_path, @validator_options["floating_ip"], "nc -zv #{second_vm_ip} 22") }
 
     if status.exitstatus == 255
       fail "Failed to ssh to VM with floating IP.\nError is: #{err}"
