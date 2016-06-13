@@ -1,0 +1,25 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: ubuntu
+    tag: 'trusty'
+
+inputs:
+- name: validator-src
+
+params:
+  AUTH_URL:          ""
+  USERNAME:          ""
+  API_KEY:           ""
+  DOMAIN:            ""
+  PROJECT:           ""
+  DEFAULT_KEY_NAME:  ""
+  NETWORK_ID:        ""
+  FLOATING_IP:       ""
+  PRIVATE_KEY:       ""
+
+run:
+  path: validator-src/ci/validate.sh

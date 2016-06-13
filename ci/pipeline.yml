@@ -1,0 +1,24 @@
+jobs:
+- name: validate
+  plan:
+  - get: validator-src
+    trigger: true
+  - task: validate
+    file: validator-src/ci/validate.yml
+    params:
+      USERNAME:          {{username}}
+      AUTH_URL:          {{auth_url}}
+      API_KEY:           {{api_key}}
+      DOMAIN:            {{domain}}
+      PROJECT:           {{project}}
+      DEFAULT_KEY_NAME:  {{default_key_name}}
+      NETWORK_ID:        {{network_id}}
+      FLOATING_IP:       {{floating_ip}}
+      PRIVATE_KEY:       {{private_key}}
+
+resources:
+- name: validator-src
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/cf-openstack-validator
+    branch: master
