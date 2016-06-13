@@ -48,12 +48,34 @@ fi
 
 
 bundle_cmd="$temp_dir/packages/ruby_openstack_cpi/bin/bundle"
+gems_folder=$temp_dir/packages/ruby_openstack_cpi/lib/ruby/gems/*
+path=$temp_dir/packages/ruby_openstack_cpi/bin/:$PATH
 
-$bundle_cmd install 2>&1 > $temp_dir/logs/bundle_install.log
+env -i PATH=$path \
+       GEM_PATH=$gems_folder \
+       GEM_HOME=$gems_folder \
+       $bundle_cmd install 2>&1 > $temp_dir/logs/bundle_install.log
 
-BOSH_PACKAGES_DIR=$temp_dir/packages \
-BOSH_OPENSTACK_CPI_LOG_PATH=$temp_dir/logs \
-BOSH_OPENSTACK_STEMCELL_PATH=$temp_dir/stemcell \
-BOSH_OPENSTACK_CPI_PATH=$temp_dir/cpi \
-BOSH_OPENSTACK_CPI_CONFIG=$cpi_config \
+env -i \
+  BOSH_PACKAGES_DIR=$temp_dir/packages \
+  BOSH_OPENSTACK_CPI_LOG_PATH=$temp_dir/logs \
+  BOSH_OPENSTACK_STEMCELL_PATH=$temp_dir/stemcell \
+  BOSH_OPENSTACK_CPI_PATH=$temp_dir/cpi \
+  BOSH_OPENSTACK_CPI_CONFIG=$cpi_config \
+  PATH=$path \
+  GEM_PATH=$gems_folder \
+  GEM_HOME=$gems_folder \
+  $bundle_cmd exec gem environment 2>&1 > $temp_dir/logs/gem_environment.log
+echo "Gems folder contains:" >> $temp_dir/logs/gem_environment.log
+ls $temp_dir/packages/ruby_openstack_cpi/lib/ruby/gems >> $temp_dir/logs/gem_environment.log
+
+env -i \
+  BOSH_PACKAGES_DIR=$temp_dir/packages \
+  BOSH_OPENSTACK_CPI_LOG_PATH=$temp_dir/logs \
+  BOSH_OPENSTACK_STEMCELL_PATH=$temp_dir/stemcell \
+  BOSH_OPENSTACK_CPI_PATH=$temp_dir/cpi \
+  BOSH_OPENSTACK_CPI_CONFIG=$cpi_config \
+  PATH=$path \
+  GEM_PATH=$gems_folder \
+  GEM_HOME=$gems_folder \
   $bundle_cmd exec rspec $SCRIPT_DIR/specs --order defined --color --format documentation 2> $temp_dir/logs/testsuite.log
