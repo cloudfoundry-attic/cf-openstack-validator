@@ -18,6 +18,7 @@ wget -O cpi.tgz http://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstac
 wget -O stemcell.tgz https://d26ekeud912fhb.cloudfront.net/bosh-stemcell/openstack/bosh-stemcell-3232.6-openstack-kvm-ubuntu-trusty-go_agent.tgz
 
 echo $PRIVATE_KEY > validator-src/cf-validator.rsa_id
+chmod 400 validator-src/cf-validator.rsa_id
 
 cat > cpi.json <<EOF
 {
