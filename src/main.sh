@@ -65,6 +65,10 @@ env -i \
   PATH=$path \
   GEM_PATH=$gems_folder \
   GEM_HOME=$gems_folder \
+  http_proxy=$http_proxy \
+  https_proxy=$https_proxy \
+  HTTP_PROXY=$HTTP_PROXY \
+  HTTPS_PROXY=$HTTPS_PROXY \
   $bundle_cmd exec gem environment 2>&1 > $temp_dir/logs/gem_environment.log
 echo "Gems folder contains:" >> $temp_dir/logs/gem_environment.log
 ls $temp_dir/packages/ruby_openstack_cpi/lib/ruby/gems >> $temp_dir/logs/gem_environment.log
@@ -78,4 +82,8 @@ env -i \
   PATH=$path \
   GEM_PATH=$gems_folder \
   GEM_HOME=$gems_folder \
+  http_proxy=$http_proxy \
+  https_proxy=$https_proxy \
+  HTTP_PROXY=$HTTP_PROXY \
+  HTTPS_PROXY=$HTTPS_PROXY \
   $bundle_cmd exec rspec $SCRIPT_DIR/specs --order defined --color --format documentation 2> $temp_dir/logs/testsuite.log
