@@ -7,6 +7,8 @@ Is your OpenStack installation ready to run BOSH and install Cloud Foundry? Run 
 
 # Prerequisites
 
+### OpenStack
+
 * Create an OpenStack project/tenant
 * Create a network
   * Connect the network with a router to your external network
@@ -17,6 +19,20 @@ Is your OpenStack installation ready to run BOSH and install Cloud Foundry? Run 
 ssh-keygen -t rsa -b 4096 -N "" -f cf-validator.rsa_id
 ```
   * Upload the generated public key to OpenStack as `cf-validator`
+
+### Environment
+
+The validator runs on Mac and Linux. 
+Please ensure that the following list is installed on the Linux system 
+where the validator is executed:
+
+* make
+* gcc
+* zlib1g-dev
+* libssl-dev
+* ssh
+
+To run on Mac the `Xcode` command line tools have to be installed.
 
 # Usage
 
