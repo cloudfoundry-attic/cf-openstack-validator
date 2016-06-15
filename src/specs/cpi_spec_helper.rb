@@ -61,6 +61,14 @@ end
 
 def validate_ssh_connection(err, status)
   if status.exitstatus == 255
+    if err.include? 'Permission denied (publickey)'
+     fail "Failed to ssh to VM with floating IP: Permission denied.\n" +
+          "Possible causes:\n" +
+          "- SSH key mismatch\n" +
+          "- the key has not been provisioned, because the OpenStack metadata service was not reachable\n\n" +
+          "Error is: #{err}"
+    end
+
     fail "Failed to ssh to VM with floating IP.\nError is: #{err}"
   end
 end
