@@ -169,21 +169,24 @@ describe 'Your OpenStack' do
     vm = @compute.servers.get(vm_cid)
     vm.wait_for { ready? }
 
-    _, err, status = retry_command { execute_ssh_command_on_vm(private_key_path, @validator_options["floating_ip"], "echo hi") }
+    _, err, status = execute_ssh_command_on_vm_with_retry(private_key_path, @validator_options["floating_ip"], "echo hi")
 
     expect(status.exitstatus).to eq(0), "SSH connection to VM with floating IP didn't succeed.\nError was: #{err}"
   end
 
   it 'can access the internet' do
     _, err, status = execute_ssh_command_on_vm(private_key_path,
-                                            @validator_options["floating_ip"], "curl -v http://github.com")
+                                            @validator_options["floating_ip"], "nslookup http://github.com")
 
-    if status.exitstatus == 255
-      fail "Failed to ssh to VM with floating IP.\nError is: #{err}"
+    if status.exitstatus > 0
+      fail "DNS server might not be reachable from VM with floating IP.\nError is: #{err}"
     end
 
+   _, err, status = execute_ssh_command_on_vm(private_key_path,
+                                            @validator_options["floating_ip"], "curl http://github.com")
+
     expect(status.exitstatus).to eq(0),
-                      "Failed to curl http://github.com from second VM.\nError is: #{err}"
+                      "Failed to curl http://github.com from VM with floating IP.\nError is: #{err}"
   end
 
   it 'allows one VM to reach port 22 of another VM within the same network' do
@@ -204,11 +207,7 @@ describe 'Your OpenStack' do
     second_vm_ip = second_vm.addresses.values.first.first['addr']
     second_vm.wait_for { ready? }
 
-    _, err, status = retry_command { execute_ssh_command_on_vm(private_key_path, @validator_options["floating_ip"], "nc -zv #{second_vm_ip} 22") }
-
-    if status.exitstatus == 255
-      fail "Failed to ssh to VM with floating IP.\nError is: #{err}"
-    end
+    _, err, status = execute_ssh_command_on_vm_with_retry(private_key_path, @validator_options["floating_ip"], "nc -zv #{second_vm_ip} 22")
 
     expect(status.exitstatus).to eq(0), "Failed to nc port 22 on second VM.\nError is: #{err}"
 

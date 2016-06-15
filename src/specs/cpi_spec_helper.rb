@@ -24,7 +24,15 @@ def private_key_path
   File.join(File.dirname(__FILE__), "..", "..", private_key_name)
 end
 
-def retry_command(time_in_seconds = 60, frequency=3)
+def execute_ssh_command_on_vm_with_retry(private_key_path, ip, command, time_in_seconds = 60, frequency = 3)
+  output, err, status = retry_command(time_in_seconds, frequency){ execute_ssh(private_key_path, ip, command) }
+
+  validate_ssh_connection(err, status)
+
+  [output, err, status]
+end
+
+def retry_command(time_in_seconds = 60, frequency = 3)
   start_time = Time.new
   if block_given?
      loop do
@@ -40,7 +48,21 @@ def retry_command(time_in_seconds = 60, frequency=3)
 end
 
 def execute_ssh_command_on_vm(private_key_path, ip, command)
+  output, err, status = execute_ssh(private_key_path, ip, command)
+
+  validate_ssh_connection(err, status)
+
+  [output, err, status]
+end
+
+def execute_ssh(private_key_path, ip, command)
   Open3.capture3 "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i #{private_key_path} vcap@#{ip} -C '#{command}'"
+end
+
+def validate_ssh_connection(err, status)
+  if status.exitstatus == 255
+    fail "Failed to ssh to VM with floating IP.\nError is: #{err}"
+  end
 end
 
 def network_spec
