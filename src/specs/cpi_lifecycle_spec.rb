@@ -176,7 +176,7 @@ describe 'Your OpenStack' do
 
   it 'can access the internet' do
     _, err, status = execute_ssh_command_on_vm(private_key_path,
-                                            @validator_options["floating_ip"], "nslookup http://github.com")
+                                            @validator_options["floating_ip"], "nslookup github.com")
 
     if status.exitstatus > 0
       fail "DNS server might not be reachable from VM with floating IP.\nError is: #{err}"
