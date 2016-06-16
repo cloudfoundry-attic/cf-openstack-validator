@@ -9,6 +9,7 @@ Is your OpenStack installation ready to run BOSH and install Cloud Foundry? Run 
 
 ### OpenStack
 
+* Keystone v3 
 * Create an OpenStack project/tenant
 * Create a network
   * Connect the network with a router to your external network
@@ -46,7 +47,7 @@ To run on Mac the `Xcode` command line tools have to be installed.
     "plugin": "openstack",
     "properties": {
       "openstack": {
-        "auth_url": "<replace-me>",
+        "auth_url": "<replace-me>/auth/tokens",
         "username": "<replace-me>",
         "api_key": "<replace-me>",
         "domain": "<replace-me>",
