@@ -132,6 +132,8 @@ describe 'Your OpenStack' do
   end
 
   it 'can delete a snapshot' do
+    make_pending_unless(@globals[:snapshot_cid], 'No snapshot to delete')
+
     with_cpi("Snapshot '#{@globals[:snapshot_cid]}' for disk '#{@globals[:disk_cid]}' could not be deleted.") {
       @cpi.delete_snapshot(@globals[:snapshot_cid])
       untrack_resource(:snapshots, @globals[:snapshot_cid])
@@ -139,6 +141,8 @@ describe 'Your OpenStack' do
   end
 
   it 'can delete the disk' do
+    make_pending_unless(@globals[:disk_cid], 'No disk to delete')
+
     with_cpi("Disk '#{@globals[:disk_cid]}' could not be deleted.") {
       @cpi.delete_disk(@globals[:disk_cid])
       untrack_resource(:volumes, @globals[:disk_cid])
@@ -146,6 +150,8 @@ describe 'Your OpenStack' do
   end
 
   it 'can delete the VM' do
+    make_pending_unless(@globals[:vm_cid], 'No vm to delete')
+
     with_cpi("VM '#{@globals[:vm_cid]}' could not be deleted.") {
       @cpi.delete_vm(@globals[:vm_cid])
       untrack_resource(:instances, @globals[:vm_cid])
