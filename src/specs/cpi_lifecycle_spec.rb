@@ -46,6 +46,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
     _, @server_thread = create_server
     @cpi = cpi(@cpi_path, @log_path)
+    @compute = compute(convert_to_fog_params(openstack_params))
   }
 
   after(:all) {

@@ -38,7 +38,8 @@ def openstack_suite
 
     before(:all) do
       @openstack_params = openstack_params
-      @compute = compute(@openstack_params)
+      @fog_params = convert_to_fog_params(@openstack_params)
+      @compute = compute(@fog_params)
     end
   end
 end

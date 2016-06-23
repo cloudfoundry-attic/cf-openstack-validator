@@ -7,10 +7,7 @@ end
 
 def openstack_params
   openstack_properties = YAML.load_file(ENV['BOSH_OPENSTACK_CPI_CONFIG'])['cloud']['properties']['openstack']
-  convert_to_fog_params(openstack_properties)
 end
-
-private
 
 def convert_to_fog_params(options)
   {
