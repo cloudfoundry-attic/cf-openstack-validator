@@ -1,3 +1,5 @@
+require_relative 'openstack_spec_helper'
+
 RSpec.configure do |config|
 
   config.before(:suite) do
@@ -20,8 +22,23 @@ RSpec.configure do |config|
                    .join("\n")
     end
   end
+
+  config.register_ordering(:openstack) do |items|
+    items.sort_by { |item| item.metadata[:position] }
+  end
 end
 
 def red(string)
   "\e[31m#{string}\e[0m"
+end
+
+def openstack_suite
+  return @openstack_suite if @openstack_suite
+  @openstack_suite = RSpec.describe 'Your OpenStack', order: :openstack do
+
+    before(:all) do
+      @openstack_params = openstack_params
+      @compute = compute(@openstack_params)
+    end
+  end
 end

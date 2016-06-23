@@ -6,7 +6,6 @@ require 'yaml'
 
 require_relative 'spec_helper'
 require_relative 'cpi_spec_helper'
-require_relative 'openstack_spec_helper'
 
 def with_cpi(error_message)
   yield if block_given?
@@ -27,7 +26,7 @@ def untrack_resource(resource_type, resource_id)
 end
 
 
-describe 'Your OpenStack' do
+openstack_suite.context 'using the CPI', position: 2, order: :global do
 
   before(:all) {
     @stemcell_path     = stemcell_path
@@ -47,7 +46,6 @@ describe 'Your OpenStack' do
 
     _, @server_thread = create_server
     @cpi = cpi(@cpi_path, @log_path)
-    @compute = compute(openstack_params)
   }
 
   after(:all) {
