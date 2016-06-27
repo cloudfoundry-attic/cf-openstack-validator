@@ -32,6 +32,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     @stemcell_path     = stemcell_path
     @cpi_path          = cpi_path
     @validator_options = validator_options
+    @cloud_config      = cloud_config
     @log_path          = log_path
 
     @globals = {
@@ -73,7 +74,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
         @cpi.create_vm(
             'agent-id',
             @globals[:stemcell_cid],
-            {'instance_type' => 'm1.small'},
+            @cloud_config['vm_types'][0]['cloud_properties'],
             network_spec,
             [],
             {}
@@ -163,7 +164,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
         @cpi.create_vm(
           'agent-id',
           @globals[:stemcell_cid],
-          { 'instance_type' => 'm1.small' },
+          @cloud_config['vm_types'][0]['cloud_properties'],
           network_spec_with_floating_ip,
           [],
           {}
@@ -200,7 +201,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
         @cpi.create_vm(
             'agent-id',
             @globals[:stemcell_cid],
-            { 'instance_type' => 'm1.small' },
+            @cloud_config['vm_types'][0]['cloud_properties'],
             network_spec,
             [],
             {}

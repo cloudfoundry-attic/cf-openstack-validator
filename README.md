@@ -61,7 +61,7 @@ To run on Mac the `Xcode` command line tools have to be installed.
         "connection_options": {
           "ssl_verify_peer": false
         },
-        "boot_from_volume": false,
+        "boot_from_volume": <replace-me>,
         "use_dhcp": true,
         "human_readable_vm_names": true
       },
@@ -70,6 +70,18 @@ To run on Mac the `Xcode` command line tools have to be installed.
         "user": "fake",
         "password": "fake"
       }
+    },
+    "config": {
+      "vm_types": [
+        { "name": "default",
+          "cloud_properties": {
+            "instance_type": "<replace-me>",
+            "root_disk": {
+              "size": <replace-me>
+            }
+          }
+        }
+      ]
     }
   },
   "validator": {
