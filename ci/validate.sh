@@ -10,6 +10,9 @@ set -e -x
 : ${NETWORK_ID:?}
 : ${FLOATING_IP:?}
 : ${PRIVATE_KEY:?}
+: ${BOOT_FROM_VOLUME:?}
+: ${INSTANCE_TYPE:?}
+: ${ROOT_DISK_SIZE:?}
 
 sudo apt-get update
 sudo apt-get -y install wget make gcc zlib1g-dev libssl-dev ssh # zlibc
@@ -40,7 +43,7 @@ cat > cpi.json <<EOF
         "connection_options": {
           "ssl_verify_peer": false
         },
-        "boot_from_volume": false,
+        "boot_from_volume": $BOOT_FROM_VOLUME,
         "use_dhcp": true,
         "human_readable_vm_names": true
       },
@@ -55,6 +58,18 @@ cat > cpi.json <<EOF
     "network_id": "$NETWORK_ID",
     "floating_ip": "$FLOATING_IP",
     "private_key_name": "cf-validator.rsa_id"
+  },
+  "cloud_config": {
+    "vm_types": [
+      { "name": "default",
+        "cloud_properties": {
+          "instance_type": "$INSTANCE_TYPE",
+          "root_disk": {
+            "size": $ROOT_DISK_SIZE
+          }
+        }
+      }
+    ]
   }
 }
 EOF

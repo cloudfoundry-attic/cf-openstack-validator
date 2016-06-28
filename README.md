@@ -70,24 +70,24 @@ To run on Mac the `Xcode` command line tools have to be installed.
         "user": "fake",
         "password": "fake"
       }
-    },
-    "config": {
-      "vm_types": [
-        { "name": "default",
-          "cloud_properties": {
-            "instance_type": "<replace-me>",
-            "root_disk": {
-              "size": <replace-me>
-            }
-          }
-        }
-      ]
     }
   },
   "validator": {
     "network_id": "<replace-me>",
     "floating_ip": "<replace-me>",
     "private_key_name": "cf-validator.rsa_id"
+  },
+  "config": {
+    "vm_types": [
+      { "name": "default",
+        "cloud_properties": {
+          "instance_type": "<replace-me>",
+          "root_disk": {
+            "size": 20
+          }
+        }
+      }
+    ]
   }
 }
 ```

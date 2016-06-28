@@ -15,6 +15,9 @@ jobs:
       NETWORK_ID:        {{network_id}}
       FLOATING_IP:       {{floating_ip}}
       PRIVATE_KEY:       {{private_key}}
+      BOOT_FROM_VOLUME:  {{boot_from_volume}}
+      INSTANCE_TYPE:     {{instance_type}}
+      ROOT_DISK_SIZE:    {{root_disk_size}}
 
 resources:
 - name: validator-src

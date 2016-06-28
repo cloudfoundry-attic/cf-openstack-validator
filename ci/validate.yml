@@ -20,6 +20,9 @@ params:
   NETWORK_ID:        ""
   FLOATING_IP:       ""
   PRIVATE_KEY:       ""
+  BOOT_FROM_VOLUME:  ""
+  INSTANCE_TYPE:     ""
+  ROOT_DISK_SIZE:    ""
 
 run:
   path: validator-src/ci/validate.sh
