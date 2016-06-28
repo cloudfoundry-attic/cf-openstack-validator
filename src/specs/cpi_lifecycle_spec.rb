@@ -236,6 +236,8 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can delete a stemcell' do
+    make_pending_unless(@globals[:stemcell_cid], 'No stemcell to delete')
+
     with_cpi('Stemcell could not be deleted') {
       @cpi.delete_stemcell(@globals[:stemcell_cid])
       untrack_resource(:images, @globals[:stemcell_cid])
