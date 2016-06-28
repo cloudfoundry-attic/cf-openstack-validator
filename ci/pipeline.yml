@@ -1,9 +1,21 @@
+---
+custom:
+  tags:
+    default: &tags []
+    suse-liberty: ['suse-liberty']
+  timeouts:
+    long: &timeouts-long 2h
+
 jobs:
 - name: validate
   plan:
   - get: validator-src
     trigger: true
+    tags: *tags
+    timeout: *timeouts-long
   - task: validate
+    tags: *tags
+    timeout: *timeouts-long
     file: validator-src/ci/validate.yml
     params:
       USERNAME:          {{username}}
