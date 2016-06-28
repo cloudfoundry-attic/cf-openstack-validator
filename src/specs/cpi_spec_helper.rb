@@ -15,10 +15,6 @@ def validator_options
   @validator_options ||= YAML.load_file(ENV['BOSH_OPENSTACK_CPI_CONFIG'])['validator']
 end
 
-def cloud_config
-  @cloud_config ||= YAML.load_file(ENV['BOSH_OPENSTACK_CPI_CONFIG'])['cloud_config']
-end
-
 def log_path
   ENV['BOSH_OPENSTACK_CPI_LOG_PATH']
 end

@@ -43,3 +43,11 @@ def openstack_suite
     end
   end
 end
+
+def default_vm_type_cloud_properties
+  cloud_config['vm_types'][0]['cloud_properties']
+end
+
+def cloud_config
+  @cloud_config ||= YAML.load_file(ENV['BOSH_OPENSTACK_CPI_CONFIG'])['cloud_config']
+end
