@@ -35,6 +35,7 @@ cat > cpi.json <<EOF
         "domain": "$DOMAIN",
         "project": "$PROJECT",
         "default_key_name": "$DEFAULT_KEY_NAME",
+        "default_security_groups": ["default"],
         "wait_resource_poll_interval": 5,
         "ignore_server_availability_zone": false,
         "endpoint_type": "publicURL",

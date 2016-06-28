@@ -53,6 +53,7 @@ To run on Mac the `Xcode` command line tools have to be installed.
         "domain": "<replace-me>",
         "project": "<replace-me>",
         "default_key_name": "cf-validator",
+        "default_security_groups": ["default"],
         "wait_resource_poll_interval": 5,
         "ignore_server_availability_zone": false,
         "endpoint_type": "publicURL",
