@@ -70,7 +70,8 @@ To run on Mac the `Xcode` command line tools have to be installed.
         "endpoint": "http://localhost:11111",
         "user": "fake",
         "password": "fake"
-      }
+      },
+      "ntp": ["0.pool.ntp.org", "1.pool.ntp.org"]
     }
   },
   "validator": {

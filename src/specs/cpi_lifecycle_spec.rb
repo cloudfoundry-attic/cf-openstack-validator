@@ -195,6 +195,19 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
                       "Failed to curl http://github.com from VM with floating IP.\nError is: #{err}"
   end
 
+  it 'allows a VM to reach the configured NTP server' do
+    ntp = YAML.load_file(ENV['BOSH_OPENSTACK_CPI_CONFIG'])['cloud']['properties']['ntp'] || ['0.pool.ntp.org', '1.pool.ntp.org']
+    sudo = " echo 'c1oudc0w' | sudo -S"
+    create_ntpserver_command = "#{sudo} bash -c \"echo #{ntp.join(' ')} | tee /var/vcap/bosh/etc/ntpserver\""
+    call_ntpdate_command = "#{sudo} /var/vcap/bosh/bin/ntpdate"
+
+    _, _, status = execute_ssh_command_on_vm(private_key_path, @validator_options["floating_ip"], create_ntpserver_command)
+    expect(status.exitstatus).to eq(0)
+
+    _, _, status = execute_ssh_command_on_vm(private_key_path, @validator_options["floating_ip"], call_ntpdate_command)
+    expect(status.exitstatus).to eq(0), "Failed to reach any of the following NTP servers: #{ntp.join(' ')}."
+  end
+
   it 'allows one VM to reach port 22 of another VM within the same network' do
     second_vm_cid = with_cpi("Second VM could not be created.") {
       track_resource(:instances) {
