@@ -94,8 +94,12 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can set vm metadata' do
-    expect(@compute.servers.get(@globals[:vm_cid]).metadata.get('registry_key')).not_to be_nil,
-      "VM metadata registry key was not written for VM with ID #{@globals[:vm_cid]}."
+    make_pending_unless(@globals[:vm_cid], 'No VM to check')
+
+    server_metadata = @compute.servers.get(@globals[:vm_cid]).metadata
+    fail_message = "VM metadata registry key was not written for VM with ID #{@globals[:vm_cid]}."
+
+    expect(server_metadata.get('registry_key')).not_to be_nil, fail_message
   end
 
   it 'can create a disk' do
