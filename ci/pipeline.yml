@@ -30,6 +30,7 @@ jobs:
       BOOT_FROM_VOLUME:  {{boot_from_volume}}
       INSTANCE_TYPE:     {{instance_type}}
       ROOT_DISK_SIZE:    {{root_disk_size}}
+      NTP_SERVER:        {{ntp_server}}
 
 resources:
 - name: validator-src

@@ -52,7 +52,8 @@ cat > cpi.json <<EOF
         "endpoint": "http://localhost:11111",
         "user": "fake",
         "password": "fake"
-      }
+      },
+      "ntp": [$NTP_SERVER]
     }
   },
   "validator": {

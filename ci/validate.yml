@@ -23,6 +23,7 @@ params:
   BOOT_FROM_VOLUME:  ""
   INSTANCE_TYPE:     ""
   ROOT_DISK_SIZE:    ""
+  NTP_SERVER:        ""
 
 run:
   path: validator-src/ci/validate.sh

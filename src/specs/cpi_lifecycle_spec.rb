@@ -196,7 +196,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'allows a VM to reach the configured NTP server' do
-    ntp = YAML.load_file(ENV['BOSH_OPENSTACK_CPI_CONFIG'])['cloud']['properties']['ntp'] || ['0.pool.ntp.org', '1.pool.ntp.org']
+    ntp = YAML.load_file(ENV['BOSH_OPENSTACK_CPI_CONFIG'])['cloud']['properties']['ntp']
     sudo = " echo 'c1oudc0w' | sudo -S"
     create_ntpserver_command = "#{sudo} bash -c \"echo #{ntp.join(' ')} | tee /var/vcap/bosh/etc/ntpserver\""
     call_ntpdate_command = "#{sudo} /var/vcap/bosh/bin/ntpdate"
@@ -205,7 +205,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     expect(status.exitstatus).to eq(0)
 
     _, _, status = execute_ssh_command_on_vm(private_key_path, @validator_options["floating_ip"], call_ntpdate_command)
-    expect(status.exitstatus).to eq(0), "Failed to reach any of the following NTP servers: #{ntp.join(' ')}."
+    expect(status.exitstatus).to eq(0), "Failed to reach any of the following NTP servers: #{ntp.join(', ')}. If your OpenStack requires an internal time server, you need to configure it in the cpi.json."
   end
 
   it 'allows one VM to reach port 22 of another VM within the same network' do
