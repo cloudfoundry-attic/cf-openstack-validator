@@ -93,6 +93,11 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     expect(@globals[:has_vm]).to be true
   end
 
+  it 'can set vm metadata' do
+    expect(@compute.servers.get(@globals[:vm_cid]).metadata.get('registry_key')).not_to be_nil,
+      "VM metadata registry key was not written for VM with ID #{@globals[:vm_cid]}."
+  end
+
   it 'can create a disk' do
     @globals[:disk_cid] = with_cpi('Disk could not be created.') {
       track_resource(:volumes) {
