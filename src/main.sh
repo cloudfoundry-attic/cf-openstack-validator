@@ -73,6 +73,13 @@ env -i \
 echo "Gems folder contains:" >> $temp_dir/logs/gem_environment.log
 ls $temp_dir/packages/ruby_openstack_cpi/lib/ruby/gems >> $temp_dir/logs/gem_environment.log
 
+if [ "${FAIL_FAST}" == "true" ];
+then
+  FAIL_FAST_OPTION="--fail-fast"
+else
+  FAIL_FAST_OPTION=""
+fi
+
 env -i \
   BOSH_PACKAGES_DIR=$temp_dir/packages \
   BOSH_OPENSTACK_CPI_LOG_PATH=$temp_dir/logs \
@@ -86,4 +93,4 @@ env -i \
   https_proxy=$https_proxy \
   HTTP_PROXY=$HTTP_PROXY \
   HTTPS_PROXY=$HTTPS_PROXY \
-  $bundle_cmd exec rspec $SCRIPT_DIR/specs --order defined --color --format documentation 2> $temp_dir/logs/testsuite.log
+  $bundle_cmd exec rspec $SCRIPT_DIR/specs $FAIL_FAST_OPTION --order defined --color --format documentation 2> $temp_dir/logs/testsuite.log

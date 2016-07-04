@@ -99,3 +99,4 @@ To run on Mac the `Xcode` command line tools have to be installed.
 ```
 ./validate bosh-openstack-cpi-release-<xxx>.tgz bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz cpi.json [<working-dir>]
 ```
+* In general, all tests are executed even if some of them fail. In order to stop after the first test failure, specify `FAIL_FAST=true` as environment variable.
