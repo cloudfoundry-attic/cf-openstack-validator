@@ -10,7 +10,7 @@ require_relative 'cpi_spec_helper'
 def with_cpi(error_message)
   yield if block_given?
 rescue => e
-  fail "#{error_message} OpenStack error: #{e.message}"
+  expect(true).to be(false), "#{error_message} OpenStack error: #{e.message}"
 end
 
 def track_resource(resource_type)

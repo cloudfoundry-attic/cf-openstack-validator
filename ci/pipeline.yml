@@ -7,7 +7,7 @@ custom:
     long: &timeouts-long 2h
 
 jobs:
-- name: validate
+- name: unit-tests
   plan:
   - get: validator-src
     trigger: true
@@ -16,7 +16,19 @@ jobs:
   - task: validate
     tags: *tags
     timeout: *timeouts-long
-    file: validator-src/ci/validate.yml
+    file: validator-src/ci/tasks/unit-tests.yml
+
+- name: validate
+  plan:
+  - get: validator-src
+    passed: [unit-tests]
+    trigger: true
+    tags: *tags
+    timeout: *timeouts-long
+  - task: validate
+    tags: *tags
+    timeout: *timeouts-long
+    file: validator-src/ci/tasks/validate.yml
     params:
       USERNAME:          {{username}}
       AUTH_URL:          {{auth_url}}

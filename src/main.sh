@@ -80,6 +80,13 @@ else
   FAIL_FAST_OPTION=""
 fi
 
+if [ "${VERBOSE_FORMATTER}" == "true" ];
+then
+  FORMATTER_OPTION="--format documentation"
+else
+  FORMATTER_OPTION="--require $SCRIPT_DIR/formatter.rb --format TestsuiteFormatter"
+fi
+
 env -i \
   BOSH_PACKAGES_DIR=$temp_dir/packages \
   BOSH_OPENSTACK_CPI_LOG_PATH=$temp_dir/logs \
@@ -93,4 +100,4 @@ env -i \
   https_proxy=$https_proxy \
   HTTP_PROXY=$HTTP_PROXY \
   HTTPS_PROXY=$HTTPS_PROXY \
-  $bundle_cmd exec rspec $SCRIPT_DIR/specs $FAIL_FAST_OPTION --order defined --color --format documentation 2> $temp_dir/logs/testsuite.log
+  $bundle_cmd exec rspec $SCRIPT_DIR/specs $FAIL_FAST_OPTION --order defined --color $FORMATTER_OPTION 2> $temp_dir/logs/testsuite.log

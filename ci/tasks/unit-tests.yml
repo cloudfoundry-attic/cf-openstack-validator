@@ -1,0 +1,13 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: boshcpi/openstack-cpi-release
+
+inputs:
+- name: validator-src
+
+run:
+  path: validator-src/ci/tasks/unit-tests.sh

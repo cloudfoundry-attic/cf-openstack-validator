@@ -26,4 +26,4 @@ params:
   NTP_SERVER:        ""
 
 run:
-  path: validator-src/ci/validate.sh
+  path: validator-src/ci/tasks/validate.sh
