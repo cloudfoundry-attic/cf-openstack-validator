@@ -51,10 +51,11 @@ bundle_cmd="$temp_dir/packages/ruby_openstack_cpi/bin/bundle"
 gems_folder=$temp_dir/packages/ruby_openstack_cpi/lib/ruby/gems/*
 path=$temp_dir/packages/ruby_openstack_cpi/bin/:$PATH
 
-env -i PATH=$path \
+env -i BUNDLE_CACHE_PATH="vendor/package" \
+       PATH=$path \
        GEM_PATH=$gems_folder \
        GEM_HOME=$gems_folder \
-       $bundle_cmd install 2>&1 > $temp_dir/logs/bundle_install.log
+       $bundle_cmd install --local 2>&1 > $temp_dir/logs/bundle_install.log
 
 env -i \
   BOSH_PACKAGES_DIR=$temp_dir/packages \

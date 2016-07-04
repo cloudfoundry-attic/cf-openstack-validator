@@ -2,3 +2,4 @@
 *.rsa_id*
 cpi.json
 target/
+vendor/cache/
