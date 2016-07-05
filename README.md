@@ -79,7 +79,7 @@ To run on Mac the `Xcode` command line tools have to be installed.
     "floating_ip": "<replace-me>",
     "private_key_name": "cf-validator.rsa_id"
   },
-  "config": {
+  "cloud_config": {
     "vm_types": [
       { "name": "default",
         "cloud_properties": {
