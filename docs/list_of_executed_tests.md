@@ -18,8 +18,15 @@
 * Check API rate limit
 * Check required versions of OpenStack projects
   * CPI requires API version 1 for glance and cinder
-* Can a floating IP be attached?
-* Is `ssh` access possible?
+* Security group settings
+  * Check if security group rules allow necessary incoming/outgoing ports
+* Outbound internet access
+* Timeservers can be reached
+* Attach a floating IP
+* Set VM metadata tags
+* Access a VM over ssh from the outside
+* Access one VM from another VM
+* Create a large volume
 
 ### Further reading:
 * [Specification of the CPI API v1](http://bosh.io/docs/cpi-api-v1.html)
