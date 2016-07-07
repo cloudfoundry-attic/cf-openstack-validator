@@ -1,5 +1,5 @@
 require 'rspec'
-require './formatter'
+require 'formatter'
 
 describe TestsuiteFormatter do
 

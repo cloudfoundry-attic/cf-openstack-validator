@@ -85,7 +85,7 @@ if [ "${VERBOSE_FORMATTER}" == "true" ];
 then
   FORMATTER_OPTION="--format documentation"
 else
-  FORMATTER_OPTION="--require $SCRIPT_DIR/formatter.rb --format TestsuiteFormatter"
+  FORMATTER_OPTION="--require $SCRIPT_DIR/../lib/formatter.rb --format TestsuiteFormatter"
 fi
 
 env -i \
