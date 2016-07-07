@@ -1,16 +1,7 @@
 #!/usr/bin/env bash
 
-function ensure_is_set() {
-  local name=$1
-  local value=$(eval echo '$'$name)
-  if [ -z "$value" ]; then
-    echo "environment variable '$name' must be set"
-    exit 1
-  fi
-}
-
-ensure_is_set temp_dir
-ensure_is_set logs
+: ${temp_dir:?}
+: ${logs:?}
 
 function install_cpi() {
   local src=$1
