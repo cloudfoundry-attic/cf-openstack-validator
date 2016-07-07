@@ -1,6 +1,6 @@
 .idea
 *.rsa_id*
 cpi.json
-validator.yml
+/validator.yml
 target/
 vendor/cache/

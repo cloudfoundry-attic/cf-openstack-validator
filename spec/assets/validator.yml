@@ -1,0 +1,10 @@
+---
+openstack:
+  auth_url: "https://auth.url/v3"
+  username: "username"
+  password: "password"
+  domain: "domain"
+  project: "project"
+  connection_options:
+    ssl_ca_file: "./cacert.pem"
+  boot_from_volume: false

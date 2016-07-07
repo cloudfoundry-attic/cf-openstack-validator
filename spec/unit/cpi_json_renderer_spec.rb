@@ -1,5 +1,5 @@
 require 'cpi_json_renderer'
-require 'YAML'
+require 'yaml'
 
 describe CpiJsonRenderer do
 

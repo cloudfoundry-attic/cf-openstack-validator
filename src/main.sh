@@ -48,8 +48,7 @@ if [ "$(cat $temp_dir/.completed)" != "$cpi_release" ]; then
   exit 1
 fi
 
-
-bundle_cmd="$temp_dir/packages/ruby_openstack_cpi/bin/bundle"
+bundle_cmd="BUNDLE_GEMFILE=$SCRIPT_DIR/../Gemfile $temp_dir/packages/ruby_openstack_cpi/bin/bundle"
 gems_folder=$temp_dir/packages/ruby_openstack_cpi/lib/ruby/gems/*
 path=$temp_dir/packages/ruby_openstack_cpi/bin/:$PATH
 
