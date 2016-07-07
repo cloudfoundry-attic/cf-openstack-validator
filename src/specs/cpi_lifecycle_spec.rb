@@ -31,7 +31,6 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   before(:all) {
     @stemcell_path     = stemcell_path
     @cpi_path          = cpi_path
-    @validator_options = validator_options
     @cloud_config      = cloud_config
     @log_path          = log_path
 
@@ -184,36 +183,36 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     vm = @compute.servers.get(vm_cid)
     vm.wait_for { ready? }
 
-    _, err, status = execute_ssh_command_on_vm_with_retry(private_key_path, @validator_options["floating_ip"], "echo hi")
+    _, err, status = execute_ssh_command_on_vm_with_retry(private_key_path, validator_options["floating_ip"], "echo hi")
 
     expect(status.exitstatus).to eq(0), "SSH connection to VM with floating IP didn't succeed.\nError was: #{err}"
   end
 
   it 'can access the internet' do
     _, err, status = execute_ssh_command_on_vm(private_key_path,
-                                            @validator_options["floating_ip"], "nslookup github.com")
+                                            validator_options["floating_ip"], "nslookup github.com")
 
     if status.exitstatus > 0
       fail "DNS server might not be reachable from VM with floating IP.\nError is: #{err}"
     end
 
    _, err, status = execute_ssh_command_on_vm(private_key_path,
-                                            @validator_options["floating_ip"], "curl http://github.com")
+                                            validator_options["floating_ip"], "curl http://github.com")
 
     expect(status.exitstatus).to eq(0),
                       "Failed to curl http://github.com from VM with floating IP.\nError is: #{err}"
   end
 
   it 'allows a VM to reach the configured NTP server' do
-    ntp = YAML.load_file(ENV['BOSH_OPENSTACK_CPI_CONFIG'])['cloud']['properties']['ntp']
+    ntp = YAML.load_file(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])['validator']['ntp'] || ['0.pool.ntp.org', '1.pool.ntp.org']
     sudo = " echo 'c1oudc0w' | sudo -S"
     create_ntpserver_command = "#{sudo} bash -c \"echo #{ntp.join(' ')} | tee /var/vcap/bosh/etc/ntpserver\""
     call_ntpdate_command = "#{sudo} /var/vcap/bosh/bin/ntpdate"
 
-    _, _, status = execute_ssh_command_on_vm(private_key_path, @validator_options["floating_ip"], create_ntpserver_command)
+    _, _, status = execute_ssh_command_on_vm(private_key_path, validator_options["floating_ip"], create_ntpserver_command)
     expect(status.exitstatus).to eq(0)
 
-    _, _, status = execute_ssh_command_on_vm(private_key_path, @validator_options["floating_ip"], call_ntpdate_command)
+    _, _, status = execute_ssh_command_on_vm(private_key_path, validator_options["floating_ip"], call_ntpdate_command)
     expect(status.exitstatus).to eq(0), "Failed to reach any of the following NTP servers: #{ntp.join(', ')}. If your OpenStack requires an internal time server, you need to configure it in the cpi.json."
   end
 
@@ -235,7 +234,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     second_vm_ip = second_vm.addresses.values.first.first['addr']
     second_vm.wait_for { ready? }
 
-    _, err, status = execute_ssh_command_on_vm_with_retry(private_key_path, @validator_options["floating_ip"], "nc -zv #{second_vm_ip} 22")
+    _, err, status = execute_ssh_command_on_vm_with_retry(private_key_path, validator_options["floating_ip"], "nc -zv #{second_vm_ip} 22")
 
     expect(status.exitstatus).to eq(0), "Failed to nc port 22 on second VM.\nError is: #{err}"
 

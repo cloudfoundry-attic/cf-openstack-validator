@@ -16,8 +16,8 @@ Is your OpenStack installation ready to run BOSH and install Cloud Foundry? Run 
 * Allocate a floating IP
 * Allow ssh access in the `default` security group
 * Create a key pair by executing
-```
-ssh-keygen -t rsa -b 4096 -N "" -f cf-validator.rsa_id
+```bash
+$ ssh-keygen -t rsa -b 4096 -N "" -f cf-validator.rsa_id
 ```
   * Upload the generated public key to OpenStack as `cf-validator`
 
@@ -40,64 +40,15 @@ To run on Mac the `Xcode` command line tools have to be installed.
 * `git clone https://github.com/cloudfoundry-incubator/cf-openstack-validator.git`
 * `cd cf-openstack-validator`
 * Copy the generated private key into the `cf-openstack-validator` folder.
-* Create file `cpi.json` with the following content and replace occurrences of `<replace-me>` with appropriate values (see prerequisites)
-```json
-{
-  "cloud": {
-    "plugin": "openstack",
-    "properties": {
-      "openstack": {
-        "auth_url": "<replace-me>/auth/tokens",
-        "username": "<replace-me>",
-        "api_key": "<replace-me>",
-        "domain": "<replace-me>",
-        "project": "<replace-me>",
-        "default_key_name": "cf-validator",
-        "default_security_groups": ["default"],
-        "wait_resource_poll_interval": 5,
-        "ignore_server_availability_zone": false,
-        "endpoint_type": "publicURL",
-        "state_timeout": 300,
-        "stemcell_public_visibility": false,
-        "connection_options": {
-          "ssl_verify_peer": false
-        },
-        "boot_from_volume": <replace-me>,
-        "use_dhcp": true,
-        "human_readable_vm_names": true
-      },
-      "registry": {
-        "endpoint": "http://localhost:11111",
-        "user": "fake",
-        "password": "fake"
-      },
-      "ntp": ["0.pool.ntp.org", "1.pool.ntp.org"]
-    }
-  },
-  "validator": {
-    "network_id": "<replace-me>",
-    "floating_ip": "<replace-me>",
-    "private_key_name": "cf-validator.rsa_id"
-  },
-  "cloud_config": {
-    "vm_types": [
-      { "name": "default",
-        "cloud_properties": {
-          "instance_type": "<replace-me>",
-          "root_disk": {
-            "size": 20
-          }
-        }
-      }
-    ]
-  }
-}
+* Copy [validator.template.yml](validator.template.yml) to `validator.yml` and replace occurrences of `<replace-me>` with appropriate values (see prerequisites)
+```bash
+$ cp validator.template.yml validator.yml
 ```
 * Download OpenStack CPI from [OpenStack CPI bosh.io](http://bosh.io/releases/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?all=1)
 * Download a stemcell from [OpenStack stemcells bosh.io](http://bosh.io/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent)
 * Start validation
-```
-./validate bosh-openstack-cpi-release-<xxx>.tgz bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz cpi.json [<working-dir>]
+```bash
+$ ./validate bosh-openstack-cpi-release-<xxx>.tgz bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz validator.yml [<working-dir>]
 ```
 
 ### Environment variables

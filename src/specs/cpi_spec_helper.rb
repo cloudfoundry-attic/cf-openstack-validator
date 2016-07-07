@@ -12,7 +12,7 @@ def cpi_path
 end
 
 def validator_options
-  @validator_options ||= YAML.load_file(ENV['BOSH_OPENSTACK_CPI_CONFIG'])['validator']
+  @validator_options ||= YAML.load_file(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])['validator']
 end
 
 def log_path
@@ -20,8 +20,9 @@ def log_path
 end
 
 def private_key_path
-  private_key_name = validator_options["private_key_name"]
-  File.join(File.dirname(__FILE__), "..", "..", private_key_name)
+  private_key_path = validator_options['private_key_path']
+  # TODO is that a relative path?
+  File.join(File.dirname(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG']), private_key_path)
 end
 
 def execute_ssh_command_on_vm_with_retry(private_key_path, ip, command, time_in_seconds = 60, frequency = 3)

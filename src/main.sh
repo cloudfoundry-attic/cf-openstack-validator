@@ -14,11 +14,13 @@ SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 #mandatory
 cpi_release=$1
 stemcell=$2
-cpi_config=$3
+validator_config=$3
 
 #optional
 temp_dir=${4:-`mktemp -d`}
+
 logs=$temp_dir/logs
+cpi_config=$temp_dir/cpi.json
 
 source $SCRIPT_DIR/functions.sh
 
@@ -57,6 +59,11 @@ env -i BUNDLE_CACHE_PATH="vendor/package" \
        GEM_HOME=$gems_folder \
        $bundle_cmd install --local 2>&1 > $temp_dir/logs/bundle_install.log
 
+env -i PATH=$path \
+       GEM_PATH=$gems_folder \
+       GEM_HOME=$gems_folder \
+       $bundle_cmd exec ruby $SCRIPT_DIR/generate_cpi_json.rb $validator_config $cpi_config
+
 env -i \
   BOSH_PACKAGES_DIR=$temp_dir/packages \
   BOSH_OPENSTACK_CPI_LOG_PATH=$temp_dir/logs \
@@ -93,7 +100,7 @@ env -i \
   BOSH_OPENSTACK_CPI_LOG_PATH=$temp_dir/logs \
   BOSH_OPENSTACK_STEMCELL_PATH=$temp_dir/stemcell \
   BOSH_OPENSTACK_CPI_PATH=$temp_dir/cpi \
-  BOSH_OPENSTACK_CPI_CONFIG=$cpi_config \
+  BOSH_OPENSTACK_VALIDATOR_CONFIG=$validator_config \
   PATH=$path \
   GEM_PATH=$gems_folder \
   GEM_HOME=$gems_folder \

@@ -37,8 +37,7 @@ def openstack_suite
   @openstack_suite = RSpec.describe 'Your OpenStack', order: :openstack do
 
     before(:all) do
-      @openstack_params = openstack_params
-      @fog_params = convert_to_fog_params(@openstack_params)
+      @fog_params = convert_to_fog_params(openstack_params)
       @compute = compute(@fog_params)
     end
   end
@@ -49,5 +48,5 @@ def default_vm_type_cloud_properties
 end
 
 def cloud_config
-  @cloud_config ||= YAML.load_file(ENV['BOSH_OPENSTACK_CPI_CONFIG'])['cloud_config']
+  @cloud_config ||= YAML.load_file(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])['cloud_config']
 end
