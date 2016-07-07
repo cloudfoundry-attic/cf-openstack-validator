@@ -13,7 +13,7 @@ validator:
   network_id: <%=ENV['NETWORK_ID']%>
   floating_ip: <%=ENV['FLOATING_IP']%>
   private_key_path: cf-validator.rsa_id # relative to validator.yml, no absolute path supported
-  ntp: [<%=ENV['TIMEHOST']%>] # if your openstack requires specific NTP servers, list them here!
+  ntp: [<%=ENV['NTP_SERVER']%>] # if your openstack requires specific NTP servers, list them here!
 
 cloud_config:
   vm_types: # TODO link to bosh.io?

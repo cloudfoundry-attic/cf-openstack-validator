@@ -11,7 +11,7 @@ set -e -x
 : ${FLOATING_IP:?}
 : ${PRIVATE_KEY:?}
 : ${INSTANCE_TYPE:?}
-: ${TIMEHOST:?}
+: ${NTP_SERVER:?}
 
 sudo apt-get update
 sudo apt-get -y install wget make gcc zlib1g-dev libssl-dev ssh ruby # zlibc
