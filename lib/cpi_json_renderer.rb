@@ -1,3 +1,5 @@
+require_relative 'network_helper'
+
 class CpiJsonRenderer
 
   REQUIRED_PARAMS = ['auth_url', 'username', 'password', 'domain', 'project']
@@ -17,14 +19,14 @@ class CpiJsonRenderer
     }
   end
 
-  def self.cpi_config(openstack_params)
+  def self.cpi_config(openstack_params, registry_port)
     {
       "cloud" => {
         "plugin" => "openstack",
         "properties" => {
           "openstack" => openstack_defaults.merge(openstack_params),
           "registry" => {
-            "endpoint" => "http://localhost:11111",
+            "endpoint" => "http://localhost:#{registry_port}",
             "user" => "fake",
             "password" => "fake"
           }
@@ -39,7 +41,9 @@ class CpiJsonRenderer
       raise StandardError, "Required openstack properties missing: '#{missing_params.join(', ')}'"
     end
 
-    cpi_config(convert(validator_config['openstack']))
+    registry_port = NetworkHelper.next_free_ephemeral_port
+
+    cpi_config(convert(validator_config['openstack']), registry_port)
   end
 
   private

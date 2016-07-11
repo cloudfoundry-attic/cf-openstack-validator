@@ -106,10 +106,14 @@ def cpi(cpi_path, log_path)
   Bosh::Clouds::ExternalCpi.new(cpi_path, 'director-UUID')
 end
 
-def create_server
+def registry_port
+  endpoint = YAML.load_file(ENV['BOSH_OPENSTACK_CPI_CONFIG'])['cloud']['properties']['registry']['endpoint']
+  endpoint.scan(/\d+/).join.to_i
+end
+
+def create_server(port)
   require 'socket'
-  # TODO fake registry port should not be hard coded
-  server = TCPServer.new('localhost', 11111)
+  server = TCPServer.new('localhost', port)
 
   accept_thread = Thread.new {
     loop do

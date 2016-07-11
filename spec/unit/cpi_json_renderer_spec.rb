@@ -8,9 +8,9 @@ describe CpiJsonRenderer do
       validator_config = YAML.load_file("#{File.dirname(__FILE__)}/../assets/validator.yml")
       expected_cpi_config =  YAML.load_file("#{File.dirname(__FILE__)}/../assets/expected_cpi.json")
 
-      rendered_cpi_config = CpiJsonRenderer.render(validator_config)
+      allow(NetworkHelper).to receive(:next_free_ephemeral_port).and_return(11111)
 
-      expect(rendered_cpi_config).to eq(expected_cpi_config)
+      expect(CpiJsonRenderer.render(validator_config)).to eq(expected_cpi_config)
     end
   end
 
@@ -58,6 +58,16 @@ describe CpiJsonRenderer do
 
         expect(rendered_cpi_config['cloud']['properties']['openstack']['api_key']).to eq complete_config['openstack']['password']
         expect(rendered_cpi_config['cloud']['properties']['openstack']['password']).to be_nil
+      end
+    end
+
+    describe 'registry configuration' do
+      it "uses the next free ephemeral port" do
+        expect(NetworkHelper).to receive(:next_free_ephemeral_port).and_return(60000)
+
+        rendered_cpi_config = CpiJsonRenderer.render(complete_config)
+
+        expect(rendered_cpi_config['cloud']['properties']['registry']['endpoint']).to eq('http://localhost:60000')
       end
     end
 

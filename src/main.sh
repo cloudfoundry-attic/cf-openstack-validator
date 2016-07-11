@@ -100,6 +100,7 @@ env -i \
   BOSH_OPENSTACK_STEMCELL_PATH=$temp_dir/stemcell \
   BOSH_OPENSTACK_CPI_PATH=$temp_dir/cpi \
   BOSH_OPENSTACK_VALIDATOR_CONFIG=$validator_config \
+  BOSH_OPENSTACK_CPI_CONFIG=$cpi_config \
   PATH=$path \
   GEM_PATH=$gems_folder \
   GEM_HOME=$gems_folder \
