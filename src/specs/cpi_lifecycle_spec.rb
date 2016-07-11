@@ -68,6 +68,8 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can create a VM' do
+    make_pending_unless(@globals[:stemcell_cid], 'No stemcell available')
+
     @globals[:vm_cid] = with_cpi("VM could not be created.") {
       track_resource(:instances) {
         @cpi.create_vm(
@@ -84,7 +86,9 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     expect(@globals[:vm_cid]).to be
   end
 
-  it 'has vm cid' do
+  it 'has VM cid' do
+    make_pending_unless(@globals[:vm_cid], 'No VM to check')
+
     with_cpi('VM cid could not be found.') {
       @globals[:has_vm] = @cpi.has_vm?(@globals[:vm_cid])
     }
@@ -92,8 +96,8 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     expect(@globals[:has_vm]).to be true
   end
 
-  it 'can set vm metadata' do
-    make_pending_unless(@globals[:vm_cid], 'No VM to check')
+  it 'can set VM metadata' do
+    make_pending_unless(@globals[:vm_cid], 'No VM to set metadata for')
 
     server_metadata = @compute.servers.get(@globals[:vm_cid]).metadata
     fail_message = "VM metadata registry key was not written for VM with ID #{@globals[:vm_cid]}."
@@ -101,7 +105,9 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     expect(server_metadata.get('registry_key')).not_to be_nil, fail_message
   end
 
-  it 'can create a disk' do
+  it 'can create a disk in same AZ as VM' do
+    make_pending_unless(@globals[:vm_cid], 'No VM to create disk for')
+
     @globals[:disk_cid] = with_cpi('Disk could not be created.') {
       track_resource(:volumes) {
         @cpi.create_disk(2048, {}, @globals[:vm_cid])
@@ -112,6 +118,8 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'has disk cid' do
+    make_pending_unless(@globals[:disk_cid], 'No disk to check')
+
     with_cpi('Disk cid could not be found.') {
       @globals[:has_disk] = @cpi.has_disk?(@globals[:disk_cid])
     }
@@ -120,18 +128,26 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can attach the disk to the VM' do
+    make_pending_unless(@globals[:vm_cid], 'No VM to attach disk to')
+    make_pending_unless(@globals[:disk_cid], 'No disk to attach')
+
     with_cpi("Disk '#{@globals[:disk_cid]}' could not be attached to VM '#{@globals[:vm_cid]}'.") {
       @cpi.attach_disk(@globals[:vm_cid], @globals[:disk_cid])
     }
   end
 
   it 'can detach the disk from the VM' do
+    make_pending_unless(@globals[:vm_cid], 'No VM to detach disk from')
+    make_pending_unless(@globals[:disk_cid], 'No disk to detach')
+
     with_cpi("Disk '#{@globals[:disk_cid]}' could not be detached from VM '#{@globals[:vm_cid]}'.") {
       @cpi.detach_disk(@globals[:vm_cid], @globals[:disk_cid])
     }
   end
 
   it 'can take a snapshot' do
+    make_pending_unless(@globals[:disk_cid], 'No disk to create snapshot from')
+
     @globals[:snapshot_cid] = with_cpi("Snapshot for disk '#{@globals[:disk_cid]}' could not be taken.") {
       track_resource(:snapshots) {
         @cpi.snapshot_disk(@globals[:disk_cid], {})
@@ -167,6 +183,8 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can attach floating IP to a VM' do
+    make_pending_unless(@globals[:stemcell_cid], 'No stemcell to create VM from')
+
     @globals[:vm_cid_with_floating_ip] = vm_cid = with_cpi("Floating IP could not be attached.") {
       track_resource(:instances) {
         @cpi.create_vm(
@@ -189,6 +207,8 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can access the internet' do
+    make_pending_unless(@globals[:vm_cid_with_floating_ip], 'No VM to use')
+
     _, err, status = execute_ssh_command_on_vm(private_key_path,
                                             validator_options["floating_ip"], "nslookup github.com")
 
@@ -204,6 +224,8 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'allows a VM to reach the configured NTP server' do
+    make_pending_unless(@globals[:vm_cid_with_floating_ip], 'No VM to use')
+
     ntp = YAML.load_file(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])['validator']['ntp'] || ['0.pool.ntp.org', '1.pool.ntp.org']
     sudo = " echo 'c1oudc0w' | sudo -S"
     create_ntpserver_command = "#{sudo} bash -c \"echo #{ntp.join(' ')} | tee /var/vcap/bosh/etc/ntpserver\""
@@ -217,6 +239,9 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'allows one VM to reach port 22 of another VM within the same network' do
+    make_pending_unless(@globals[:vm_cid_with_floating_ip], 'No VM to use')
+    make_pending_unless(@globals[:stemcell_cid], 'No stemcell to create a second VM from')
+
     second_vm_cid = with_cpi("Second VM could not be created.") {
       track_resource(:instances) {
         @cpi.create_vm(
