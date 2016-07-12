@@ -44,7 +44,10 @@ function compile_package() {
   mkdir -p $target/$package_name
   pushd $src/packages/$package_name > /dev/null
     chmod +x ./packaging
-    env -i PATH=$PATH BOSH_INSTALL_TARGET=$target/$package_name BOSH_PACKAGES_DIR=${target} ./packaging &> "$logs/packaging-$package_name.log"
+    logfile_path=$logs/packaging-$package_name.log
+    set +e
+    env -i PATH=$PATH BOSH_INSTALL_TARGET=$target/$package_name BOSH_PACKAGES_DIR=${target} ./packaging &> $logfile_path
+    print_log_on_failure $logfile_path
   popd > /dev/null
 }
 
@@ -70,4 +73,12 @@ read -r INPUT
 echo \$INPUT | \$bundle_cmd exec \$BOSH_PACKAGES_DIR/bosh_openstack_cpi/bin/openstack_cpi $cpi_config
 EOF
   chmod +x $target
+}
+
+function print_log_on_failure() {
+    if [ $? -ne 0 ]; then
+        set -e
+        echo "You can find more information in the logs at $1"
+        exit 1
+    fi
 }

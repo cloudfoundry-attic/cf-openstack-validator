@@ -82,16 +82,41 @@ describe TestsuiteFormatter do
   end
 
   describe '#dump_summary' do
-    it 'should report successful, pending and failing messages' do
-      summary = instance_double(RSpec::Core::Notifications::SummaryNotification)
+
+    let(:failure_count) { 0 }
+    let(:summary) { instance_double(RSpec::Core::Notifications::SummaryNotification) }
+
+    before(:each) do
       allow(summary).to receive(:formatted_duration).and_return('47.11')
       allow(summary).to receive(:formatted_load_time).and_return('11.47')
+      allow(summary).to receive(:failure_count).and_return(failure_count)
       allow(summary).to receive(:colorized_totals_line).and_return('3 examples, 1 failures, 1 pending')
+    end
 
+    it 'should report successful, pending and failing messages' do
       subject.dump_summary(summary)
 
       expect(output.string).to eq("\nFinished in 47.11 (files took 11.47 to load)\n3 examples, 1 failures, 1 pending\n")
     end
 
+    context 'with test failures' do
+
+      let(:failure_count) { 1 }
+
+      before(:each) do
+        @orig_log_path = ENV['BOSH_OPENSTACK_CPI_LOG_PATH']
+        ENV['BOSH_OPENSTACK_CPI_LOG_PATH'] = 'test/path'
+      end
+
+      after(:each) do
+        ENV['BOSH_OPENSTACK_CPI_LOG_PATH'] = @orig_log_path if @orig_log_path
+      end
+
+      it 'points the user to the log file' do
+        subject.dump_summary(summary)
+
+        expect(output.string).to match(/You can find more information in the logs at test\/path\/testsuite.log/)
+      end
+    end
   end
 end
