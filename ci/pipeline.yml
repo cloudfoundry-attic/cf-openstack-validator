@@ -19,6 +19,7 @@ jobs:
     file: validator-src/ci/tasks/unit-tests.yml
 
 - name: validate
+  serial: true
   plan:
   - get: validator-src
     passed: [unit-tests]
@@ -42,9 +43,62 @@ jobs:
       INSTANCE_TYPE:     {{instance_type}}
       NTP_SERVER:        {{ntp_server}}
 
+- name: release
+  plan:
+  - aggregate:
+    - {get: validator-src, passed: [validate], tags: *tags, timeout: *timeouts-long }
+    - {get: release-semver, tags: *tags, timeout: *timeouts-long }
+
+  - task: generate-commitish
+    tags: *tags
+    timeout: *timeouts-long
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: boshcpi/openstack-cpi-release}
+      inputs:
+      - name: validator-src
+      outputs:
+      - name: generated-commitish
+      run:
+        path: sh
+        args:
+        - -c
+        - "git -C validator-src rev-parse HEAD > generated-commitish/commitish && echo 'Commitish to release:' $(cat generated-commitish/commitish)"
+
+  - put: gh-release
+    tags: *tags
+    timeout: *timeouts-long
+    params:
+      name: release-semver/version
+      tag: release-semver/version
+      tag-prefix: v
+      commitish: generated-commitish/commitish
+
+  - put: release-semver
+    tags: *tags
+    timeout: *timeouts-long
+    params: { bump: minor }
+
 resources:
 - name: validator-src
   type: git
   source:
     uri: https://github.com/cloudfoundry-incubator/cf-openstack-validator
     branch: master
+- name: gh-release
+  type: github-release
+  source:
+    user: cloudfoundry-incubator
+    repository: cf-openstack-validator
+    access_token: {{github_release_access_token}}
+- name: release-semver
+  type: semver
+  source:
+    initial_version: 1.0.0
+    driver: git
+    uri: git@github.com:cloudfoundry-incubator/cf-openstack-validator.git
+    branch: release-semver
+    file: VERSION
+    private_key: {{validator_github_private_key}}
