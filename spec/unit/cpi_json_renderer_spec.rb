@@ -1,5 +1,4 @@
-require 'cpi_json_renderer'
-require 'yaml'
+require_relative 'spec_helper'
 
 describe CpiJsonRenderer do
 

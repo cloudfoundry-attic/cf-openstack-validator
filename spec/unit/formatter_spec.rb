@@ -1,5 +1,4 @@
-require 'rspec'
-require 'formatter'
+require_relative 'spec_helper'
 
 describe TestsuiteFormatter do
 
@@ -96,7 +95,17 @@ describe TestsuiteFormatter do
     it 'should report successful, pending and failing messages' do
       subject.dump_summary(summary)
 
-      expect(output.string).to eq("\nFinished in 47.11 (files took 11.47 to load)\n3 examples, 1 failures, 1 pending\n")
+      expect(output.string).to include("\nFinished in 47.11 (files took 11.47 to load)\n3 examples, 1 failures, 1 pending\n")
+    end
+
+    it 'gets the summary from the resource tracker' do
+      resource_tracker = instance_double(ResourceTracker)
+      allow(resource_tracker).to receive(:summary).and_return('resources-summary')
+      allow(CfValidator).to receive(:resources).and_return(resource_tracker)
+
+      subject.dump_summary(summary)
+
+      expect(output.string).to include('resources-summary')
     end
 
     context 'with test failures' do

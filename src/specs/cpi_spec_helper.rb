@@ -136,16 +136,6 @@ def create_server(port)
   [server, accept_thread]
 end
 
-def delete_vm(vm_cid)
-  if vm_cid
-    begin
-      @cpi.delete_vm(vm_cid)
-      untrack_resource(:instances, vm_cid)
-    rescue
-    end
-  end
-end
-
 def create_headers(headers)
   headers.map { |line| "#{line}\r\n" }.join('')
 end

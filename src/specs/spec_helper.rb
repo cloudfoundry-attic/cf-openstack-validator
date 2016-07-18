@@ -1,28 +1,7 @@
 require_relative 'openstack_spec_helper'
+require_relative '../../lib/validator'
 
 RSpec.configure do |config|
-
-  config.before(:suite) do
-    $resources = {
-        instances: [],
-        images: [],
-        volumes: [],
-        snapshots: []
-    }
-  end
-
-  config.after(:suite) do
-    leaked_resources = $resources.inject(0) { |sum, entry| sum += entry[1].length }
-
-    if leaked_resources > 0
-      puts red "\nThe following resources might not have been cleaned up:\n"
-      puts red $resources
-                   .reject { |_, resource_ids| resource_ids.length == 0 }
-                   .map { |resource_type, resource_ids| "  #{resource_type}: #{resource_ids.join(', ')}" }
-                   .join("\n")
-    end
-  end
-
   config.register_ordering(:openstack) do |items|
     items.sort_by { |item| item.metadata[:position] }
   end
@@ -40,6 +19,11 @@ def openstack_suite
       @fog_params = convert_to_fog_params(openstack_params)
       @compute = compute(@fog_params)
     end
+
+    after(:all) do
+      CfValidator.resources.untrack(@compute, cleanup: !Cli.new(ENV).skip_cleanup?)
+    end
+
   end
 end
 

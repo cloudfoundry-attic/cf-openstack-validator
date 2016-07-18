@@ -24,6 +24,7 @@ class TestsuiteFormatter < RSpec::Core::Formatters::DocumentationFormatter
     output.puts "\nFinished in #{summary.formatted_duration} " \
                     "(files took #{summary.formatted_load_time} to load)\n" \
                     "#{summary.colorized_totals_line}\n"
+    output.puts "Resources: #{CfValidator.resources.summary}"
 
     if summary.failure_count > 0
       output.puts "\nYou can find more information in the logs at #{File.join(Pathname.new(ENV['BOSH_OPENSTACK_CPI_LOG_PATH']).cleanpath, 'testsuite.log')}"

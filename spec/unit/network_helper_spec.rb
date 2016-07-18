@@ -1,5 +1,4 @@
-require 'rspec'
-require 'network_helper'
+require_relative 'spec_helper'
 
 describe NetworkHelper do
   describe '.next_free_ephemeral_port' do

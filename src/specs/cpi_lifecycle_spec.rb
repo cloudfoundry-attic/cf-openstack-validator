@@ -1,30 +1,11 @@
-require 'ostruct'
-require 'psych'
-require 'json'
-require 'rspec/core'
-require 'yaml'
-
 require_relative 'spec_helper'
 require_relative 'cpi_spec_helper'
 
 def with_cpi(error_message)
   yield if block_given?
 rescue => e
-  expect(true).to be(false), "#{error_message} OpenStack error: #{e.message}"
+  fail("#{error_message} OpenStack error: #{e.message}")
 end
-
-def track_resource(resource_type)
-  if block_given?
-    resource_id = yield
-    $resources[resource_type] << resource_id
-    resource_id
-  end
-end
-
-def untrack_resource(resource_type, resource_id)
-    $resources[resource_type].delete resource_id
-end
-
 
 openstack_suite.context 'using the CPI', position: 2, order: :global do
 
@@ -54,14 +35,14 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   }
 
   after(:all) {
-    delete_vm @globals[:vm_cid_with_floating_ip]
+    @cpi.delete_vm(@globals[:vm_cid_with_floating_ip])
   }
 
   it 'can save a stemcell' do
-    stemcell_manifest = Psych.load_file(File.join(@stemcell_path, "stemcell.MF"))
+    stemcell_manifest = YAML.load_file(File.join(@stemcell_path, 'stemcell.MF'))
     @globals[:stemcell_cid] = with_cpi('Stemcell could not be uploaded') {
-      track_resource(:images) {
-        @cpi.create_stemcell(File.join(@stemcell_path, "image"), stemcell_manifest["cloud_properties"])
+      CfValidator.resources.track(:images) {
+        @cpi.create_stemcell(File.join(@stemcell_path, 'image'), stemcell_manifest['cloud_properties'])
       }
     }
     expect(@globals[:stemcell_cid]).to be
@@ -70,8 +51,8 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   it 'can create a VM' do
     make_pending_unless(@globals[:stemcell_cid], 'No stemcell available')
 
-    @globals[:vm_cid] = with_cpi("VM could not be created.") {
-      track_resource(:instances) {
+    @globals[:vm_cid] = with_cpi('VM could not be created.') {
+      CfValidator.resources.track(:servers) {
         @cpi.create_vm(
             'agent-id',
             @globals[:stemcell_cid],
@@ -109,7 +90,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     make_pending_unless(@globals[:vm_cid], 'No VM to create disk for')
 
     @globals[:disk_cid] = with_cpi('Disk could not be created.') {
-      track_resource(:volumes) {
+      CfValidator.resources.track(:volumes) {
         @cpi.create_disk(2048, {}, @globals[:vm_cid])
       }
     }
@@ -149,7 +130,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     make_pending_unless(@globals[:disk_cid], 'No disk to create snapshot from')
 
     @globals[:snapshot_cid] = with_cpi("Snapshot for disk '#{@globals[:disk_cid]}' could not be taken.") {
-      track_resource(:snapshots) {
+      CfValidator.resources.track(:snapshots) {
         @cpi.snapshot_disk(@globals[:disk_cid], {})
       }
     }
@@ -160,7 +141,6 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
     with_cpi("Snapshot '#{@globals[:snapshot_cid]}' for disk '#{@globals[:disk_cid]}' could not be deleted.") {
       @cpi.delete_snapshot(@globals[:snapshot_cid])
-      untrack_resource(:snapshots, @globals[:snapshot_cid])
     }
   end
 
@@ -169,7 +149,6 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
     with_cpi("Disk '#{@globals[:disk_cid]}' could not be deleted.") {
       @cpi.delete_disk(@globals[:disk_cid])
-      untrack_resource(:volumes, @globals[:disk_cid])
     }
   end
 
@@ -178,15 +157,14 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
     with_cpi("VM '#{@globals[:vm_cid]}' could not be deleted.") {
       @cpi.delete_vm(@globals[:vm_cid])
-      untrack_resource(:instances, @globals[:vm_cid])
     }
   end
 
   it 'can attach floating IP to a VM' do
     make_pending_unless(@globals[:stemcell_cid], 'No stemcell to create VM from')
 
-    @globals[:vm_cid_with_floating_ip] = vm_cid = with_cpi("Floating IP could not be attached.") {
-      track_resource(:instances) {
+    @globals[:vm_cid_with_floating_ip] = vm_cid = with_cpi('Floating IP could not be attached.') {
+      CfValidator.resources.track(:servers) {
         @cpi.create_vm(
           'agent-id',
           @globals[:stemcell_cid],
@@ -242,8 +220,8 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     make_pending_unless(@globals[:vm_cid_with_floating_ip], 'No VM to use')
     make_pending_unless(@globals[:stemcell_cid], 'No stemcell to create a second VM from')
 
-    second_vm_cid = with_cpi("Second VM could not be created.") {
-      track_resource(:instances) {
+    second_vm_cid = with_cpi('Second VM could not be created.') {
+      CfValidator.resources.track(:servers) {
         @cpi.create_vm(
             'agent-id',
             @globals[:stemcell_cid],
@@ -263,21 +241,20 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
     expect(status.exitstatus).to eq(0), "Failed to nc port 22 on second VM.\nError is: #{err}"
 
-    delete_vm(second_vm_cid)
+    @cpi.delete_vm(second_vm_cid)
   end
 
   it 'can create large disk' do
     large_disk_cid = with_cpi("Large disk could not be created.\n" +
         'Hint: If you are using DevStack, you need to manually set a' +
         'larger backing file size in your localrc.') {
-      track_resource(:volumes){
+      CfValidator.resources.track(:volumes){
         @cpi.create_disk(30720, {})
       }
     }
 
     with_cpi("Large disk '#{large_disk_cid}' could not be deleted.") {
       @cpi.delete_disk(large_disk_cid)
-      untrack_resource(:volumes, large_disk_cid)
     }
   end
 
@@ -286,7 +263,6 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
     with_cpi('Stemcell could not be deleted') {
       @cpi.delete_stemcell(@globals[:stemcell_cid])
-      untrack_resource(:images, @globals[:stemcell_cid])
     }
   end
 end
