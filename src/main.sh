@@ -66,6 +66,8 @@ env -i PATH=$path \
        GEM_HOME=$gems_folder \
        $bundle_cmd exec ruby $SCRIPT_DIR/generate_cpi_json.rb $validator_config $cpi_config
 
+exit_on_error
+
 env -i \
   BOSH_PACKAGES_DIR=$temp_dir/packages \
   BOSH_OPENSTACK_CPI_LOG_PATH=$temp_dir/logs \

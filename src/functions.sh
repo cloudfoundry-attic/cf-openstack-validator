@@ -82,3 +82,9 @@ function print_log_on_failure() {
         exit 1
     fi
 }
+
+function exit_on_error() {
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+}

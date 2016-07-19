@@ -1,6 +1,6 @@
 require_relative 'spec_helper'
 
-describe CpiJsonRenderer do
+describe Converter do
 
   describe 'end to end' do
     it 'produces the expected result for the given input' do
@@ -9,11 +9,11 @@ describe CpiJsonRenderer do
 
       allow(NetworkHelper).to receive(:next_free_ephemeral_port).and_return(11111)
 
-      expect(CpiJsonRenderer.render(validator_config)).to eq(expected_cpi_config)
+      expect(Converter.to_cpi_json(validator_config)).to eq(expected_cpi_config)
     end
   end
 
-  describe '.render' do
+  describe '.to_cpi_json' do
 
     let(:complete_config) do
       {
@@ -38,7 +38,7 @@ describe CpiJsonRenderer do
             keys.each { |key| complete_config['openstack'].delete(key) }
 
             expect {
-              CpiJsonRenderer.render(complete_config)
+              Converter.to_cpi_json(complete_config)
             }.to raise_error StandardError, "Required openstack properties missing: '#{keys.join(', ')}'"
           end
         end
@@ -47,13 +47,13 @@ describe CpiJsonRenderer do
 
     describe 'conversions' do
       it "appends 'auth/tokens' to 'auth_url' parameter" do
-        rendered_cpi_config = CpiJsonRenderer.render(complete_config)
+        rendered_cpi_config = Converter.to_cpi_json(complete_config)
 
         expect(rendered_cpi_config['cloud']['properties']['openstack']['auth_url']).to eq 'https://auth.url/v3/auth/tokens'
       end
 
       it "replaces 'password' key with 'api_key'" do
-        rendered_cpi_config = CpiJsonRenderer.render(complete_config)
+        rendered_cpi_config = Converter.to_cpi_json(complete_config)
 
         expect(rendered_cpi_config['cloud']['properties']['openstack']['api_key']).to eq complete_config['openstack']['password']
         expect(rendered_cpi_config['cloud']['properties']['openstack']['password']).to be_nil
@@ -64,7 +64,7 @@ describe CpiJsonRenderer do
       it "uses the next free ephemeral port" do
         expect(NetworkHelper).to receive(:next_free_ephemeral_port).and_return(60000)
 
-        rendered_cpi_config = CpiJsonRenderer.render(complete_config)
+        rendered_cpi_config = Converter.to_cpi_json(complete_config)
 
         expect(rendered_cpi_config['cloud']['properties']['registry']['endpoint']).to eq('http://localhost:60000')
       end

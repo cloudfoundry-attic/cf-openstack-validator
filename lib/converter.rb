@@ -1,6 +1,4 @@
-require_relative 'network_helper'
-
-class CpiJsonRenderer
+class Converter
 
   REQUIRED_PARAMS = ['auth_url', 'username', 'password', 'domain', 'project']
 
@@ -35,7 +33,7 @@ class CpiJsonRenderer
     }
   end
 
-  def self.render(validator_config)
+  def self.to_cpi_json(validator_config)
     missing_params = REQUIRED_PARAMS.select { |param| validator_config['openstack'][param].nil? }
     unless missing_params.empty?
       raise StandardError, "Required openstack properties missing: '#{missing_params.join(', ')}'"

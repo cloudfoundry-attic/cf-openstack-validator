@@ -51,6 +51,7 @@ DEPENDENCIES
   bosh_common
   bosh_cpi
   fog-openstack (= 0.1.6)
+  membrane (~> 1.1.0)
   rspec (~> 3.0.0)
 
 BUNDLED WITH
