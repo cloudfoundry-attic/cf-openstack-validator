@@ -1,18 +1,20 @@
 require 'rspec/core'
 require 'pathname'
+require_relative 'cli'
 
 class TestsuiteFormatter < RSpec::Core::Formatters::DocumentationFormatter
   RSpec::Core::Formatters.register self, :dump_failures, :dump_pending, :dump_summary
 
   def initialize(output)
     super
+    @env = Cli.new(ENV)
   end
 
   def dump_failures(notification)
     return if notification.failure_notifications.empty?
     formatted = "\nFailures:\n"
     notification.failure_notifications.each_with_index do |failure, index|
-      formatted << formatted_failure(failure, index)
+      formatted << formatted_failure(failure, index+1)
     end
     output.puts formatted
   end
@@ -34,9 +36,11 @@ class TestsuiteFormatter < RSpec::Core::Formatters::DocumentationFormatter
   private
 
   def formatted_failure(failure, failure_number, colorizer = ::RSpec::Core::Formatters::ConsoleCodes)
-    formatted = "\n  #{failure_number}) #{failure.description}\n"
-    formatted << colorizer.wrap("     #{failure.exception.message}\n", RSpec.configuration.failure_color)
-
-    formatted
+    if @env.verbose_output?
+      failure.fully_formatted(failure_number, colorizer)
+    else
+      formatted = "\n  #{failure_number}) #{failure.description}\n"
+      formatted << colorizer.wrap("     #{failure.exception.message}\n", RSpec.configuration.failure_color)
+    end
   end
 end

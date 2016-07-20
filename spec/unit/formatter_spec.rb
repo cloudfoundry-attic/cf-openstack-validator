@@ -10,13 +10,17 @@ describe TestsuiteFormatter do
     output = StringIO.new
   }
 
+  before do
+    ENV['VERBOSE_FORMATTER'] = 'false'
+  end
+
   describe '#dump_failures' do
 
     let(:notification) {
       instance_double(RSpec::Core::Notifications::ExamplesNotification)
     }
 
-    context 'when no failure occured' do
+    context 'when no failure occurred' do
       it 'should not print anything' do
         allow(notification).to receive(:failure_notifications).and_return([])
 
@@ -27,41 +31,83 @@ describe TestsuiteFormatter do
     end
 
     context 'when there is a failure' do
-      it 'should report only the error number, error description and the error message' do
-        failure_notification = failure_notification('Failure description', 'Failure exception')
+      let(:failure_notification) { mock_failure_notification('Failure description', 'Failure exception') }
 
+      it 'should report only the error number, error description and the error message' do
         allow(notification).to receive(:failure_notifications).and_return([failure_notification])
 
         subject.dump_failures(notification)
 
         expect(output.string).to eq("\nFailures:\n"\
                                     "\n" \
-                                    "  0) Failure description\n" \
+                                    "  1) Failure description\n" \
                                     "     Failure exception\n"
                                  )
+      end
+
+      context 'and VERBOSE_FORMATTER is used' do
+        before do
+          ENV['VERBOSE_FORMATTER'] = 'true'
+        end
+
+        let(:failure_notification) { instance_double(RSpec::Core::Notifications::FailedExampleNotification) }
+
+        it 'should report full stacktrace' do
+          expect(failure_notification).to receive(:fully_formatted).and_return('some backtrace')
+          allow(notification).to receive(:failure_notifications).and_return([failure_notification])
+
+          subject.dump_failures(notification)
+
+          expect(output.string).to eq("\nFailures:\n"\
+                                    "some backtrace\n"
+                                   )
+        end
       end
     end
 
     context 'when there are multiple failures' do
+      let(:failure_notification1) { mock_failure_notification('Failure description1', 'Failure exception1') }
+      let(:failure_notification2) { mock_failure_notification('Failure description2', 'Failure exception2') }
+
       it 'should report only the error number, error description and the error message' do
-        failure_notification1 = failure_notification('Failure description1', 'Failure exception1')
-        failure_notification2 = failure_notification('Failure description2', 'Failure exception2')
         allow(notification).to receive(:failure_notifications).and_return([failure_notification1, failure_notification2])
 
         subject.dump_failures(notification)
 
         expect(output.string).to eq("\nFailures:\n" \
                                     "\n" \
-                                    "  0) Failure description1\n" \
+                                    "  1) Failure description1\n" \
                                     "     Failure exception1\n" \
                                     "\n" \
-                                    "  1) Failure description2\n" \
+                                    "  2) Failure description2\n" \
                                     "     Failure exception2\n"
                                  )
       end
+
+      context 'and VERBOSE_FORMATTER is used' do
+        before do
+          ENV['VERBOSE_FORMATTER'] = 'true'
+        end
+
+        let(:failure_notification1) { instance_double(RSpec::Core::Notifications::FailedExampleNotification) }
+        let(:failure_notification2) { instance_double(RSpec::Core::Notifications::FailedExampleNotification) }
+
+        it 'should report full stacktrace' do
+          expect(failure_notification1).to receive(:fully_formatted).and_return("some backtrace\n")
+          expect(failure_notification2).to receive(:fully_formatted).and_return("some other backtrace\n")
+          allow(notification).to receive(:failure_notifications).and_return([failure_notification1, failure_notification2])
+
+          subject.dump_failures(notification)
+
+          expect(output.string).to eq("\nFailures:\n"\
+                                    "some backtrace\n"\
+                                    "some other backtrace\n"
+                                   )
+        end
+      end
     end
 
-    def failure_notification(description, exception_message)
+    def mock_failure_notification(description, exception_message)
       failure_notification = instance_double(RSpec::Core::Notifications::FailedExampleNotification)
       allow(failure_notification).to receive(:description).and_return(description)
       allow(failure_notification).to receive(:exception).and_return(Exception.new(exception_message))
@@ -84,6 +130,7 @@ describe TestsuiteFormatter do
 
     let(:failure_count) { 0 }
     let(:summary) { instance_double(RSpec::Core::Notifications::SummaryNotification) }
+    let(:resource_tracker) { instance_double(ResourceTracker) }
 
     before(:each) do
       allow(summary).to receive(:formatted_duration).and_return('47.11')
@@ -99,7 +146,6 @@ describe TestsuiteFormatter do
     end
 
     it 'gets the summary from the resource tracker' do
-      resource_tracker = instance_double(ResourceTracker)
       allow(resource_tracker).to receive(:summary).and_return('resources-summary')
       allow(CfValidator).to receive(:resources).and_return(resource_tracker)
 

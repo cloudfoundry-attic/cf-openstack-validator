@@ -91,13 +91,6 @@ else
   FAIL_FAST_OPTION=""
 fi
 
-if [ "${VERBOSE_FORMATTER}" == "true" ];
-then
-  FORMATTER_OPTION="--format documentation"
-else
-  FORMATTER_OPTION="--require $SCRIPT_DIR/../lib/formatter.rb --format TestsuiteFormatter"
-fi
-
 env -i \
   BOSH_PACKAGES_DIR=$temp_dir/packages \
   BOSH_OPENSTACK_CPI_LOG_PATH=$temp_dir/logs \
@@ -106,10 +99,12 @@ env -i \
   BOSH_OPENSTACK_VALIDATOR_CONFIG=$validator_config \
   BOSH_OPENSTACK_CPI_CONFIG=$cpi_config \
   BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP=$BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP \
+  VERBOSE_FORMATTER=$VERBOSE_FORMATTER \
   PATH=$path \
   GEM_PATH=$gems_folder \
   GEM_HOME=$gems_folder \
   http_proxy=$http_proxy \
   https_proxy=$https_proxy \
   no_proxy=$no_proxy \
-  $bundle_cmd exec rspec $SCRIPT_DIR/specs $FAIL_FAST_OPTION --order defined --color $FORMATTER_OPTION 2> $temp_dir/logs/testsuite.log
+  $bundle_cmd exec rspec $SCRIPT_DIR/specs $FAIL_FAST_OPTION --order defined \
+  --color --require $SCRIPT_DIR/../lib/formatter.rb --format TestsuiteFormatter 2> $temp_dir/logs/testsuite.log
