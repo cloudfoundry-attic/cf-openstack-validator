@@ -198,7 +198,24 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
                                             validator_options["floating_ip"], "curl http://github.com")
 
     expect(status.exitstatus).to eq(0),
-                      "Failed to curl http://github.com from VM with floating IP.\nError is: #{err}"
+                      "Failed to curl http://github.com from VM with floating IP.\n     #{parse_curl_error(err)}"
+  end
+
+  it 'can save and retrieve user-data' do
+    make_pending_unless(@globals[:vm_cid_with_floating_ip], 'No VM to use')
+
+    response, err, status = execute_ssh_command_on_vm(private_key_path,
+                                               validator_options['floating_ip'], 'curl -m 10 http://169.254.169.254/latest/user-data')
+
+    if status.exitstatus > 0
+      error_message = 'Cannot access metadata service at 169.254.169.254.'
+      STDERR.puts(error_message + ' ' + parse_curl_error(err))
+      fail error_message
+    end
+
+    ['registry', 'server', 'networks'].each do |key|
+      expect(JSON.parse(response).keys).to include(key)
+    end
   end
 
   it 'allows a VM to reach the configured NTP server' do
@@ -264,5 +281,11 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     with_cpi('Stemcell could not be deleted') {
       @cpi.delete_stemcell(@globals[:stemcell_cid])
     }
+  end
+
+  def parse_curl_error(error)
+    curl_err = error.match(/curl: \(\d+\) (.+)/)
+    return "Error is: #{curl_err[1]}\n" unless curl_err.nil?
+    nil
   end
 end
