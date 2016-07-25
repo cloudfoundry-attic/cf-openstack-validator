@@ -106,5 +106,6 @@ env -i \
   http_proxy=$http_proxy \
   https_proxy=$https_proxy \
   no_proxy=$no_proxy \
+  HOME=$HOME \
   $bundle_cmd exec rspec $SCRIPT_DIR/specs $FAIL_FAST_OPTION --order defined \
   --color --require $SCRIPT_DIR/../lib/formatter.rb --format TestsuiteFormatter 2> $temp_dir/logs/testsuite.log
