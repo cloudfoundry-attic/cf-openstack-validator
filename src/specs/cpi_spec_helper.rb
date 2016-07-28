@@ -25,8 +25,8 @@ def private_key_path
   File.join(File.dirname(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG']), private_key_path)
 end
 
-def execute_ssh_command_on_vm_with_retry(private_key_path, ip, command, time_in_seconds = 60, frequency = 3)
-  output, err, status = retry_command(time_in_seconds, frequency){ execute_ssh(private_key_path, ip, command) }
+def execute_ssh_command_on_vm_with_retry(private_key_path, ip, command, time_in_seconds = 60, frequency = 3, user: 'vcap')
+  output, err, status = retry_command(time_in_seconds, frequency){ execute_ssh(private_key_path, ip, command, user) }
 
   validate_ssh_connection(err, status)
 
@@ -48,16 +48,16 @@ def retry_command(time_in_seconds = 60, frequency = 3)
   end
 end
 
-def execute_ssh_command_on_vm(private_key_path, ip, command)
-  output, err, status = execute_ssh(private_key_path, ip, command)
+def execute_ssh_command_on_vm(private_key_path, ip, command, user = 'vcap')
+  output, err, status = execute_ssh(private_key_path, ip, command, user)
 
   validate_ssh_connection(err, status)
 
   [output, err, status]
 end
 
-def execute_ssh(private_key_path, ip, command)
-  Open3.capture3 "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i #{private_key_path} vcap@#{ip} -C '#{command}'"
+def execute_ssh(private_key_path, ip, command, user)
+  Open3.capture3 "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i #{private_key_path} #{user}@#{ip} -C '#{command}'"
 end
 
 def validate_ssh_connection(err, status)

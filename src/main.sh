@@ -91,6 +91,7 @@ else
   FAIL_FAST_OPTION=""
 fi
 
+set +e
 env -i \
   BOSH_PACKAGES_DIR=$temp_dir/packages \
   BOSH_OPENSTACK_CPI_LOG_PATH=$temp_dir/logs \
@@ -109,3 +110,4 @@ env -i \
   HOME=$HOME \
   $bundle_cmd exec rspec $SCRIPT_DIR/specs $FAIL_FAST_OPTION --order defined \
   --color --require $SCRIPT_DIR/../lib/formatter.rb --format TestsuiteFormatter 2> $temp_dir/logs/testsuite.log
+print_log_on_failure $temp_dir/logs/testsuite.log

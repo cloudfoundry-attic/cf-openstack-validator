@@ -31,3 +31,6 @@ cloud_config:
       instance_type: <replace-me> # String
 #      root_disk:
 #        size: 20
+
+extensions:
+  path: <path>
