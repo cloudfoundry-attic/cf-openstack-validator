@@ -33,4 +33,14 @@ cloud_config:
 #        size: 20
 
 extensions:
-  path: <path>
+  path: '<path>'
+# Idea:
+#  - name: extension1
+#    params: <value or path>
+#    path: path
+#  - name: extension2
+#    params:
+#      external_net_id:
+#    path:
+
+
