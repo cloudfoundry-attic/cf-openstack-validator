@@ -7,14 +7,7 @@ openstack:
   project: <replace-me> # String
 #  default_key_name: cf-validator
 #  default_security_groups: [default]
-#  wait_resource_poll_interval: 5
-#  ignore_server_availability_zone: false
-#  endpoint_type: publicURL
-#  state_timeout: 300
-#  stemcell_public_visibility: false
 #  boot_from_volume: false # `true` requires a root_disk in the cloud_config.vm_types section
-#  use_dhcp: true
-#  human_readable_vm_names: true
 #  connection_options: # all connection options that are supported by Excon
 #    ssl_verify_peer: true
 
