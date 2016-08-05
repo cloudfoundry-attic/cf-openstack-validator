@@ -9,7 +9,7 @@ Is your OpenStack installation ready to run BOSH and install Cloud Foundry? Run 
 
 ### OpenStack
 
-* Keystone v3 
+* Keystone v3
 * Create an OpenStack project/tenant
 * Create a network
   * Connect the network with a router to your external network
@@ -23,8 +23,8 @@ $ ssh-keygen -t rsa -b 4096 -N "" -f cf-validator.rsa_id
 
 ### Environment
 
-The validator runs on Mac and Linux. 
-Please ensure that the following list is installed on the Linux system 
+The validator runs on Mac and Linux.
+Please ensure that the following list is installed on the Linux system
 where the validator is executed:
 
 * make
@@ -50,6 +50,8 @@ $ cp validator.template.yml validator.yml
 ```bash
 $ ./validate bosh-openstack-cpi-release-<xxx>.tgz bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz validator.yml [<working-dir>]
 ```
+# Troubleshooting
+the validator doesn't run on your OpenStack? See [additional OpenStack related configuration options](docs/openstack_configurations.md) for possible solutions.
 
 ### Environment variables
 * **FAIL_FAST**: In general, all tests are executed even if some of them fail. In order to stop after the first test failure, specify `FAIL_FAST=true`.
