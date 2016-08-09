@@ -26,6 +26,11 @@ variable "insecure" {
    description = "SSL certificate validation"
 }
 
+variable "cacert_file" {
+  default = ""
+  description = "CA File"
+}
+
 variable "dns_nameservers" {
    default = ""
    description = "Comma-separated list of DNS server IPs"

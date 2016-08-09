@@ -7,6 +7,7 @@ provider "openstack" {
   tenant_name = "${var.tenant_name}"
   domain_name = "${var.domain_name}"
   insecure    = "${var.insecure}"
+  cacert_file = "${var.cacert_file}"
 }
 
 # key pairs
