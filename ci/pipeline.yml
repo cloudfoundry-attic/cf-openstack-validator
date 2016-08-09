@@ -8,7 +8,7 @@ custom:
     long: &timeouts-long 2h
 
 groups:
-- name: validator # replace with landscape name
+- name: {{pipeline_name}}
   jobs:
   - unit-tests
   - validate
