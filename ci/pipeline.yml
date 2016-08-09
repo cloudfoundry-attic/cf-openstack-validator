@@ -12,6 +12,7 @@ groups:
   jobs:
   - unit-tests
   - validate
+  - release
 
 jobs:
 - name: unit-tests
