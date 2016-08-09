@@ -7,6 +7,12 @@ custom:
   timeouts:
     long: &timeouts-long 2h
 
+groups:
+- name: validator # replace with landscape name
+  jobs:
+  - unit-tests
+  - validate
+
 jobs:
 - name: unit-tests
   plan:
