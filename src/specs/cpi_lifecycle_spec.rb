@@ -38,21 +38,21 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     @cpi.delete_vm(@globals[:vm_cid_with_floating_ip])
   }
 
-  it 'can save a stemcell' do
+  it 'can save a stemcell' do |test|
     stemcell_manifest = YAML.load_file(File.join(@stemcell_path, 'stemcell.MF'))
     @globals[:stemcell_cid] = with_cpi('Stemcell could not be uploaded') {
-      CfValidator.resources.track(:images) {
+      CfValidator.resources.track(@compute, :images, test.description) {
         @cpi.create_stemcell(File.join(@stemcell_path, 'image'), stemcell_manifest['cloud_properties'])
       }
     }
     expect(@globals[:stemcell_cid]).to be
   end
 
-  it 'can create a VM' do
+  it 'can create a VM' do |test|
     make_pending_unless(@globals[:stemcell_cid], 'No stemcell available')
 
     @globals[:vm_cid] = with_cpi('VM could not be created.') {
-      CfValidator.resources.track(:servers) {
+      CfValidator.resources.track(@compute, :servers, test.description) {
         @cpi.create_vm(
             'agent-id',
             @globals[:stemcell_cid],
@@ -86,11 +86,11 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     expect(server_metadata.get('registry_key')).not_to be_nil, fail_message
   end
 
-  it 'can create a disk in same AZ as VM' do
+  it 'can create a disk in same AZ as VM' do |test|
     make_pending_unless(@globals[:vm_cid], 'No VM to create disk for')
 
     @globals[:disk_cid] = with_cpi('Disk could not be created.') {
-      CfValidator.resources.track(:volumes) {
+      CfValidator.resources.track(@compute, :volumes, test.description) {
         @cpi.create_disk(2048, {}, @globals[:vm_cid])
       }
     }
@@ -126,11 +126,11 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     }
   end
 
-  it 'can take a snapshot' do
+  it 'can take a snapshot' do |test|
     make_pending_unless(@globals[:disk_cid], 'No disk to create snapshot from')
 
     @globals[:snapshot_cid] = with_cpi("Snapshot for disk '#{@globals[:disk_cid]}' could not be taken.") {
-      CfValidator.resources.track(:snapshots) {
+      CfValidator.resources.track(@compute, :snapshots, test.description) {
         @cpi.snapshot_disk(@globals[:disk_cid], {})
       }
     }
@@ -160,11 +160,11 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     }
   end
 
-  it 'can attach floating IP to a VM' do
+  it 'can attach floating IP to a VM' do |test|
     make_pending_unless(@globals[:stemcell_cid], 'No stemcell to create VM from')
 
     @globals[:vm_cid_with_floating_ip] = vm_cid = with_cpi('Floating IP could not be attached.') {
-      CfValidator.resources.track(:servers) {
+      CfValidator.resources.track(@compute, :servers, test.description) {
         @cpi.create_vm(
           'agent-id',
           @globals[:stemcell_cid],
@@ -233,12 +233,12 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     expect(status.exitstatus).to eq(0), "Failed to reach any of the following NTP servers: #{ntp.join(', ')}. If your OpenStack requires an internal time server, you need to configure it in the cpi.json."
   end
 
-  it 'allows one VM to reach port 22 of another VM within the same network' do
+  it 'allows one VM to reach port 22 of another VM within the same network' do |test|
     make_pending_unless(@globals[:vm_cid_with_floating_ip], 'No VM to use')
     make_pending_unless(@globals[:stemcell_cid], 'No stemcell to create a second VM from')
 
     second_vm_cid = with_cpi('Second VM could not be created.') {
-      CfValidator.resources.track(:servers) {
+      CfValidator.resources.track(@compute, :servers, test.description) {
         @cpi.create_vm(
             'agent-id',
             @globals[:stemcell_cid],
@@ -261,11 +261,11 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     @cpi.delete_vm(second_vm_cid)
   end
 
-  it 'can create large disk' do
+  it 'can create large disk' do |test|
     large_disk_cid = with_cpi("Large disk could not be created.\n" +
         'Hint: If you are using DevStack, you need to manually set a' +
         'larger backing file size in your localrc.') {
-      CfValidator.resources.track(:volumes){
+      CfValidator.resources.track(@compute, :volumes, test.description){
         @cpi.create_disk(30720, {})
       }
     }

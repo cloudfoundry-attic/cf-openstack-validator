@@ -2,6 +2,10 @@ require_relative 'spec_helper'
 
 describe ResourceTracker do
 
+  let(:compute) { double('compute', servers: resources, volumes: resources) }
+  let(:resources) { double('resources', get: resource) }
+  let(:resource) { double('resource', name: 'my-resource') }
+
   describe '#count' do
     it 'returns number of tracked resources' do
       expect(subject.count).to eq(0)
@@ -10,7 +14,7 @@ describe ResourceTracker do
 
   describe '#track' do
     it 'takes the return value of a given block and tracks the resource' do
-      cloud_id = subject.track(:servers) {
+      cloud_id = subject.track(compute, :servers, 'some-test') {
         '1234-1234-1234-1234'
       }
 
@@ -20,9 +24,8 @@ describe ResourceTracker do
 
     context 'given an invalid resource type' do
       it 'raises an ArgumentError' do
-
         expect {
-          subject.track(:invalid_type)
+          subject.track(compute, :invalid_type, 'some-test')
         }.to raise_error(ArgumentError, "Invalid resource type 'invalid_type', use #{ResourceTracker::RESOURCE_TYPES.join(', ')}")
       end
     end
@@ -30,14 +33,20 @@ describe ResourceTracker do
 
   describe '#summary' do
     it 'returns all tracked resources as printable string' do
-      subject.track(:servers) { '1234-1234-1234-1234' }
-      subject.track(:volumes) { '1111-1111-1111-1111' }
-      subject.track(:volumes) { '0000-0000-0000-0000' }
+      allow(resource).to receive(:name).and_return('server-1')
+      subject.track(compute, :servers, 'Test-1') { '1234-1234-1234-1234' }
+      allow(resource).to receive(:name).and_return('volume-1')
+      subject.track(compute, :volumes, 'Test-2') { '1111-1111-1111-1111' }
+      allow(resource).to receive(:name).and_return('volume-2')
+      subject.track(compute, :volumes, 'Test-3') { '0000-0000-0000-0000' }
 
       expect(subject.summary).to eq(
         "The following resources might not have been cleaned up:\n" +
-        "  servers: 1234-1234-1234-1234\n" +
-        "  volumes: 1111-1111-1111-1111, 0000-0000-0000-0000"
+        "  servers:\n" +
+        "    server-1 / 1234-1234-1234-1234 (Test-1)\n" +
+        "  volumes:\n" +
+        "    volume-1 / 1111-1111-1111-1111 (Test-2)\n" +
+        "    volume-2 / 0000-0000-0000-0000 (Test-3)\n"
       )
     end
 
@@ -62,9 +71,10 @@ describe ResourceTracker do
 
     ResourceTracker::RESOURCE_TYPES.each do |type|
       it "cleans up #{type} on a given openstack object" do
-        allow(compute).to receive(type).and_return(resources_in_openstack)
+        allow(compute).to receive(type).and_return(resources)
+        subject.track(compute, type, 'some-test') { '1234-1234-1234-1234' }
 
-        subject.track(type) { '1234-1234-1234-1234' }
+        allow(compute).to receive(type).and_return(resources_in_openstack)
         subject.untrack(compute, cleanup: true)
 
         expect(resources_in_openstack[0]).to have_received(:destroy)
@@ -74,9 +84,10 @@ describe ResourceTracker do
 
     context 'if openstack does not have the resource' do
       it 'untracks them' do
-        allow(compute).to receive(:servers).and_return(resources_in_openstack)
+        allow(compute).to receive(:servers).and_return(resources)
+        subject.track(compute, :servers, 'some-test') { 'non-existing-cid' }
 
-        subject.track(:servers) { 'non-existing-cid' }
+        allow(compute).to receive(:servers).and_return(resources_in_openstack)
         subject.untrack(compute, cleanup: true)
 
         expect(subject.count).to eq(0)
@@ -92,11 +103,12 @@ describe ResourceTracker do
       end
 
       it 'returns false' do
+        allow(compute).to receive(:volumes).and_return(resources)
+        subject.track(compute, :volumes, 'some-test') { '1234' }
+        subject.track(compute, :volumes, 'some-test') { '5678' }
+        expect(subject.count).to eq(2)
+
         allow(compute).to receive(:volumes).and_return(resources_in_openstack)
-
-        subject.track(:volumes) { '1234' }
-        subject.track(:volumes) { '5678' }
-
         expect(subject.untrack(compute, cleanup: true)).to eq(false)
 
         expect(subject.count).to eq(1)
@@ -116,18 +128,18 @@ describe ResourceTracker do
     end
 
     it 'does not report resources which do not exist anymore' do
-      subject.track(:volumes) { '1234' }
-
+      allow(compute).to receive(:volumes).and_return(resources)
+      subject.track(compute, :volumes, 'some-test') { '1234' }
+      allow(compute).to receive(:volumes).and_return([])
       subject.untrack(compute, cleanup: false)
 
       expect(subject.count).to eq(0)
     end
 
     it 'does report resources which do exist' do
+      allow(compute).to receive(:volumes).and_return(resources)
+      subject.track(compute, :volumes, 'some-test') { '1234' }
       allow(compute).to receive(:volumes).and_return(resources_in_openstack)
-
-      subject.track(:volumes) { '1234' }
-
       subject.untrack(compute, cleanup: false)
 
       expect(subject.count).to eq(1)

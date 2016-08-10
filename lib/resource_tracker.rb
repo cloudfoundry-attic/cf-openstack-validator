@@ -10,21 +10,24 @@ class ResourceTracker
     @resources.values.flatten.size
   end
 
-  def track(type)
+  def track(compute, type, test_description)
     unless RESOURCE_TYPES.include?(type)
       raise ArgumentError, "Invalid resource type '#{type}', use #{ResourceTracker::RESOURCE_TYPES.join(', ')}"
     end
 
     if block_given?
       resource_id = yield
-      @resources[type] << resource_id
+      resource_name = compute.send(type).get(resource_id).name
+      @resources[type] << { resource_name: resource_name, resource_id: resource_id, test_description: test_description }
       resource_id
     end
   end
 
   def untrack_resource(resource_id)
     @resources.values.each do |resources_for_type|
-      if resources_for_type.delete resource_id
+      resource = resources_for_type.find {|resource| resource[:resource_id] == resource_id}
+      if resource
+        resources_for_type.delete(resource)
         break
       end
     end
@@ -33,9 +36,9 @@ class ResourceTracker
   def summary
     if count > 0
       "The following resources might not have been cleaned up:\n" +
-      @resources.reject { |_, resource_ids| resource_ids.length == 0 }
-                .map { |resource_type, resource_ids| "  #{resource_type}: #{resource_ids.join(', ')}" }
-                .join("\n")
+      @resources.reject { |_, resources| resources.length == 0 }
+                .map { |resource_type, resources| "  #{resource_type}:\n#{format_resources(resources)}" }
+                .join
     else
       'All resources have been cleaned up'
     end
@@ -50,7 +53,7 @@ class ResourceTracker
 
       if cleanup
         resources_in_openstack
-          .select { |resource| tracked_resources.include?(resource.id) }
+          .select { |resource| tracked_resources.find{ |tracked_resource| tracked_resource[:resource_id] == resource.id }}
           .each { |resource|
           untrack_resource(resource.id) if resource.destroy }
       end
@@ -61,14 +64,18 @@ class ResourceTracker
 
   private
 
+  def format_resources(resources)
+    resources.map{ |resource| "    #{resource[:resource_name]} / #{resource[:resource_id]} (#{resource[:test_description]})\n"}.join
+  end
+
   def untrack_resources_not_in_openstack(tracked_resources, resources_in_openstack)
-    tracked_resources_not_in_openstack = tracked_resources.reject do |resource_id|
+    tracked_resources_not_in_openstack = tracked_resources.reject do |resource|
       resources_in_openstack.find do |resource_in_openstack|
-        resource_in_openstack.id == resource_id
+        resource_in_openstack.id == resource[:resource_id]
       end
     end
 
-    tracked_resources_not_in_openstack.each { |resource_id| untrack_resource(resource_id) }
+    tracked_resources_not_in_openstack.each { |resource| untrack_resource(resource[:resource_id]) }
   end
 
   def reset_resources

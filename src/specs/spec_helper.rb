@@ -1,4 +1,3 @@
-require_relative 'openstack_spec_helper'
 require_relative '../../lib/validator'
 
 RSpec.configure do |config|
