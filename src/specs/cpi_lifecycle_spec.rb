@@ -230,7 +230,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     expect(status.exitstatus).to eq(0)
 
     _, _, status = execute_ssh_command_on_vm(private_key_path, validator_options["floating_ip"], call_ntpdate_command)
-    expect(status.exitstatus).to eq(0), "Failed to reach any of the following NTP servers: #{ntp.join(', ')}. If your OpenStack requires an internal time server, you need to configure it in the cpi.json."
+    expect(status.exitstatus).to eq(0), "Failed to reach any of the following NTP servers: #{ntp.join(', ')}. If your OpenStack requires an internal time server, you need to configure it in the validator.yml."
   end
 
   it 'allows one VM to reach port 22 of another VM within the same network' do |test|
