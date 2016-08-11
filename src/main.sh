@@ -91,6 +91,13 @@ else
   FAIL_FAST_OPTION=""
 fi
 
+if [  -z ${TAG+x} ];
+then
+  TAG_OPTION=""
+else
+  TAG_OPTION="--tag ${TAG}"
+fi
+
 env -i \
   BOSH_PACKAGES_DIR=$temp_dir/packages \
   BOSH_OPENSTACK_CPI_LOG_PATH=$temp_dir/logs \
@@ -107,5 +114,5 @@ env -i \
   https_proxy=$https_proxy \
   no_proxy=$no_proxy \
   HOME=$HOME \
-  $bundle_cmd exec rspec $SCRIPT_DIR/specs $FAIL_FAST_OPTION --order defined \
+  $bundle_cmd exec rspec $SCRIPT_DIR/specs $TAG_OPTION $FAIL_FAST_OPTION --order defined \
   --color --require $SCRIPT_DIR/../lib/formatter.rb --format TestsuiteFormatter 2> $temp_dir/logs/testsuite.log
