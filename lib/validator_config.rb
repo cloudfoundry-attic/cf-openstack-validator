@@ -27,12 +27,16 @@ class ValidatorConfig
         },
         'cloud_config' => {
             'vm_types' => [{
-                               'name' => String,
-                               'cloud_properties' => {
-                                   'instance_type' => String
-                               }
-                           }]
-        }
+                'name' => String,
+                'cloud_properties' => {
+                    'instance_type' => String
+                }
+            }]
+        },
+        optional('extensions') => [{
+          'name' => String,
+          'path' => String
+        }]
     }
   end
 
