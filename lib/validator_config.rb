@@ -24,6 +24,7 @@ class ValidatorConfig
             'network_id' => String,
             'floating_ip' => String,
             'private_key_path' => String,
+            'public_image_id' => String,
         },
         'cloud_config' => {
             'vm_types' => [{

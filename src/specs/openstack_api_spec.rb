@@ -8,12 +8,18 @@ openstack_suite.context 'API', position: 1, order: :global do
       @compute = compute(@fog_params)
     end
 
-    it 'is high enough' do
+    fit 'is high enough' do |test|
+      vm = nil
+      CfValidator.resources.track(@compute, :servers, test.description) do
+        vm = create_vm
+        vm.id
+      end
       begin
-        servers = @compute.servers
-        100.times {
-          servers.reload
-        }
+        metadata_key = 'rate-limit-test'
+        100.times do |i|
+          vm.metadata.update(metadata_key => "#{i}")
+        end
+        expect(vm.metadata.get(metadata_key).value).to eq('99')
       rescue Excon::Errors::RequestEntityTooLarge => e
         fail("Your OpenStack API rate limit is too low. OpenStack error: #{e.message}")
       end

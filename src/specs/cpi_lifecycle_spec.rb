@@ -1,4 +1,3 @@
-require_relative 'spec_helper'
 require_relative 'cpi_spec_helper'
 
 def with_cpi(error_message)

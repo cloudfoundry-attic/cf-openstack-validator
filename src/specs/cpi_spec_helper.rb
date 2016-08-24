@@ -3,6 +3,8 @@ require 'common/common'
 require 'cloud'
 require 'open3'
 
+require_relative 'spec_helper'
+
 def stemcell_path
   ENV['BOSH_OPENSTACK_STEMCELL_PATH']
 end
@@ -11,18 +13,8 @@ def cpi_path
   ENV['BOSH_OPENSTACK_CPI_PATH']
 end
 
-def validator_options
-  @validator_options ||= YAML.load_file(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])['validator']
-end
-
 def log_path
   ENV['BOSH_OPENSTACK_CPI_LOG_PATH']
-end
-
-def private_key_path
-  private_key_path = validator_options['private_key_path']
-  # TODO is that a relative path?
-  File.join(File.dirname(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG']), private_key_path)
 end
 
 def execute_ssh_command_on_vm_with_retry(private_key_path, ip, command, time_in_seconds = 60, frequency = 3)
