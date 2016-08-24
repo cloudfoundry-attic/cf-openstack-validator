@@ -47,6 +47,7 @@ jobs:
       DEFAULT_KEY_NAME:  {{default_key_name}}
       NETWORK_ID:        {{network_id}}
       FLOATING_IP:       {{floating_ip}}
+      PUBLIC_IMAGE_ID:   {{public_image_id}}
       PRIVATE_KEY:       {{private_key}}
       INSTANCE_TYPE:     {{instance_type}}
       NTP_SERVER:        {{ntp_server}}

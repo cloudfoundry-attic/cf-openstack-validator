@@ -9,6 +9,7 @@ set -e -x
 : ${DEFAULT_KEY_NAME:?}
 : ${NETWORK_ID:?}
 : ${FLOATING_IP:?}
+: ${PUBLIC_IMAGE_ID:?}
 : ${PRIVATE_KEY:?}
 : ${INSTANCE_TYPE:?}
 : ${NTP_SERVER:?}
