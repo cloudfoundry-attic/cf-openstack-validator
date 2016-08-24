@@ -81,7 +81,7 @@ jobs:
     params:
       name: release-semver/version
       tag: release-semver/version
-      tag-prefix: v
+      tag_prefix: v
       commitish: generated-commitish/commitish
 
   - put: release-semver
