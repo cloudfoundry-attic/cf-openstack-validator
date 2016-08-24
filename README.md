@@ -56,5 +56,5 @@ the validator doesn't run on your OpenStack? See [additional OpenStack related c
 ### Environment variables
 * **FAIL_FAST**: In general, all tests are executed even if some of them fail. In order to stop after the first test failure, specify `FAIL_FAST=true`.
 * **VERBOSE_FORMATTER**: If you are interested in more output for the failing tests, you can set `VERBOSE_FORMATTER=true`.
-* **BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP**: Set this variable to skip cleanup of OpenStack resources. This can be useful for debugging failing tests.
+* **BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP**: Set this variable to `true` to skip cleanup of OpenStack resources. This can be useful for debugging failing tests.
 * **TAG**: Use this variable to run examples that match a specified tag. (If you are working with fit, fcontext and fdescribe, use TAG=focus)
