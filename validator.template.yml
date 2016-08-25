@@ -28,5 +28,4 @@ cloud_config:
 #        size: 20 # Integer, size in GiB
 
 #extensions:
-#- name: my_extension
 #  path: <replace-me> # path pointing to a single spec file ending with '_spec.rb' or a directory. Absolute or relative to this config file.
