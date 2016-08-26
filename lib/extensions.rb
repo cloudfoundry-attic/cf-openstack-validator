@@ -4,10 +4,17 @@ class Extensions
   class << self
     def all
       config_path = File.expand_path(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])
-      extensions_path = extension_path(config_path) || default_extension_path(config_path)
+      extensions_paths = default_extensions(config_path) + additional_extensions(config_path)
 
-      raise StandardError, "'#{extensions_path}' is not a directory." unless File.directory?(extensions_path)
-      Dir.glob(File.join(extensions_path, '*_spec.rb'))
+      extensions_paths.map do |path|
+
+        if File.directory?(path)
+          Dir.glob(File.join(path, '*_spec.rb'))
+        elsif File.basename(path).end_with?('_spec.rb')
+          [path]
+        end
+
+      end.flatten.compact.uniq
     end
 
     def eval(specs, binding)
@@ -19,28 +26,33 @@ class Extensions
 
     private
 
-    def default_extension_path(config_path)
-      File.join(File.dirname(config_path), 'extensions')
+    def default_extensions(config_path)
+      [File.join(File.dirname(config_path), 'extensions')]
     end
 
-    def extension_path(config_path)
+    def additional_extensions(config_path)
       validator_config = YAML.load_file(config_path)
 
-      extensions = if validator_config
-        validator_config['extensions']
+      extensions = []
+
+      if validator_config && validator_config['extensions']
+        extensions = validator_config['extensions']
       end
 
-      path = if extensions
-        extensions['path']
-      end
+      extensions.map do |extension|
+        next unless extension['path']
 
-      if path
-        if Pathname.new(extensions['path']).absolute?
-          extensions['path']
-        else
-          File.expand_path(extensions['path'], File.dirname(config_path))
-        end
-      end
+
+        path = if Pathname.new(extension['path']).absolute?
+                 extension['path']
+               else
+                 File.expand_path(extension['path'], File.dirname(config_path))
+               end
+
+        raise StandardError, "'#{path}' does not exist." unless File.exists?(path)
+
+        path
+      end.compact
     end
   end
 end
