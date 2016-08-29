@@ -4,17 +4,9 @@ class Extensions
   class << self
     def all
       config_path = File.expand_path(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])
-      extensions_paths = default_extensions(config_path) + additional_extensions(config_path)
-
-      extensions_paths.map do |path|
-
-        if File.directory?(path)
-          Dir.glob(File.join(path, '*_spec.rb'))
-        elsif File.basename(path).end_with?('_spec.rb')
-          [path]
-        end
-
-      end.flatten.compact.uniq
+      extensions_paths(config_path).map do |path|
+        Dir.glob(File.join(path, '*_spec.rb'))
+      end.flatten
     end
 
     def eval(specs, binding)
@@ -26,33 +18,49 @@ class Extensions
 
     private
 
-    def default_extensions(config_path)
-      [File.join(File.dirname(config_path), 'extensions')]
-    end
+    def extensions_paths(config_path)
+      custom_paths = custom_extension_paths(config_path)
 
-    def additional_extensions(config_path)
-      validator_config = YAML.load_file(config_path)
-
-      extensions = []
-
-      if validator_config && validator_config['extensions']
-        extensions = validator_config['extensions']
+      if custom_paths.empty?
+        path = default_extension_path(config_path)
+        return [path] if File.directory?(path)
+      else
+        return custom_paths
       end
 
-      extensions.map do |extension|
-        next unless extension['path']
+      []
+    end
 
+    def default_extension_path(config_path)
+      File.join(File.dirname(config_path), 'extensions')
+    end
 
-        path = if Pathname.new(extension['path']).absolute?
-                 extension['path']
-               else
-                 File.expand_path(extension['path'], File.dirname(config_path))
-               end
+    def get_from_hash(hash, *keys, default)
+      unless keys.length == 0
+        result = keys.inject hash do |hash, key|
+          if hash && hash.is_a?(Hash)
+            hash[key]
+          end
+        end
+        result || default
+      end
+    end
 
-        raise StandardError, "'#{path}' does not exist." unless File.exists?(path)
+    def custom_extension_paths(config_path)
+      validator_config = YAML.load_file(config_path)
 
-        path
-      end.compact
+      paths = get_from_hash(validator_config, 'extensions', 'paths', [])
+      paths.map do |path|
+        resolved_path = if Pathname.new(path).absolute?
+                          path
+                        else
+                          File.expand_path(path, File.dirname(config_path))
+                        end
+
+        raise StandardError, "'#{resolved_path}' is not a directory." unless File.directory?(resolved_path)
+
+        resolved_path
+      end
     end
   end
 end

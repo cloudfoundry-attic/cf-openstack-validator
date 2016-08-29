@@ -25,4 +25,7 @@ chmod 400 cf-validator.rsa_id
 
 erb validator-src/ci/assets/validator.yml.erb > validator.yml
 
+mkdir -p extensions
+cp validator-src/extensions/dummy_extension_spec.sample.rb extensions/dummy_extension_spec.rb
+
 validator-src/validate cpi.tgz stemcell.tgz validator.yml
