@@ -8,7 +8,7 @@ openstack_suite.context 'API', position: 1, order: :global do
       @compute = compute(@fog_params)
     end
 
-    fit 'is high enough' do |test|
+    it 'is high enough' do |test|
       vm = nil
       CfValidator.resources.track(@compute, :servers, test.description) do
         vm = create_vm
