@@ -34,9 +34,9 @@ class ValidatorConfig
                 }
             }]
         },
-        optional('extensions') => [{
-          'paths' => [String]
-        }]
+        optional('extensions') => {
+            optional('paths') => [String],
+        }
     }
   end
 
