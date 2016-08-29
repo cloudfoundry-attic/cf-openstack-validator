@@ -50,6 +50,25 @@ $ cp validator.template.yml validator.yml
 ```bash
 $ ./validate bosh-openstack-cpi-release-<xxx>.tgz bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz validator.yml [<working-dir>]
 ```
+
+## Custom Validations
+> Note: This feature is available in versions >=1.2
+
+In case you have custom validations that you need to run against OpenStack you can always extend the validator.
+
+A custom validation is an RSpec file (*_spec.rb). You can find an [example here](extensions/dummy_extension_spec.sample.rb)
+
+There are two ways to include your custom validations:
+
+1. Add it to `./extensions`
+2. Specify the paths to the directories containing your RSpec files in the `validator.yml`
+   ```yml
+   ...
+   extensions:
+     paths: []
+   ...
+   ```
+
 # Troubleshooting
 the validator doesn't run on your OpenStack? See [additional OpenStack related configuration options](docs/openstack_configurations.md) for possible solutions.
 
