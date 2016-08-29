@@ -22,7 +22,7 @@ describe '.extension_config' do
 
   context 'when missing in validator.yml' do
     it 'returns an empty hash' do
-      expect(extension_config).to eq({})
+      expect(extensions_config).to eq({})
     end
   end
 
@@ -37,7 +37,7 @@ extensions:
     end
 
     it 'returns the hash' do
-      expect(extension_config).to eq({ 'the' => 'hash', 'second' => 'value'})
+      expect(extensions_config).to eq({ 'the' => 'hash', 'second' => 'value'})
     end
   end
 end
