@@ -36,6 +36,7 @@ class ValidatorConfig
         },
         optional('extensions') => {
             optional('paths') => [String],
+            optional('config') => Hash
         }
     }
   end

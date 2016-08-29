@@ -69,6 +69,15 @@ There are two ways to include your custom validations:
    ...
    ```
 
+If your custom validation needs any configuration you can pass add it to the `validator.yml`.
+```yml
+extensions:
+  config:
+    key: value
+```
+The complete hash at `config` can be retrieved from your test by calling `extensions_config`.
+> Note that the configuration will be globally available to all running custom validations.
+
 # Troubleshooting
 the validator doesn't run on your OpenStack? See [additional OpenStack related configuration options](docs/openstack_configurations.md) for possible solutions.
 

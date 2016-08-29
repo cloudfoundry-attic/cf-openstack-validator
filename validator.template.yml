@@ -29,3 +29,4 @@ cloud_config:
 
 #extensions:
 #  paths: [<replace-me>] # paths pointing to a directory. Absolute or relative to this config file.
+#  config: # everything below 'config' is available in tests as `extensions_config`
