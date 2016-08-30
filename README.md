@@ -35,6 +35,10 @@ where the validator is executed:
 
 To run on Mac the `Xcode` command line tools have to be installed.
 
+For **SUSE** and **SUSE OpenStack Cloud** there is a packaged version of the cf-validator.
+Please download the packages **cf-openstack-validator** and **bosh-openstack-cpi-release** from the respective BuildService repository in [Cloud:Tools](https://build.opensuse.org/project/show/Cloud:Tools).
+Install the packages to your SUSE system, and follow /usr/share/doc/packages/cf-openstack-validator/README.SUSE.md for its usage.
+
 # Usage
 
 * `git clone https://github.com/cloudfoundry-incubator/cf-openstack-validator.git`
