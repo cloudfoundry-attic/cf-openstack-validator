@@ -1,7 +1,5 @@
 class Converter
 
-  REQUIRED_PARAMS = ['auth_url', 'username', 'password', 'domain', 'project']
-
   def self.openstack_defaults
     {
       "default_key_name" => "cf-validator",
@@ -34,10 +32,6 @@ class Converter
   end
 
   def self.to_cpi_json(validator_config)
-    missing_params = REQUIRED_PARAMS.select { |param| validator_config['openstack'][param].nil? }
-    unless missing_params.empty?
-      raise StandardError, "Required openstack properties missing: '#{missing_params.join(', ')}'"
-    end
 
     registry_port = NetworkHelper.next_free_ephemeral_port
 

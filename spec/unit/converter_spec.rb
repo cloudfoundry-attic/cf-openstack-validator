@@ -27,24 +27,6 @@ describe Converter do
       }
     end
 
-    describe 'validating input' do
-
-      required_keys = ['auth_url', 'username', 'password', 'domain', 'project']
-      key_permutations = required_keys.combination(1).to_a + required_keys.combination(2).to_a
-
-      key_permutations.each do |keys|
-        context "when '#{keys.join(', ')}' is missing" do
-          it 'raises a standard error' do
-            keys.each { |key| complete_config['openstack'].delete(key) }
-
-            expect {
-              Converter.to_cpi_json(complete_config)
-            }.to raise_error StandardError, "Required openstack properties missing: '#{keys.join(', ')}'"
-          end
-        end
-      end
-    end
-
     describe 'conversions' do
       it "appends 'auth/tokens' to 'auth_url' parameter" do
         rendered_cpi_config = Converter.to_cpi_json(complete_config)
