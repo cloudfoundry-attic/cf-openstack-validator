@@ -39,16 +39,33 @@ class Converter
 
   private
 
-  NO_OP = -> (*args) { args }
-
   PARAM_CONVERTERS = {
-    'auth_url' => ->(key, value) {[key, "#{value}/auth/tokens"]},
-    'password' => ->(_, value) {['api_key', value]}
+      'auth_url' => ->(key, value) { [key, "#{value}/auth/tokens"] },
+      'password' => ->(_, value) { ['api_key', value] },
+      'connection_options' => {
+          'ca_cert' => ->(_, value) {
+            ssl_ca_file_path = File.join(Dir.mktmpdir, 'cacert.pem')
+            File.write(ssl_ca_file_path, value)
+            ['ssl_ca_file', ssl_ca_file_path]
+          }
+      }
+
   }
 
   def self.convert(openstack_params)
-    openstack_params.map do |key, value|
-      PARAM_CONVERTERS.fetch(key, NO_OP).call(key, value)
+    apply_converters(openstack_params, PARAM_CONVERTERS)
+  end
+
+  def self.apply_converters(hash, converters)
+    no_op = -> (*args) { args }
+
+    hash.map do |key, value|
+      converter = converters.fetch(key, no_op)
+      if converter.is_a?(Hash) && value.is_a?(Hash)
+        [key, apply_converters(value, converter)]
+      else
+        converter.call(key, value)
+      end
     end.to_h
   end
 end

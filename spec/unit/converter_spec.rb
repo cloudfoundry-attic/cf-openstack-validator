@@ -38,6 +38,36 @@ describe Converter do
         expect(rendered_cpi_config['api_key']).to eq complete_config['password']
         expect(rendered_cpi_config['password']).to be_nil
       end
+
+      context "when connection_options.ca_cert is given" do
+        let(:config_with_ca_cert) {
+          complete_config.merge({
+              'connection_options' => {
+                'ca_cert' => 'crazykey'
+              }
+          })
+        }
+
+        let(:tmpdir) do
+          Dir.mktmpdir
+        end
+
+        before(:each) do
+          allow(Dir).to receive(:mktmpdir).and_return(tmpdir)
+        end
+
+        after(:each) do
+          FileUtils.rmdir(tmpdir)
+        end
+
+        it "replaces 'ca_cert' with 'ssl_ca_file'" do
+          rendered_cpi_config = Converter.convert(config_with_ca_cert)
+
+          expect(rendered_cpi_config['connection_options']['ssl_ca_file']).to eq("#{tmpdir}/cacert.pem")
+          expect(rendered_cpi_config['connection_options']['ca_cert']).to be_nil
+        end
+      end
+
     end
 
     describe 'registry configuration' do
