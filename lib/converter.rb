@@ -31,11 +31,10 @@ class Converter
     }
   end
 
-  def self.to_cpi_json(validator_config)
-
+  def self.to_cpi_json(openstack_config)
     registry_port = NetworkHelper.next_free_ephemeral_port
 
-    cpi_config(convert(validator_config['openstack']), registry_port)
+    cpi_config(openstack_config, registry_port)
   end
 
   private

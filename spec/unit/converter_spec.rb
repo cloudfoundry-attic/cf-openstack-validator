@@ -3,13 +3,13 @@ require_relative 'spec_helper'
 describe Converter do
 
   describe 'end to end' do
+    let(:config) { Validator::Configuration.new("#{File.dirname(__FILE__)}/../assets/validator.yml") }
     it 'produces the expected result for the given input' do
-      validator_config = YAML.load_file("#{File.dirname(__FILE__)}/../assets/validator.yml")
       expected_cpi_config =  YAML.load_file("#{File.dirname(__FILE__)}/../assets/expected_cpi.json")
 
       allow(NetworkHelper).to receive(:next_free_ephemeral_port).and_return(11111)
 
-      expect(Converter.to_cpi_json(validator_config)).to eq(expected_cpi_config)
+      expect(Converter.to_cpi_json(config.openstack)).to eq(expected_cpi_config)
     end
   end
 
@@ -17,28 +17,26 @@ describe Converter do
 
     let(:complete_config) do
       {
-        'openstack' => {
           'auth_url' => 'https://auth.url/v3',
           'username' => 'username',
           'password' => 'password',
           'domain' => 'domain',
           'project' => 'project'
-        }
       }
     end
 
     describe 'conversions' do
       it "appends 'auth/tokens' to 'auth_url' parameter" do
-        rendered_cpi_config = Converter.to_cpi_json(complete_config)
+        rendered_cpi_config = Converter.convert(complete_config)
 
-        expect(rendered_cpi_config['cloud']['properties']['openstack']['auth_url']).to eq 'https://auth.url/v3/auth/tokens'
+        expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/v3/auth/tokens'
       end
 
       it "replaces 'password' key with 'api_key'" do
-        rendered_cpi_config = Converter.to_cpi_json(complete_config)
+        rendered_cpi_config = Converter.convert(complete_config)
 
-        expect(rendered_cpi_config['cloud']['properties']['openstack']['api_key']).to eq complete_config['openstack']['password']
-        expect(rendered_cpi_config['cloud']['properties']['openstack']['password']).to be_nil
+        expect(rendered_cpi_config['api_key']).to eq complete_config['password']
+        expect(rendered_cpi_config['password']).to be_nil
       end
     end
 

@@ -1,6 +1,21 @@
-def extensions_config
-  @extensions_config ||= begin
-    validator_config = YAML.load_file(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])
-    validator_config.fetch('extensions', {}).fetch('config', {})
+module Validator
+  class Configuration
+    def initialize(path)
+      @path = path
+    end
+
+    def all
+      @configuration ||= begin
+        YAML.load_file(@path)
+      end
+    end
+
+    def openstack
+      Converter.convert(all.fetch('openstack'))
+    end
+
+    def extensions
+      all.fetch('extensions', {}).fetch('config', {})
+    end
   end
 end

@@ -6,14 +6,14 @@ def compute(fog_params)
 end
 
 def openstack_params
-  @openstack_properties ||= YAML.load_file(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])['openstack']
+  CfValidator.configuration.openstack
 end
 
 def convert_to_fog_params(options)
   {
-      :openstack_auth_url => options['auth_url'] + '/auth/tokens',
+      :openstack_auth_url => options['auth_url'],
       :openstack_username => options['username'],
-      :openstack_api_key => options['password'],
+      :openstack_api_key => options['api_key'],
       :openstack_tenant => options['tenant'],
       :openstack_project_name => options['project'],
       :openstack_domain_name => options['domain'],
