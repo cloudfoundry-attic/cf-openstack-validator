@@ -10,7 +10,8 @@ openstack:
 #  boot_from_volume: false # Boolean
 #  config_drive: ~ # One of cdrom, disk, or nil
 #  connection_options: # all connection options that are supported by Excon
-#    ssl_verify_peer: true
+#    ssl_verify_peer: true # Boolean
+#    ca_cert: ~ # Multiline yaml String containing certificate chain
 
 validator:
   network_id: <replace-me> # String UUID
@@ -29,4 +30,4 @@ cloud_config:
 
 #extensions:
 #  paths: [<replace-me>] # paths pointing to a directory. Absolute or relative to this config file.
-#  config: # everything below 'config' is available in tests as `extensions_config`
+#  config: # everything below 'config' is available in tests as `CfValidator.configuration.extensions` inside your test code

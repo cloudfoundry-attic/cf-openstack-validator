@@ -62,12 +62,10 @@ There are two ways to include your custom validations:
 
 1. Add it to `./extensions`
 2. Specify the paths to the directories containing your RSpec files in the `validator.yml`
-   ```yml
-   ...
-   extensions:
-     paths: []
-   ...
-   ```
+```yml
+extensions:
+  paths: [my/relative/extension/path, /some/absolute/extension/path]
+```
 
 If your custom validation needs any configuration you can pass add it to the `validator.yml`.
 ```yml
@@ -75,7 +73,7 @@ extensions:
   config:
     key: value
 ```
-The complete hash at `config` can be retrieved from your test by calling `extensions_config`.
+The complete hash at `config` can be retrieved from your test by calling `CfValidator.configuration.extensions`.
 > Note that the configuration will be globally available to all running custom validations.
 
 # Troubleshooting
