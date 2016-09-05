@@ -8,7 +8,13 @@ openstack:
   default_key_name: <%=ENV['DEFAULT_KEY_NAME']%>
   default_security_groups: [validator]
   connection_options:
-    ssl_verify_peer: false
+    ca_cert: <%=
+      if ENV['CA_CERT'] == ''
+        '~'
+      else
+        "|\n" + ENV['CA_CERT'].each_line.map { |line| "      #{line}" }.join('')
+      end
+    %>
 
 validator:
   network_id: <%=ENV['NETWORK_ID']%>

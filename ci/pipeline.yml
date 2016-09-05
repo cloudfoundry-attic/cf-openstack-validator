@@ -51,6 +51,7 @@ jobs:
       PRIVATE_KEY:       {{private_key}}
       INSTANCE_TYPE:     {{instance_type}}
       NTP_SERVER:        {{ntp_server}}
+      CA_CERT:           {{ca_cert}}
 
 - name: release
   plan:

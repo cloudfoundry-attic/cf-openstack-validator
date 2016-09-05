@@ -23,6 +23,7 @@ params:
   PRIVATE_KEY:       ""
   INSTANCE_TYPE:     ""
   NTP_SERVER:        ""
+  CA_CERT:           ""
 
 run:
   path: validator-src/ci/tasks/validate.sh

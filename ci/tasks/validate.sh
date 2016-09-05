@@ -13,6 +13,7 @@ set -e -x
 : ${PRIVATE_KEY:?}
 : ${INSTANCE_TYPE:?}
 : ${NTP_SERVER:?}
+: ${CA_CERT:-""}
 
 sudo apt-get update
 sudo apt-get -y install wget make gcc zlib1g-dev libssl-dev ssh ruby # zlibc
@@ -24,6 +25,7 @@ echo "${PRIVATE_KEY}" > cf-validator.rsa_id
 chmod 400 cf-validator.rsa_id
 
 erb validator-src/ci/assets/validator.yml.erb > validator.yml
+cat validator.yml
 
 mkdir -p extensions
 cp validator-src/extensions/dummy_extension_spec.sample.rb extensions/dummy_extension_spec.rb
