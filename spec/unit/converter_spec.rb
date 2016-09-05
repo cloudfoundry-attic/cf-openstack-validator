@@ -39,15 +39,7 @@ describe Converter do
         expect(rendered_cpi_config['password']).to be_nil
       end
 
-      context "when connection_options.ca_cert is given" do
-        let(:config_with_ca_cert) {
-          complete_config.merge({
-              'connection_options' => {
-                'ca_cert' => 'crazykey'
-              }
-          })
-        }
-
+      context 'when connection_options' do
         let(:tmpdir) do
           Dir.mktmpdir
         end
@@ -60,14 +52,44 @@ describe Converter do
           FileUtils.rmdir(tmpdir)
         end
 
-        it "replaces 'ca_cert' with 'ssl_ca_file'" do
-          rendered_cpi_config = Converter.convert(config_with_ca_cert)
+        context '.ca_cert is given' do
+          let(:config_with_ca_cert) {
+            complete_config.merge({
+                'connection_options' => {
+                    'ca_cert' => 'crazykey'
+                }
+            })
+          }
 
-          expect(rendered_cpi_config['connection_options']['ssl_ca_file']).to eq("#{tmpdir}/cacert.pem")
-          expect(rendered_cpi_config['connection_options']['ca_cert']).to be_nil
+          it "replaces 'ca_cert' with 'ssl_ca_file'" do
+            rendered_cpi_config = Converter.convert(config_with_ca_cert)
+
+            expect(rendered_cpi_config['connection_options']['ssl_ca_file']).to eq("#{tmpdir}/cacert.pem")
+            expect(rendered_cpi_config['connection_options']['ca_cert']).to be_nil
+          end
+        end
+
+        [{ name: 'nil', value: nil}, { name: 'empty', value: ''}].each do |falsy_value|
+
+          context ".ca_cert is given #{falsy_value[:name]}" do
+            let(:config_with_nil_ca_cert) {
+              complete_config.merge({
+                  'connection_options' => {
+                      'ca_cert' => falsy_value[:value]
+                  }
+              })
+            }
+
+            it "removes 'ca_cert'" do
+              rendered_cpi_config = Converter.convert(config_with_nil_ca_cert)
+
+              expect(rendered_cpi_config['connection_options']['ssl_ca_file']).to be_nil
+              expect(rendered_cpi_config['connection_options']['ca_cert']).to be_nil
+            end
+          end
+
         end
       end
-
     end
 
     describe 'registry configuration' do

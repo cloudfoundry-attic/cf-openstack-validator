@@ -44,6 +44,7 @@ class Converter
       'password' => ->(_, value) { ['api_key', value] },
       'connection_options' => {
           'ca_cert' => ->(_, value) {
+            return nil if value.to_s == ''
             ssl_ca_file_path = File.join(Dir.mktmpdir, 'cacert.pem')
             File.write(ssl_ca_file_path, value)
             ['ssl_ca_file', ssl_ca_file_path]
@@ -66,6 +67,6 @@ class Converter
       else
         converter.call(key, value)
       end
-    end.to_h
+    end.compact.to_h
   end
 end
