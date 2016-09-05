@@ -18,8 +18,8 @@ set -e -x
 sudo apt-get update
 sudo apt-get -y install wget make gcc zlib1g-dev libssl-dev ssh ruby # zlibc
 
-wget -O cpi.tgz http://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=25
-wget -O stemcell.tgz https://d26ekeud912fhb.cloudfront.net/bosh-stemcell/openstack/bosh-stemcell-3232.6-openstack-kvm-ubuntu-trusty-go_agent.tgz
+wget -O cpi.tgz http://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=27
+wget -O stemcell.tgz https://d26ekeud912fhb.cloudfront.net/bosh-stemcell/openstack/bosh-stemcell-3262.9-openstack-kvm-ubuntu-trusty-go_agent.tgz
 
 echo "${PRIVATE_KEY}" > cf-validator.rsa_id
 chmod 400 cf-validator.rsa_id
