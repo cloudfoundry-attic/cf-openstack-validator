@@ -262,7 +262,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
   it 'can create large disk' do |test|
     large_disk_cid = with_cpi("Large disk could not be created.\n" +
-        'Hint: If you are using DevStack, you need to manually set a' +
+        'Hint: If you are using DevStack, you need to manually set a ' +
         'larger backing file size in your localrc.') {
       CfValidator.resources.track(@compute, :volumes, test.description){
         @cpi.create_disk(30720, {})
