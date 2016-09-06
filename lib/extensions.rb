@@ -12,8 +12,15 @@ class Extensions
     def eval(specs, binding)
       specs.each do |file|
         puts "Evaluating extension: #{file}"
-        binding.eval(File.read(file), file)
+        begin
+          binding.eval(File.read(file), file)
+        rescue Exception => e
+          puts e
+          puts e.backtrace if ENV['VERBOSE_FORMATTER'] == 'true'
+          raise e
+        end
       end
+      nil
     end
 
     private
