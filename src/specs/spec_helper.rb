@@ -11,7 +11,7 @@ def red(string)
 end
 
 def create_vm
-  vm = compute(@fog_params).servers.create(server_params)
+  vm = Validator::Api::FogOpenStack.compute.servers.create(server_params)
   wait_for_vm(vm)
   vm
 end
@@ -19,16 +19,16 @@ end
 def server_params
   image_id = validator_options['public_image_id']
   flavor_name = default_vm_type_cloud_properties['instance_type']
-  flavor = compute(@fog_params).flavors.find { |f| f.name == flavor_name }
+  flavor = Validator::Api::FogOpenStack.compute.flavors.find { |f| f.name == flavor_name }
   server_params = {
       :name => 'validator-test-vm',
       :image_ref => image_id,
       :flavor_ref => flavor.id,
-      :config_drive => openstack_params['config_drive'],
+      :config_drive => CfValidator.configuration.openstack['config_drive'],
       :nics =>[{'net_id' => validator_options['network_id']}]
   }
 
-  if openstack_params['boot_from_volume']
+  if CfValidator.configuration.openstack['boot_from_volume']
     server_params[:block_device_mapping_v2] = [{
                                                    :uuid => image_id,
                                                    :source_type => 'image',
@@ -57,13 +57,8 @@ def openstack_suite
   return @openstack_suite if @openstack_suite
   @openstack_suite = RSpec.describe 'Your OpenStack', order: :openstack do
 
-    before(:all) do
-      @fog_params = convert_to_fog_params(openstack_params)
-      @compute = compute(@fog_params)
-    end
-
     after(:all) do
-      CfValidator.resources.untrack(@compute, cleanup: !Cli.new(ENV).skip_cleanup?)
+      CfValidator.resources.untrack(Validator::Api::FogOpenStack.compute, cleanup: !Cli.new(ENV).skip_cleanup?)
     end
 
   end

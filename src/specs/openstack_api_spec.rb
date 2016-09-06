@@ -4,8 +4,7 @@ openstack_suite.context 'API', position: 1, order: :global do
 
   describe 'rate limit' do
     before(:all) do
-      @fog_params = convert_to_fog_params(openstack_params)
-      @compute = compute(@fog_params)
+      @compute = Validator::Api::FogOpenStack.compute
     end
 
     it 'is high enough' do |test|
@@ -29,12 +28,12 @@ openstack_suite.context 'API', position: 1, order: :global do
   describe 'Security groups' do
     before do
       begin
-        @network = Fog::Network::OpenStack.new(@fog_params)
+        @network = Validator::Api::FogOpenStack.network
       rescue Fog::Errors::NotFound => e
         pending('For this test Neutron is required.')
         raise e
       end
-      @configured_security_groups = default_vm_type_cloud_properties['security_groups'] || openstack_params['default_security_groups'] || ['default']
+      @configured_security_groups = default_vm_type_cloud_properties['security_groups'] || CfValidator.configuration.openstack['default_security_groups'] || ['default']
     end
 
     it 'has ingress rule for SSH' do

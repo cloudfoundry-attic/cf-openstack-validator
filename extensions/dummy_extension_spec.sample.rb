@@ -10,4 +10,23 @@ describe 'My extension' do
       expect(config['custom-config-key']).to eq('custom-config-value')
     end
   end
+
+  context 'when accessing OpenStack API' do
+
+    context 'compute' do
+      let(:compute) { Validator::Api::FogOpenStack.compute }
+
+      it 'is provided by the validator' do
+        expect(compute.servers).to be_a(Fog::Compute::OpenStack::Servers)
+      end
+    end
+
+    context 'network' do
+      let(:network) { Validator::Api::FogOpenStack.network }
+
+      it 'is provided by the validator' do
+        expect(network.networks).to be_a(Fog::Network::OpenStack::Networks)
+      end
+    end
+  end
 end

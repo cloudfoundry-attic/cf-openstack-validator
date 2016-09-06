@@ -4,3 +4,4 @@ cpi.json
 /validator.yml
 target/
 vendor/cache/
+extensions/dummy_extension_spec.rb
