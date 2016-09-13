@@ -77,7 +77,7 @@ The complete hash at `config` can be retrieved from your test by calling `CfVali
 > Note that the configuration will be globally available to all running custom validations.
 
 # Troubleshooting
-the validator doesn't run on your OpenStack? See [additional OpenStack related configuration options](docs/openstack_configurations.md) for possible solutions.
+The validator doesn't run on your OpenStack? See [additional OpenStack related configuration options](docs/openstack_configurations.md) for possible solutions.
 
 ### Environment variables
 * **FAIL_FAST**: In general, all tests are executed even if some of them fail. In order to stop after the first test failure, specify `FAIL_FAST=true`.
