@@ -7,9 +7,9 @@ openstack_suite.context 'API', position: 1, order: :global do
       @compute = Validator::Api::FogOpenStack.compute
     end
 
-    it 'is high enough' do |test|
+    it 'is high enough' do
       vm = nil
-      CfValidator.resources.track(@compute, :servers, test.description) do
+      Validator::Api::ResourceTracker.create.produce(:servers) do
         vm = create_vm
         vm.id
       end

@@ -58,7 +58,7 @@ def openstack_suite
   @openstack_suite = RSpec.describe 'Your OpenStack', order: :openstack do
 
     after(:all) do
-      CfValidator.resources.untrack(Validator::Api::FogOpenStack.compute, cleanup: !Cli.new(ENV).skip_cleanup?)
+      CfValidator.resources.cleanup unless Cli.new(ENV).skip_cleanup?
     end
 
   end

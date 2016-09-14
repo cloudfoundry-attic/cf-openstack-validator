@@ -135,10 +135,3 @@ end
 def kill_server(server_thread)
   Thread.kill(server_thread)
 end
-
-def make_pending_unless(required_value, pending_message)
-  unless required_value
-    pending(pending_message)
-    raise pending_message
-  end
-end

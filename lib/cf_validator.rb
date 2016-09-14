@@ -1,6 +1,6 @@
 class CfValidator
   def self.resources
-    @resources ||= ResourceTracker.new
+    @resources ||= Validator::Resources.new
   end
 
   def self.configuration

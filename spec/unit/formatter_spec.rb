@@ -130,7 +130,7 @@ describe TestsuiteFormatter do
 
     let(:failure_count) { 0 }
     let(:summary) { instance_double(RSpec::Core::Notifications::SummaryNotification) }
-    let(:resource_tracker) { instance_double(ResourceTracker) }
+    let(:resources) { instance_double(Validator::Resources) }
 
     before(:each) do
       allow(summary).to receive(:formatted_duration).and_return('47.11')
@@ -146,8 +146,8 @@ describe TestsuiteFormatter do
     end
 
     it 'gets the summary from the resource tracker' do
-      allow(resource_tracker).to receive(:summary).and_return('resources-summary')
-      allow(CfValidator).to receive(:resources).and_return(resource_tracker)
+      allow(resources).to receive(:summary).and_return('resources-summary')
+      allow(CfValidator).to receive(:resources).and_return(resources)
 
       subject.dump_summary(summary)
 

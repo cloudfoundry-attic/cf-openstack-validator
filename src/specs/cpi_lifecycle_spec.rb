@@ -14,18 +14,9 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     @cloud_config      = cloud_config
     @log_path          = log_path
 
-    @globals = {
-        vm_cid: nil,
-        has_vm: nil,
-        vm_cid_with_floating_ip: nil,
-        has_disk: nil,
-        snapshot_cid: nil,
-        disk_cid: nil,
-        stemcell_cid: nil
-    }
-
     _, @server_thread = create_server(registry_port)
     @cpi = cpi(@cpi_path, @log_path)
+    @resources = Validator::Api::ResourceTracker.create
     @compute = Validator::Api::FogOpenStack.compute
   }
 
@@ -33,28 +24,24 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     kill_server(@server_thread)
   }
 
-  after(:all) {
-    @cpi.delete_vm(@globals[:vm_cid_with_floating_ip])
-  }
-
-  it 'can save a stemcell' do |test|
+  it 'can save a stemcell' do
     stemcell_manifest = YAML.load_file(File.join(@stemcell_path, 'stemcell.MF'))
-    @globals[:stemcell_cid] = with_cpi('Stemcell could not be uploaded') {
-      CfValidator.resources.track(@compute, :images, test.description) {
+    stemcell_cid = with_cpi('Stemcell could not be uploaded') {
+      @resources.produce(:images, provide_as: :stemcell_cid) {
         @cpi.create_stemcell(File.join(@stemcell_path, 'image'), stemcell_manifest['cloud_properties'])
       }
     }
-    expect(@globals[:stemcell_cid]).to be
+    expect(stemcell_cid).to be
   end
 
-  it 'can create a VM' do |test|
-    make_pending_unless(@globals[:stemcell_cid], 'No stemcell available')
+  it 'can create a VM' do
+    stemcell_id = @resources.consumes(:stemcell_cid, 'No stemcell available')
 
-    @globals[:vm_cid] = with_cpi('VM could not be created.') {
-      CfValidator.resources.track(@compute, :servers, test.description) {
+    vm_cid = with_cpi('VM could not be created.') {
+      @resources.produce(:servers, provide_as: :vm_cid) {
         @cpi.create_vm(
             'agent-id',
-            @globals[:stemcell_cid],
+            stemcell_id,
             default_vm_type_cloud_properties,
             network_spec,
             [],
@@ -63,114 +50,117 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
       }
     }
 
-    expect(@globals[:vm_cid]).to be
+    expect(vm_cid).to be
   end
 
   it 'has VM cid' do
-    make_pending_unless(@globals[:vm_cid], 'No VM to check')
+    vm_cid = @resources.consumes(:vm_cid, 'No VM to check')
 
-    with_cpi('VM cid could not be found.') {
-      @globals[:has_vm] = @cpi.has_vm?(@globals[:vm_cid])
+    has_vm = with_cpi('VM cid could not be found.') {
+      @cpi.has_vm?(vm_cid)
     }
 
-    expect(@globals[:has_vm]).to be true
+    expect(has_vm).to be true
   end
 
   it 'can set VM metadata' do
-    make_pending_unless(@globals[:vm_cid], 'No VM to set metadata for')
+    vm_cid = @resources.consumes(:vm_cid, 'No VM to set metadata for')
 
-    server_metadata = @compute.servers.get(@globals[:vm_cid]).metadata
-    fail_message = "VM metadata registry key was not written for VM with ID #{@globals[:vm_cid]}."
+    server_metadata = @compute.servers.get(vm_cid).metadata
+    fail_message = "VM metadata registry key was not written for VM with ID #{vm_cid}."
 
     expect(server_metadata.get('registry_key')).not_to be_nil, fail_message
   end
 
-  it 'can create a disk in same AZ as VM' do |test|
-    make_pending_unless(@globals[:vm_cid], 'No VM to create disk for')
+  it 'can create a disk in same AZ as VM' do
+    vm_cid = @resources.consumes(:vm_cid, 'No VM to create disk for')
 
-    @globals[:disk_cid] = with_cpi('Disk could not be created.') {
-      CfValidator.resources.track(@compute, :volumes, test.description) {
-        @cpi.create_disk(2048, {}, @globals[:vm_cid])
+    disk_cid = with_cpi('Disk could not be created.') {
+      @resources.produce(:volumes, provide_as: :disk_cid) {
+        @cpi.create_disk(2048, {}, vm_cid)
       }
     }
 
-    expect(@globals[:disk_cid]).to be
+    expect(disk_cid).to be
   end
 
   it 'has disk cid' do
-    make_pending_unless(@globals[:disk_cid], 'No disk to check')
+    disk_cid = @resources.consumes(:disk_cid, 'No disk to check')
 
-    with_cpi('Disk cid could not be found.') {
-      @globals[:has_disk] = @cpi.has_disk?(@globals[:disk_cid])
+    has_disk = with_cpi('Disk cid could not be found.') {
+      @cpi.has_disk?(disk_cid)
     }
 
-    expect(@globals[:has_disk]).to be true
+    expect(has_disk).to be true
   end
 
   it 'can attach the disk to the VM' do
-    make_pending_unless(@globals[:vm_cid], 'No VM to attach disk to')
-    make_pending_unless(@globals[:disk_cid], 'No disk to attach')
+    vm_cid = @resources.consumes(:vm_cid, 'No VM to attach disk to')
+    disk_cid = @resources.consumes(:disk_cid, 'No disk to attach')
 
-    with_cpi("Disk '#{@globals[:disk_cid]}' could not be attached to VM '#{@globals[:vm_cid]}'.") {
-      @cpi.attach_disk(@globals[:vm_cid], @globals[:disk_cid])
+    with_cpi("Disk '#{disk_cid}' could not be attached to VM '#{vm_cid}'.") {
+      @cpi.attach_disk(vm_cid, disk_cid)
     }
   end
 
   it 'can detach the disk from the VM' do
-    make_pending_unless(@globals[:vm_cid], 'No VM to detach disk from')
-    make_pending_unless(@globals[:disk_cid], 'No disk to detach')
+    vm_cid = @resources.consumes(:vm_cid, 'No VM to detach disk from')
+    disk_cid = @resources.consumes(:disk_cid, 'No disk to detach')
 
-    with_cpi("Disk '#{@globals[:disk_cid]}' could not be detached from VM '#{@globals[:vm_cid]}'.") {
-      @cpi.detach_disk(@globals[:vm_cid], @globals[:disk_cid])
+    with_cpi("Disk '#{disk_cid}' could not be detached from VM '#{vm_cid}'.") {
+      @cpi.detach_disk(vm_cid, disk_cid)
     }
   end
 
-  it 'can take a snapshot' do |test|
-    make_pending_unless(@globals[:disk_cid], 'No disk to create snapshot from')
+  it 'can take a snapshot' do
+    disk_cid = @resources.consumes(:disk_cid, 'No disk to create snapshot from')
 
-    @globals[:snapshot_cid] = with_cpi("Snapshot for disk '#{@globals[:disk_cid]}' could not be taken.") {
-      CfValidator.resources.track(@compute, :snapshots, test.description) {
-        @cpi.snapshot_disk(@globals[:disk_cid], {})
+    snapshot_cid = with_cpi("Snapshot for disk '#{disk_cid}' could not be taken.") {
+      @resources.produce(:snapshots, provide_as: :snapshot_cid) {
+        @cpi.snapshot_disk(disk_cid, {})
       }
     }
+
+    expect(snapshot_cid).to be
   end
 
   it 'can delete a snapshot' do
-    make_pending_unless(@globals[:snapshot_cid], 'No snapshot to delete')
+    snapshot_cid = @resources.consumes(:snapshot_cid, 'No snapshot to delete')
+    disk_cid = @resources.consumes(:disk_cid, 'No disk to delete snapshot from')
 
-    with_cpi("Snapshot '#{@globals[:snapshot_cid]}' for disk '#{@globals[:disk_cid]}' could not be deleted.") {
-      @cpi.delete_snapshot(@globals[:snapshot_cid])
+    with_cpi("Snapshot '#{snapshot_cid}' for disk '#{disk_cid}' could not be deleted.") {
+      @cpi.delete_snapshot(snapshot_cid)
     }
   end
 
   it 'can delete the disk' do
-    make_pending_unless(@globals[:disk_cid], 'No disk to delete')
+    disk_cid = @resources.consumes(:disk_cid, 'No disk to delete')
 
-    with_cpi("Disk '#{@globals[:disk_cid]}' could not be deleted.") {
-      @cpi.delete_disk(@globals[:disk_cid])
+    with_cpi("Disk '#{disk_cid}' could not be deleted.") {
+      @cpi.delete_disk(disk_cid)
     }
   end
 
   it 'can delete the VM' do
-    make_pending_unless(@globals[:vm_cid], 'No vm to delete')
+    vm_cid = @resources.consumes(:vm_cid, 'No vm to delete')
 
-    with_cpi("VM '#{@globals[:vm_cid]}' could not be deleted.") {
-      @cpi.delete_vm(@globals[:vm_cid])
+    with_cpi("VM '#{vm_cid}' could not be deleted.") {
+      @cpi.delete_vm(vm_cid)
     }
   end
 
-  it 'can attach floating IP to a VM' do |test|
-    make_pending_unless(@globals[:stemcell_cid], 'No stemcell to create VM from')
+  it 'can attach floating IP to a VM' do
+    stemcell_cid = @resources.consumes(:stemcell_cid, 'No stemcell to create VM from')
 
-    @globals[:vm_cid_with_floating_ip] = vm_cid = with_cpi('Floating IP could not be attached.') {
-      CfValidator.resources.track(@compute, :servers, test.description) {
+    vm_cid = with_cpi('Floating IP could not be attached.') {
+      @resources.produce(:servers, provide_as: :vm_cid_with_floating_ip) {
         @cpi.create_vm(
-          'agent-id',
-          @globals[:stemcell_cid],
-          default_vm_type_cloud_properties,
-          network_spec_with_floating_ip,
-          [],
-          {}
+            'agent-id',
+            stemcell_cid,
+            default_vm_type_cloud_properties,
+            network_spec_with_floating_ip,
+            [],
+            {}
         )
       }
     }
@@ -184,7 +174,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can access the internet' do
-    make_pending_unless(@globals[:vm_cid_with_floating_ip], 'No VM to use')
+    @resources.consumes(:vm_cid_with_floating_ip, 'No VM to use')
 
     _, err, status = execute_ssh_command_on_vm(private_key_path,
                                             validator_options["floating_ip"], "nslookup github.com")
@@ -201,7 +191,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can save and retrieve user-data' do
-    make_pending_unless(@globals[:vm_cid_with_floating_ip], 'No VM to use')
+    @resources.consumes(:vm_cid_with_floating_ip, 'No VM to use')
 
     response, err, status = execute_ssh_command_on_vm(private_key_path,
                                                validator_options['floating_ip'], 'curl -m 10 http://169.254.169.254/latest/user-data')
@@ -218,7 +208,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'allows a VM to reach the configured NTP server' do
-    make_pending_unless(@globals[:vm_cid_with_floating_ip], 'No VM to use')
+    @resources.consumes(:vm_cid_with_floating_ip, 'No VM to use')
 
     ntp = YAML.load_file(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])['validator']['ntp'] || ['0.pool.ntp.org', '1.pool.ntp.org']
     sudo = " echo 'c1oudc0w' | sudo -S"
@@ -232,15 +222,15 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     expect(status.exitstatus).to eq(0), "Failed to reach any of the following NTP servers: #{ntp.join(', ')}. If your OpenStack requires an internal time server, you need to configure it in the validator.yml."
   end
 
-  it 'allows one VM to reach port 22 of another VM within the same network' do |test|
-    make_pending_unless(@globals[:vm_cid_with_floating_ip], 'No VM to use')
-    make_pending_unless(@globals[:stemcell_cid], 'No stemcell to create a second VM from')
+  it 'allows one VM to reach port 22 of another VM within the same network' do
+    @resources.consumes(:vm_cid_with_floating_ip, 'No VM to use')
+    stemcell_cid = @resources.consumes(:stemcell_cid, 'No stemcell to create VM from')
 
     second_vm_cid = with_cpi('Second VM could not be created.') {
-      CfValidator.resources.track(@compute, :servers, test.description) {
+      @resources.produce(:servers) {
         @cpi.create_vm(
             'agent-id',
-            @globals[:stemcell_cid],
+            stemcell_cid,
             default_vm_type_cloud_properties,
             network_spec,
             [],
@@ -260,14 +250,20 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     @cpi.delete_vm(second_vm_cid)
   end
 
-  it 'can create large disk' do |test|
+  it 'can create large disk' do
     large_disk_cid = with_cpi("Large disk could not be created.\n" +
         'Hint: If you are using DevStack, you need to manually set a ' +
         'larger backing file size in your localrc.') {
-      CfValidator.resources.track(@compute, :volumes, test.description){
+      @resources.produce(:volumes, provide_as: :large_disk_cid){
         @cpi.create_disk(30720, {})
       }
     }
+
+    expect(large_disk_cid).to be
+  end
+
+  it 'can delete large disk' do
+    large_disk_cid = @resources.consumes(:large_disk_cid, 'No large disk to delete')
 
     with_cpi("Large disk '#{large_disk_cid}' could not be deleted.") {
       @cpi.delete_disk(large_disk_cid)
@@ -275,10 +271,10 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can delete a stemcell' do
-    make_pending_unless(@globals[:stemcell_cid], 'No stemcell to delete')
+    stemcell_cid = @resources.consumes(:stemcell_cid, 'No stemcell to delete')
 
     with_cpi('Stemcell could not be deleted') {
-      @cpi.delete_stemcell(@globals[:stemcell_cid])
+      @cpi.delete_stemcell(stemcell_cid)
     }
   end
 
