@@ -10,13 +10,8 @@ module Validator
     end
 
     def cleanup()
-      cleaned = @trackers.inject([]) { |memo, tracker|
-        success = tracker.cleanup
-        memo << tracker if success
-        memo
-      }
+      @trackers.delete_if { |tracker| tracker.cleanup }
 
-      @trackers = @trackers - cleaned
       @trackers.empty?
     end
 
