@@ -246,8 +246,6 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     _, err, status = execute_ssh_command_on_vm_with_retry(private_key_path, validator_options["floating_ip"], "nc -zv #{second_vm_ip} 22")
 
     expect(status.exitstatus).to eq(0), "Failed to nc port 22 on second VM.\nError is: #{err}"
-
-    @cpi.delete_vm(second_vm_cid)
   end
 
   it 'can create large disk' do
