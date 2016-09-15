@@ -6,6 +6,10 @@ module Validator
           network: [:networks, :ports, :subnets, :floating_ips, :routers, :security_groups, :security_group_rules]
       }
 
+      ##
+      # Creates a new resource tracker instance. Each instance manages its own set
+      # of resources.
+      #
       def self.create
         CfValidator.resources.new_tracker
       end
@@ -18,6 +22,21 @@ module Validator
         resources.length
       end
 
+      ##
+      # Create and track a resource.
+      #
+      # = Params
+      #   +type+: One of those listed in +RESOURCE_SERVICES+, e.g.: +:servers+
+      #   +provide_as+: (optional) The name to be used to access the value via the +consume+ method.
+      #                 If it is not given, it cannot be consumed.
+      # = Block
+      #   The block has to yield an OpenStack resource id. This resource id is used to cleanup the
+      #   resource.
+      #
+      # = Examples
+      #   resource_id = resources.provide(resource_type, provide_as: :my_resource_name) { resource_id }
+      #   resource_id_not_consumable = resources.provide(resource_type) { resource_id }
+      #
       def produce(type, provide_as: nil)
         fog_service = service(type)
 
@@ -40,6 +59,18 @@ module Validator
         end
       end
 
+      ##
+      # Get the resource id of a tracked resource for the given name. If a resource with the given
+      # name cannot be found the test calling +consume+ will be marked as pending.
+      #
+      # = Params
+      #   +name+: The name which has been given to +produce+ as +:provide_as+
+      #   +message+: (optional) Message to be presented to the user, if the resource cannot be found
+      #
+      # = Examples
+      #   resource_id = resources.provide(resource_type, provide_as: :my_resource_name) { resource_id }
+      #   resource_id = resources.consume(:my_resource_name)
+      #
       def consumes(name, message = "Required resource '#{name}' does not exist.")
         value = @resources.find { |resource| resource.fetch(:provide_as) == name }
 

@@ -76,6 +76,74 @@ extensions:
 The complete hash at `config` can be retrieved from your test by calling `CfValidator.configuration.extensions`.
 > Note that the configuration will be globally available to all running custom validations.
 
+### Interact with OpenStack
+
+To interact with OpenStack the Validator provides access to `Fog` instances via an API. Currently the API exposes
+`compute`/`nova` and `network`/`neutron`. `Fog` is a ruby library that offers bindings for different IaaS platforms,
+including OpenStack. To create instances do:
+
+```ruby
+# Create a new compute instance
+compute = Validator::Api::FogOpenStack.compute
+server_collection = compute.servers
+
+# Create a new network instance
+network = Validator::Api::FogOpenStack.network
+network_collection = network.networks
+```
+
+The factory methods create a new instance each time you call them. Be aware that creating an instance, will already
+do an authentication call to keystone. For this reason it might be useful to just create on instance in a before hook.
+
+The options used to create those instances are the same that are used in the Valditor core tests. They are derived from 
+the `validator.yml` the user provided.
+
+To learn more about the usage of `Fog OpenStack` please have a look at its [documentation](https://github.com/fog/fog-openstack).
+
+### Track OpenStack Resources
+
+The Validator offers a central handling of OpenStack resources that are created during test runs. It takes care of
+cleaning up all resources at the end of a test run. The user can configure to skip this cleanup for debugging purposes (see environment variables below).
+Any leftover resources are reported at the end of the test run.
+
+To hook into this resource management, every custom validation can create a [ResourceTracker](lib/validator/api/resource_tracker.rb).
+
+```ruby
+# create a resource tracker instance
+resources = Validator::Api::ResourceTracker.create
+```
+Such an instance provides `produce` and `consume` methods to manage resources tied to the resource tracker.
+Each resource tracker is responsible for its own set of resources. Checkout the methods documentation [here](lib/validator/api/resource_tracker.rb).
+
+**Remark**: Only the following collections are supported:
+
+* **compute**: addresses, flavors, key_pairs, servers, volumes, images, snapshots
+* **network**: networks, ports, subnets, floating_ips, routers, security_groups, security_group_rules
+
+This means one can still use other collections the Fog Api offers, but the resource tracker cannot track and clean them up.
+This would then have to be done manually.
+
+```ruby
+# ...
+
+before(:all) do
+  @resources = Validator::Api::ResourceTracker.create
+end
+
+it 'creates a resource' do
+  server_id = @resources.produce(:servers, provide_as: :my_server_id) {
+      # create server in openstack and return the cid
+      server_id
+  }
+end
+
+it 'consumes a resource' do
+  server_id = @resources.consume(:my_server_id)
+end
+
+# ...
+```
+
 # Troubleshooting
 The validator doesn't run on your OpenStack? See [additional OpenStack related configuration options](docs/openstack_configurations.md) for possible solutions.
 
