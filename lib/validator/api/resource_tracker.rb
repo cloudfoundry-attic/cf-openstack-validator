@@ -1,8 +1,10 @@
 module Validator
   module Api
     class ResourceTracker
-
-      RESOURCE_TYPES = [:servers, :volumes, :images, :snapshots]
+      RESOURCE_SERVICES = {
+          compute: [:addresses, :flavors, :key_pairs, :servers, :volumes, :images, :snapshots],
+          network: [:networks, :ports, :subnets, :floating_ips, :routers, :security_groups, :security_group_rules]
+      }
 
       def self.create
         CfValidator.resources.new_tracker
@@ -17,17 +19,21 @@ module Validator
       end
 
       def produce(type, provide_as: nil)
-        unless RESOURCE_TYPES.include?(type)
-          raise ArgumentError, "Invalid resource type '#{type}', use #{RESOURCE_TYPES.join(', ')}"
+        fog_service = service(type)
+
+        unless fog_service
+          raise ArgumentError, "Invalid resource type '#{type}', use #{ResourceTracker.resource_types.join(', ')}"
         end
+
+
         if block_given?
           resource_id = yield
-          resource_name = FogOpenStack.compute.send(type).get(resource_id).name
+          resource_name = get_resource(type, resource_id).name
           @resources << {
-              resource_type: type,
-              resource_id: resource_id,
+              type: type,
+              id: resource_id,
               provide_as: provide_as,
-              resource_name: resource_name,
+              name: resource_name,
               test_description: RSpec.current_example.description
           }
           resource_id
@@ -38,32 +44,44 @@ module Validator
         value = @resources.find { |resource| resource.fetch(:provide_as) == name }
 
         if value == nil
-          make_test_pending(name, message)
+          make_test_pending(message)
         end
-        value[:resource_id]
+        value[:id]
       end
 
       def cleanup
-        resources.each do |value|
-          resource = FogOpenStack.compute.send(value[:resource_type]).get(value[:resource_id])
-          resource.destroy
-        end
-
-        count == 0
+        resources.map do |resource|
+          get_resource(resource[:type], resource[:id]).destroy
+        end.all?
       end
 
       def resources
-        @resources.reject do |value|
-          resource = FogOpenStack.compute.send(value[:resource_type]).get(value[:resource_id])
-          resource == nil
+        @resources.reject do |resource|
+          nil == get_resource(resource[:type], resource[:id])
         end
+      end
+
+      def self.resource_types
+        RESOURCE_SERVICES.values.flatten
       end
 
       private
 
-      def make_test_pending(name, message)
+      def service(resource_type)
+        RESOURCE_SERVICES.each do |service, types|
+          return service if types.include?(resource_type)
+        end
+
+        nil
+      end
+
+      def make_test_pending(message)
         RSpec.current_example.example_group_instance.pending(message)
         raise 'Mark as pending'
+      end
+
+      def get_resource(type, id)
+        FogOpenStack.send(service(type)).send(type).get(id)
       end
 
     end

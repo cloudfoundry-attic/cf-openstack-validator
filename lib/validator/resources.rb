@@ -26,9 +26,9 @@ module Validator
 
       resources_by_type = @trackers.map { |tracker|
         tracker.resources
-      }.flatten.group_by { |resource| resource[:resource_type] }
+      }.flatten.group_by { |resource| resource[:type] }
 
-      resource_type_summary = Api::ResourceTracker::RESOURCE_TYPES.map do |resource_type|
+      resource_type_summary = Api::ResourceTracker.resource_types.map do |resource_type|
         resources = resources_by_type[resource_type]
         "  #{resource_type}:\n#{format_resources(resources)}" unless resources.nil?
       end.join
@@ -38,7 +38,7 @@ module Validator
 
     private
     def format_resources(resources)
-      resources.map { |resource| "    #{resource[:resource_name]} / #{resource[:resource_id]} (#{resource[:test_description]})\n" }.join
+      resources.map { |resource| "    #{resource[:name]} / #{resource[:id]} (#{resource[:test_description]})\n" }.join
     end
 
   end

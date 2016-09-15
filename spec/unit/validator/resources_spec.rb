@@ -4,6 +4,8 @@ module Validator
 
   describe Resources do
     let(:compute) { double('compute', servers: servers, volumes: volumes, images: images) }
+    let(:network) { double('network', networks: networks) }
+
 
     let(:server_entries){ [] }
     let(:servers) {
@@ -17,9 +19,15 @@ module Validator
     let(:images) {
       OpenStackResourceCollection.new(image_entries)
     }
+    let(:network_entries){ [] }
+    let(:networks) {
+      OpenStackResourceCollection.new(network_entries)
+    }
+
 
     before (:each) do
       allow(Api::FogOpenStack).to receive(:compute).and_return(compute)
+      allow(Api::FogOpenStack).to receive(:network).and_return(network)
     end
 
     describe '.create' do
@@ -39,9 +47,10 @@ module Validator
 
       context 'when all resources can be cleaned up' do
 
-        Api::ResourceTracker::RESOURCE_TYPES.each do |type|
-          it 'cleans produced resources' do
+        Api::ResourceTracker.resource_types.each do |type|
+          it "cleans produced resources for #{type}" do
             allow(compute).to receive(type).and_return(resources)
+            allow(network).to receive(type).and_return(resources)
 
             subject.new_tracker.produce(type, provide_as: :resource_id1) {
               '1234-1234-1234-1234'
