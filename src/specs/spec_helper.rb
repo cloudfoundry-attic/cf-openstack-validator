@@ -24,7 +24,7 @@ def server_params
       :name => 'validator-test-vm',
       :image_ref => image_id,
       :flavor_ref => flavor.id,
-      :config_drive => CfValidator.configuration.openstack['config_drive'],
+      :config_drive => !!CfValidator.configuration.openstack['config_drive'],
       :nics =>[{'net_id' => validator_options['network_id']}]
   }
 

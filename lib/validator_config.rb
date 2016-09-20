@@ -17,7 +17,7 @@ class ValidatorConfig
             optional('default_key_name') => String,
             optional('default_security_groups') => [String],
             optional('wait_resource_poll_interval') => Integer,
-            optional('config_drive') => enum('disk', 'cdrom'),
+            optional('config_drive') => enum('disk', 'cdrom', nil),
             optional('human_readable_vm_names') => bool
         },
         'validator' => {

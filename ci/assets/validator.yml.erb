@@ -7,6 +7,7 @@ openstack:
   project: <%=ENV['PROJECT']%>
   default_key_name: <%=ENV['DEFAULT_KEY_NAME']%>
   default_security_groups: [validator]
+  config_drive: <%= ENV['CONFIG_DRIVE'] || '~' %>
   connection_options:
     ca_cert: <%=
       if ENV['CA_CERT'] == ''

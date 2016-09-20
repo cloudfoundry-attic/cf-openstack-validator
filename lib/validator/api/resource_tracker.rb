@@ -75,7 +75,7 @@ module Validator
         value = @resources.find { |resource| resource.fetch(:provide_as) == name }
 
         if value == nil
-          make_test_pending(message)
+          Api.skip_test(message)
         end
         value[:id]
       end
@@ -104,11 +104,6 @@ module Validator
         end
 
         nil
-      end
-
-      def make_test_pending(message)
-        RSpec.current_example.example_group_instance.pending(message)
-        raise 'Mark as pending'
       end
 
       def get_resource(type, id)

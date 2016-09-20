@@ -191,6 +191,8 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can save and retrieve user-data' do
+    Validator::Api::skip_test('Skipped optional metadata test. `config_drive` is configured in validator.yml.') if CfValidator.configuration.openstack['config_drive']
+
     @resources.consumes(:vm_cid_with_floating_ip, 'No VM to use')
 
     response, err, status = execute_ssh_command_on_vm(private_key_path,

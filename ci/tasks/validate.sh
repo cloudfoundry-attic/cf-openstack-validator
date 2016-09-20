@@ -30,4 +30,9 @@ cat validator.yml
 mkdir -p extensions
 cp validator-src/extensions/dummy_extension_spec.sample.rb extensions/dummy_extension_spec.rb
 
-validator-src/validate cpi.tgz stemcell.tgz validator.yml
+validator-src/validate cpi.tgz stemcell.tgz validator.yml $(pwd)/target
+
+CONFIG_DRIVE='disk' erb validator-src/ci/assets/validator.yml.erb > validator.yml
+cat validator.yml
+
+validator-src/validate cpi.tgz stemcell.tgz validator.yml $(pwd)/target

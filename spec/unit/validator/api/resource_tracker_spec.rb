@@ -43,22 +43,21 @@ module Validator::Api
 
       context 'when resource cannot be found' do
 
-        it 'marks a test pending' do |test|
-          allow(test.example_group_instance).to receive(:pending)
+        it 'skips the test with a default message' do
+          expect(Validator::Api).to receive(:skip_test).with("Required resource 'does_not_exist' does not exist.").and_raise(StandardError)
+
           expect {
             subject.consumes(:does_not_exist)
-          }.to raise_error 'Mark as pending'
+          }.to raise_error StandardError
 
-          expect(test.example_group_instance).to have_received(:pending).with("Required resource 'does_not_exist' does not exist.")
         end
 
-        it 'supports a custom pending message' do |test|
-          allow(test.example_group_instance).to receive(:pending)
-          expect {
-            subject.consumes(:does_not_exist, 'My message')
-          }.to raise_error 'Mark as pending'
+        it 'also supports a custom skip message' do
+          expect(Validator::Api).to receive(:skip_test).with('My message.').and_raise(StandardError)
 
-          expect(test.example_group_instance).to have_received(:pending).with('My message')
+          expect {
+            subject.consumes(:does_not_exist, 'My message.')
+          }.to raise_error StandardError
         end
 
       end
