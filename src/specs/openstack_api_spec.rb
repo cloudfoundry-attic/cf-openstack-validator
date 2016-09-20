@@ -41,7 +41,7 @@ openstack_suite.context 'API', position: 1, order: :global do
       expect(port_open_in_any_security_group?('ingress', 22, 'tcp', @configured_security_groups)).to be(true), error_message
     end
 
-    it 'has egress rule for outgoing HTTP traffic' do
+    it 'has egress rule for HTTP' do
       error_message = 'BOSH requires outgoing web access. Expected any security group to have egress port 80 for TCP open.'
       expect(port_open_in_any_security_group?('egress', 80, 'tcp', @configured_security_groups)).to be(true), error_message
     end
