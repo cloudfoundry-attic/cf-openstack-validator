@@ -4,6 +4,7 @@ require 'rspec/core'
 require 'yaml'
 require 'membrane'
 require 'fog/openstack'
+require 'securerandom'
 
 require_relative 'cf_validator'
 require_relative 'converter'

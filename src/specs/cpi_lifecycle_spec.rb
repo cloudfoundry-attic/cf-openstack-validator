@@ -190,7 +190,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
                       "Failed to curl http://github.com from VM with floating IP.\n     #{parse_curl_error(err)}"
   end
 
-  it 'can save and retrieve user-data' do
+  it 'can save and retrieve user-data from metadata service' do
     Validator::Api::skip_test('Skipped optional metadata test. `config_drive` is configured in validator.yml.') if CfValidator.configuration.openstack['config_drive']
 
     @resources.consumes(:vm_cid_with_floating_ip, 'No VM to use')
@@ -201,6 +201,34 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     if status.exitstatus > 0
       error_message = 'Cannot access metadata service at 169.254.169.254.'
       STDERR.puts(error_message + ' ' + parse_curl_error(err))
+      fail error_message
+    end
+
+    ['registry', 'server', 'networks'].each do |key|
+      expect(JSON.parse(response).keys).to include(key)
+    end
+  end
+
+  it 'can save and retrieve user-data from config_drive' do
+    Validator::Api::skip_test('Skipped optional config_drive test. `config_drive` is not configured in validator.yml.') unless CfValidator.configuration.openstack['config_drive']
+
+    @resources.consumes(:vm_cid_with_floating_ip, 'No VM to use')
+    vcap_password = 'c1oudc0w'
+    sudo_command = "echo #{vcap_password}| sudo -S"
+    mount_path = "/tmp/#{SecureRandom.uuid}"
+    config_drive_disk_path = '/dev/disk/by-label/config-2'
+    _, err, status = execute_ssh_command_on_vm(private_key_path, validator_options['floating_ip'], "#{sudo_command} mkdir #{mount_path} & #{sudo_command} mount #{config_drive_disk_path} #{mount_path}")
+    if status.exitstatus > 0
+      error_message = "Cannot mount config drive at '#{config_drive_disk_path}'"
+      STDERR.puts(error_message + ' ' + err)
+      fail error_message
+    end
+    response, err, status = execute_ssh_command_on_vm(private_key_path, validator_options['floating_ip'], "#{sudo_command} cat #{mount_path}/ec2/latest/user-data")
+    execute_ssh_command_on_vm(private_key_path, validator_options['floating_ip'], "#{sudo_command} umount #{mount_path}")
+
+    if status.exitstatus > 0
+      error_message = "Cannot access metadata at '#{mount_path}/ec2/latest/user-data'"
+      STDERR.puts(error_message + ' ' + err)
       fail error_message
     end
 
