@@ -19,6 +19,7 @@ params:
   DEFAULT_KEY_NAME:  ""
   NETWORK_ID:        ""
   FLOATING_IP:       ""
+  STATIC_IP:         ""
   PUBLIC_IMAGE_ID:   ""
   PRIVATE_KEY:       ""
   INSTANCE_TYPE:     ""

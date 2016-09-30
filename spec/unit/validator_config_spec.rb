@@ -14,6 +14,7 @@ describe 'ValidatorConfig' do
       'validator'=> {
         'network_id' => '',
         'floating_ip' => '',
+        'static_ip' => '',
         'private_key_path' => '',
         'public_image_id' => ''
       },

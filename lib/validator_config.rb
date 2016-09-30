@@ -23,6 +23,7 @@ class ValidatorConfig
         'validator' => {
             'network_id' => String,
             'floating_ip' => String,
+            'static_ip' => String,
             'private_key_path' => String,
             'public_image_id' => String,
         },

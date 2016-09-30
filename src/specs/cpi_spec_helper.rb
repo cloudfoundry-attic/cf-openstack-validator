@@ -77,6 +77,18 @@ def network_spec
   }
 end
 
+def network_spec_with_static_ip
+  {
+    'default' => {
+      'type' => 'manual',
+      'ip' => validator_options['static_ip'],
+      'cloud_properties' => {
+        'net_id' => validator_options['network_id']
+      }
+    }
+  }
+end
+
 def network_spec_with_floating_ip
   {
       'default' => {

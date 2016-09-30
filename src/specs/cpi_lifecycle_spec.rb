@@ -278,6 +278,34 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     expect(status.exitstatus).to eq(0), "Failed to nc port 22 on second VM.\nError is: #{err}"
   end
 
+  it 'can create a VM with static IP' do
+    stemcell_cid = @resources.consumes(:stemcell_cid, 'No stemcell to create VM from')
+
+    vm_cid_static_ip = with_cpi('VM with static IP could not be created.') {
+      @resources.produce(:servers, provide_as: :vm_cid_static_ip) {
+        @cpi.create_vm(
+          'agent-id',
+          stemcell_cid,
+          default_vm_type_cloud_properties,
+          network_spec_with_static_ip,
+          [],
+          {}
+        )
+      }
+    }
+
+    expect(vm_cid_static_ip).to be
+  end
+
+  it 'allows one VM to reach port 22 of another VM with static IP within the same network' do
+    @resources.consumes(:vm_cid_with_floating_ip, 'No VM with floating IP to use')
+    @resources.consumes(:vm_cid_static_ip, 'No VM with static IP to use')
+
+    _, err, status = execute_ssh_command_on_vm_with_retry(private_key_path, validator_options["floating_ip"], "nc -zv #{validator_options["static_ip"]} 22")
+
+    expect(status.exitstatus).to eq(0), "Failed to nc port 22 on VM with.\nError is: #{err}"
+  end
+
   it 'can create large disk' do
     large_disk_cid = with_cpi("Large disk could not be created.\n" +
         'Hint: If you are using DevStack, you need to manually set a ' +
