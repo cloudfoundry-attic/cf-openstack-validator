@@ -30,15 +30,24 @@ module Validator
 
       resource_type_summary = Api::ResourceTracker.resource_types.map do |resource_type|
         resources = resources_by_type[resource_type]
-        "  #{resource_type}:\n#{format_resources(resources)}" unless resources.nil?
+        "  #{resource_type_heading(resource_type)}:\n#{format_resources(resources)}" unless resources.nil?
       end.join
 
       "The following resources might not have been cleaned up:\n" + resource_type_summary
     end
 
     private
+
+    def resource_type_heading(resource_type)
+      if resource_type == :servers
+        "VMs"
+      else
+        resource_type.to_s.capitalize.gsub('_', ' ')
+      end
+    end
+
     def format_resources(resources)
-      resources.map { |resource| "    #{resource[:name]} / #{resource[:id]} (#{resource[:test_description]})\n" }.join
+      resources.map { |resource| "    - Name: #{resource[:name]}\n      UUID: #{resource[:id]}\n      Created by test: #{resource[:test_description]}\n" }.join
     end
 
   end

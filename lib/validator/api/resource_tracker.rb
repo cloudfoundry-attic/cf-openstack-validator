@@ -53,7 +53,7 @@ module Validator
               id: resource_id,
               provide_as: provide_as,
               name: resource_name,
-              test_description: RSpec.current_example.description
+              test_description: RSpec.current_example.full_description
           }
           resource_id
         end

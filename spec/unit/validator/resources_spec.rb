@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 module Validator
 
   describe Resources do
-    let(:compute) { double('compute', servers: servers, volumes: volumes, images: images) }
+    let(:compute) { double('compute', servers: servers, volumes: volumes, images: images, key_pairs: key_pairs) }
     let(:network) { double('network', networks: networks) }
 
 
@@ -22,6 +22,10 @@ module Validator
     let(:network_entries){ [] }
     let(:networks) {
       OpenStackResourceCollection.new(network_entries)
+    }
+    let(:key_pair_entries){ [] }
+    let(:key_pairs) {
+      OpenStackResourceCollection.new(key_pair_entries)
     }
 
 
@@ -105,6 +109,7 @@ module Validator
             {id: '1111-1111-1111-1111', name: 'volume-1'},
             {id: '0000-0000-0000-0000', name: 'volume-2'}
         ] }
+        let(:key_pair_entries) { [{id: '1-2-3-4', name: 'keypair-1'}]}
         before(:all) {
           @subject = Resources.new
         }
@@ -120,14 +125,28 @@ module Validator
           @subject.new_tracker.produce(:volumes) { '0000-0000-0000-0000' }
         end
 
+        it 'a key pair' do
+          @subject.new_tracker.produce(:key_pairs) { '1-2-3-4'}
+        end
+
         it 'returns all tracked resources as printable string' do
           expect(@subject.summary).to eq(<<EOF
 The following resources might not have been cleaned up:
-  servers:
-    server-1 / 1234-1234-1234-1234 (a server)
-  volumes:
-    volume-1 / 1111-1111-1111-1111 (a volume)
-    volume-2 / 0000-0000-0000-0000 (another volume)
+  Key pairs:
+    - Name: keypair-1
+      UUID: 1-2-3-4
+      Created by test: Validator::Resources.summary when multiple tests produce resources a key pair
+  VMs:
+    - Name: server-1
+      UUID: 1234-1234-1234-1234
+      Created by test: Validator::Resources.summary when multiple tests produce resources a server
+  Volumes:
+    - Name: volume-1
+      UUID: 1111-1111-1111-1111
+      Created by test: Validator::Resources.summary when multiple tests produce resources a volume
+    - Name: volume-2
+      UUID: 0000-0000-0000-0000
+      Created by test: Validator::Resources.summary when multiple tests produce resources another volume
 EOF
           )
         end
