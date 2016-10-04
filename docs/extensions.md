@@ -1,0 +1,217 @@
+# Extensions
+> Note: This feature is available in versions >=1.2
+
+In case you have custom validations that you need to run against OpenStack you can create extensions to the validator.
+
+## How to Write Your First Extension
+
+This is a step-by-step guide to implement your first extension.
+
+### Create Extensions File
+
+You can configure a directory from which extensions are read. Create a directory `validator_extensions` in your home directory and add a `my_extension_spec.rb` file.
+Add the path to your `validator.yml` under the `extensions` section:
+```yml
+extensions:
+  paths: ['~/validator_extensions/']
+```
+
+### Write a Simple Test
+
+Extensions are in fact [RSpec](http://rspec.info/) tests. Let's get started with a minimal RSpec test:
+
+```ruby
+fdescribe 'My extension' do
+
+  it 'is true' do
+    expect(true).to be(true)
+  end
+  
+end
+```
+
+**Important:** To ensure that only your test runs during development, we use `fdescribe` instead of `describe.` Set the 
+environment variable `TAG=focus` to only run tests focused with the `f` prefix as you can see in the next step. Don't forget
+to remove those, before publishing your extension.
+
+### Run Your Test
+
+Let's run your test. Start the validator execution as usual, prefixed with the focus tag.
+
+```bash
+$ TAG=focus ./validate ~/path/to/cpi.tgz ~/path/to/stemcell.tgz validator.yml
+```
+
+### Access OpenStack in Your Test
+
+We want to ensure that we can create a security group in OpenStack. The validator provides an API that enables us to interact
+with OpenStack.
+
+```ruby
+fdescribe 'My extension' do
+
+  before(:all) { @compute = Validator::Api::FogOpenStack.compute } 
+
+  it 'can create a security group allowing SSH' do
+    ssh_security_group = @compute.security_groups.create({ 'name' => 'allow-ssh', 'description' => '' })
+    ssh_security_group.security_group_rules.create({
+      from_port: '22',
+      ip_protocol: 'tcp',
+      ip_range: { 'cidr' => '0.0.0.0/0' },
+      to_port: '22',
+      parent_group_id: ssh_security_group.id
+    })
+
+    expect(@compute.security_groups.get(ssh_security_group.id)).to_not be_nil
+
+    ssh_security_group.destroy
+  end
+  
+end
+```
+
+### Automatically Clean up Resources Created by Your Tests
+
+To ensure that resources are cleaned up, even when the test is not completely executed due to an error, the validator provides a resource tracking API. The resource tracking API supports automatic cleanup of OpenStack resources. For debugging cleanup can be skipped by setting the environment variable `BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP` to `true`.
+
+To use the resource tracking add a statement as follows:
+
+```ruby
+fdescribe 'My extension' do
+
+  before(:all) do
+    @resources = Validator::Api::ResourceTracker.create
+    @compute = Validator::Api::FogOpenStack.compute 
+  end
+
+  it 'can create a security group allowing SSH' do
+    ssh_security_group = nil
+    ssh_security_group_id = @resources.produce(:security_groups, provide_as: :my_security_group_id) do
+      ssh_security_group = @compute.security_groups.create({ 'name' => 'allow-ssh', 'description' => '' })
+      ssh_security_group.id
+    end
+
+    ssh_security_group.security_group_rules.create({
+      from_port: '22',
+      ip_protocol: 'tcp',
+      ip_range: { 'cidr' => '0.0.0.0/0' },
+      to_port: '22',
+      parent_group_id: ssh_security_group_id
+    })
+
+    expect(@compute.security_groups.get(ssh_security_group_id)).to_not be_nil
+  end
+  
+end
+```
+
+If you now run the tests with `BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP=true`, it will not clean up the security group and you will see output similar to:
+```
+...
+Finished in 3.28 seconds (files took 0.27329 seconds to load)
+1 example, 0 failures
+Resources: The following resources might not have been cleaned up:
+  Security groups:
+    - Name: allow-ssh
+      UUID: 6a400796-32ad-42d7-8124-2e73c27b01e3
+      Created by test: Your OpenStack Extensions My extension can create a security group allowing SSH
+```
+
+Note that you have to manually clean up the security group in the OpenStack UI or with the openstack command line client in this case.
+
+### Finishing Up
+
+That's it, you have implemented your first validator extension. As a last step don't forget to remove all `f` prefixes in front
+of `describe`, `context` or `it` steps, so that the whole test suite is executed.
+
+## Complete Reference Documentation
+
+### Location of extensions
+
+An extension is an RSpec file (*_spec.rb). You can find an [example here](../extensions/dummy_extension_spec.sample.rb)
+
+There are two ways to include your extension:
+
+1. Add it to `./extensions`
+2. Specify the paths to the directories containing your RSpec files in the `validator.yml`
+```yml
+extensions:
+  paths: [my/relative/extension/path, /some/absolute/extension/path]
+```
+
+If your extension needs any configuration you can add it to the `validator.yml`.
+```yml
+extensions:
+  config:
+    key: value
+```
+The complete hash at `config` can be retrieved from your test by calling `CfValidator.configuration.extensions`.
+> Note that the configuration will be globally available to all running extensions.
+
+### Interact with OpenStack
+
+To interact with OpenStack the validator provides access via an API. Currently the API exposes
+`compute`/`nova` and `network`/`neutron` instances using the library `Fog`. `Fog` is a Ruby library that offers bindings for different IaaS platforms,
+including OpenStack. To create instances do:
+
+```ruby
+# Create a new compute instance
+compute = Validator::Api::FogOpenStack.compute
+server_collection = compute.servers
+
+# Create a new network instance
+network = Validator::Api::FogOpenStack.network
+network_collection = network.networks
+```
+
+The factory methods create a new instance each time you call them. Be aware that creating an instance, will already
+do an authentication call to keystone. For this reason it might be useful to just create one instance in a before hook.
+
+The options used to create those instances are the same that are used in the validator core tests. They are derived from 
+the `validator.yml` the user provided.
+
+To learn more about the usage of `Fog OpenStack` please have a look at its [documentation](https://github.com/fog/fog-openstack).
+
+### Track OpenStack Resources
+
+The validator offers a central handling of OpenStack resources that are created during test runs. It takes care of
+cleaning up all resources at the end of a test run. The user can configure to skip this cleanup for debugging purposes (see [environment variables](../README.md#environment-variables)).
+Any leftover resources are reported at the end of the test run.
+
+To hook into this resource management, every extension can create a [ResourceTracker](../lib/validator/api/resource_tracker.rb).
+
+```ruby
+# create a resource tracker instance
+resources = Validator::Api::ResourceTracker.create
+```
+Such an instance provides `produce` and `consume` methods to manage resources tied to the resource tracker.
+Each resource tracker is responsible for its own set of resources. Checkout the methods documentation [here](lib/validator/api/resource_tracker.rb).
+
+**Remark**: Only the following collections are supported:
+
+* **compute**: addresses, flavors, key_pairs, servers, volumes, images, snapshots
+* **network**: networks, ports, subnets, floating_ips, routers, security_groups, security_group_rules
+
+This means one can still use other collections the Fog Api offers, but the resource tracker cannot track and clean them up.
+This would then have to be done manually.
+
+```ruby
+# ...
+
+before(:all) do
+  @resources = Validator::Api::ResourceTracker.create
+end
+
+it 'creates a resource' do
+  server_id = @resources.produce(:servers, provide_as: :my_server_id) {
+      # create server in openstack and return the cid
+      server_id
+  }
+end
+
+it 'consumes a resource' do
+  server_id = @resources.consume(:my_server_id)
+end
+
+# ...
+```
