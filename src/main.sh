@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 set -e
 
+function usage() {
+  echo "Usage: validate <cpi release path> <stemcell path> <validator config path> [<working dir>]"
+}
+
+function error_with_usage() {
+  echo "Error:" $1
+  echo
+  usage
+  exit 1
+}
+
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve symlinks
   SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
@@ -10,11 +21,19 @@ done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 
-#TODO validate arguments
-#mandatory
 cpi_release=$1
 stemcell=$2
 validator_config=$3
+
+if [ -z "$cpi_release" ]; then
+  error_with_usage "missing cpi release path"
+fi
+if [ -z "$stemcell" ]; then
+  error_with_usage "missing stemcell path"
+fi
+if [ -z "$validator_config" ]; then
+  error_with_usage "missing config path"
+fi
 
 #optional
 temp_dir=${4:-`mktemp -d`}
