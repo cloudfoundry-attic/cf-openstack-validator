@@ -2,7 +2,7 @@
 set -e
 
 function usage() {
-  echo "Usage: validate <cpi release path> <stemcell path> <validator config path> [<working dir>]"
+  echo "Usage: validate bosh-openstack-cpi-release-<xxx>.tgz bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz validator.yml [<working-dir>]"
 }
 
 function error_with_usage() {
