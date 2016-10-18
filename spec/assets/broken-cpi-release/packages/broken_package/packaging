@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+echo "Log to STDOUT"
+(>&2 echo "Log to STDERR")
+
+exit 1
+

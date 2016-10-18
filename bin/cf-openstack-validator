@@ -1,0 +1,84 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require_relative '../lib/validator'
+
+options = {}
+option_parser = OptionParser.new do |parser|
+  parser.banner = 'Usage: cf-openstack-validator [options]'
+
+  parser.on('-h', '--help', 'Prints this help') do
+    puts parser
+    exit
+  end
+
+  parser.on('--cpi-release RELEASE', 'CPI release location') do |release|
+    options[:cpi_release] = release
+  end
+
+  parser.on('-s', '--stemcell STEMCELL', 'Stemcell location') do |stemcell|
+    options[:stemcell] = stemcell
+  end
+
+  parser.on('-c', '--config CONFIG_FILE', 'Configuration YAML file location') do |config|
+    options[:config] = config
+  end
+
+  parser.on('-w', '--working-directory DIR', 'Working directory location (optional)') do |working_dir|
+    options[:working_dir] = working_dir
+  end
+
+end
+option_parser.parse!
+
+missing_required_options = []
+[:cpi_release, :stemcell, :config].each do |required_option|
+  if !options.include?(required_option)
+    missing_required_options.push(required_option)
+  end
+end
+if !missing_required_options.empty?
+  STDERR.puts("Required options are missing: #{missing_required_options.map { |o| "--#{o.to_s.gsub('_', '-')}" }.join(", ")}")
+  puts option_parser
+  exit 1
+end
+
+=begin
+Steps:
+# Parse cmd options
+- parse options
+
+# install cpi
+  - extract
+  - extract packages
+  - compile packages
+  - render cpi binary
+
+# Prepare ruby environment
+- bundle install
+- log `gem environment` + list of gems in ruby_openstack_cpi
+
+# extract stemcell
+
+# Load config
+- render cpi config
+
+# Execute RSpec specs
+- bundle exec rspec
+=end
+
+validator = Validator::Cli::CfOpenstackValidator.create(options)
+begin
+  validator.install_release(options[:cpi_release])
+  validator.prepare_ruby_environment
+  validator.extract_stemcell
+  validator.load_config
+  validator.execute_specs
+rescue Validator::Cli::ErrorWithLogDetails => e
+  puts "More details can be found in #{e.log_path}"
+end
+
+main_path = File.expand_path('../../validate', __FILE__)
+cmd = "#{main_path} #{options[:cpi_release]} #{options[:stemcell]} #{options[:config]} #{working_dir}"
+puts cmd
+system(cmd)
