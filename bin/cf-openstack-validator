@@ -69,7 +69,7 @@ Steps:
 
 validator = Validator::Cli::CfOpenstackValidator.create(options)
 begin
-  validator.install_release(options[:cpi_release])
+  validator.install_cpi_release(options[:cpi_release])
   validator.prepare_ruby_environment
   validator.extract_stemcell
   validator.load_config

@@ -81,17 +81,16 @@ module Validator::Cli
     end
 
     describe '#compile_package' do
-      let(:package) { 'dummy_package' }
-      let(:release_path) { expand_project_path('spec/assets/cpi-release') }
+      let(:package_path) { expand_project_path('spec/assets/cpi-release/packages/dummy_package') }
 
       it 'creates package folder' do
-        subject.compile_package(package, release_path)
+        subject.compile_package(package_path)
 
         expect(File.exists?(File.join(tmp_path, 'packages/dummy_package'))).to be(true)
       end
 
       it 'executes packaging script' do
-        subject.compile_package(package, release_path)
+        subject.compile_package(package_path)
 
         compiled_file_path = File.join(tmp_path, 'packages', 'compiled_file')
         expect(File.exists?(compiled_file_path)).to be(true)
@@ -99,7 +98,7 @@ module Validator::Cli
       end
 
       it 'writes log file' do
-        subject.compile_package(package, release_path)
+        subject.compile_package(package_path)
 
         logfile = File.join(tmp_path, 'logs', 'packaging-dummy_package.log')
         expect(File.exists?(logfile)).to be(true)
@@ -107,23 +106,26 @@ module Validator::Cli
       end
 
       context 'when the packaging script fails' do
-        let(:package) { 'broken_package' }
-        let(:release_path) { expand_project_path('spec/assets/broken-cpi-release') }
+        let(:package_path) { expand_project_path('spec/assets/broken-cpi-release/packages/broken_package') }
 
         it 'raises an error with log details' do
           expect{
-            subject.compile_package(package, release_path)
+            subject.compile_package(package_path)
           }.to raise_error(ErrorWithLogDetails)
         end
       end
     end
 
-    describe '#install_release' do
+    describe '#install_cpi_release' do
       it 'compiles packages and renders cpi executable' do
-        subject.install_release(release_archive_path)
+        subject.install_cpi_release(release_archive_path)
 
         expect(File.exists?(File.join(tmp_path, 'cpi-release/packages/bosh_openstack_cpi/bosh_openstack_cpi/dummy_bosh_openstack_cpi'))).to be(true)
         expect(File.exists?(File.join(tmp_path, 'cpi-release/packages/ruby_openstack_cpi/ruby_openstack_cpi/dummy_ruby_openstack_cpi'))).to be(true)
+
+        expect(File.exists?(File.join(tmp_path, 'packages', 'bosh_openstack_cpi'))).to be(true)
+        expect(File.exists?(File.join(tmp_path, 'packages', 'ruby_openstack_cpi'))).to be(true)
+
         rendered_cpi_executable = File.join(tmp_path, 'cpi')
         expect(File.exists?(rendered_cpi_executable)).to be(true)
         expect(File.executable?(rendered_cpi_executable)).to be(true)
