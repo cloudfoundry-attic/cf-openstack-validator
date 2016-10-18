@@ -73,9 +73,11 @@ begin
   # TODO check installation was successful
   validator.install_cpi_release(options[:cpi_release])
   validator.extract_stemcell(options[:stemcell])
-  validator.prepare_ruby_environment
-  validator.load_config
-  validator.execute_specs
+  validator.prepare_ruby_environment(validator.path_environment, validator.gems_folder, validator.bundle_command)
+  validator.generate_cpi_config(options[:config])
+  validator.print_gem_environment(validator.path_environment, validator.gems_folder, validator.bundle_command)
+  #TODO move all env vars to options
+  validator.execute_specs(options[:config], validator.path_environment, validator.gems_folder, validator.bundle_command)
 rescue Validator::Cli::ErrorWithLogDetails => e
   puts "More details can be found in #{e.log_path}"
 end
