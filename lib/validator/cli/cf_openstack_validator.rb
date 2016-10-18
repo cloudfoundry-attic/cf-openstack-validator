@@ -18,6 +18,10 @@ module Validator::Cli
 
     def initialize(options)
       @working_dir = options[:working_dir]
+      @tag = options[:tag]
+      @skip_cleanup = options[:skip_cleanup]
+      @verbose = options[:verbose]
+      @fail_fast = options[:fail_fast]
       @validator_dir = File.expand_path('../../../../', __FILE__)
     end
 
@@ -129,8 +133,8 @@ module Validator::Cli
           'BOSH_OPENSTACK_CPI_PATH' => File.join(@working_dir, 'cpi'),
           'BOSH_OPENSTACK_VALIDATOR_CONFIG' => validator_config_path,
           'BOSH_OPENSTACK_CPI_CONFIG' => File.join(@working_dir, 'cpi.json'),
-          'BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP' => ENV['BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP'],
-          'VERBOSE_FORMATTER' => ENV['VERBOSE_FORMATTER'],
+          'BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP' => @skip_cleanup,
+          'VERBOSE_FORMATTER' => @verbose,
           'http_proxy' => ENV['http_proxy'],
           'https_proxy' => ENV['https_proxy'],
           'no_proxy' => ENV['no_proxy'],
@@ -140,8 +144,8 @@ module Validator::Cli
       rspec_command = [
           "#{bundle_command} exec rspec #{File.join(@validator_dir, 'src', 'specs')}"
       ]
-      rspec_command += ["--tag #{ENV['TAG']}"] if ENV['TAG']
-      rspec_command += ['--fail-fast'] if ENV['FAIL_FAST'] == 'true'
+      rspec_command += ["--tag #{@tag}"] if @tag
+      rspec_command += ['--fail-fast'] if @fail_fast
       rspec_command += [
           '--order defined',
           "--color --require #{File.join(@validator_dir, 'lib', 'formatter.rb')}",

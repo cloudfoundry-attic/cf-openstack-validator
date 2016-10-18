@@ -15,6 +15,10 @@ Usage: cf-openstack-validator [options]
     -s, --stemcell STEMCELL          Stemcell location
     -c, --config CONFIG_FILE         Configuration YAML file location
     -w, --working-directory DIR      Working directory location (optional)
+        --tag TAG                    Run examples that match a specified tag (optional)
+        --skip-cleanup               Skip cleanup of OpenStack resources (optional)
+    -v, --verbose                    Print more output for the failing tests (optional)
+        --fail-fast                  Stop execution after the first test failure (optional)
 EOT
 end
 

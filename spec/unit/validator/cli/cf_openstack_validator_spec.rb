@@ -2,7 +2,8 @@ require_relative '../../spec_helper'
 
 module Validator::Cli
   describe CfOpenstackValidator do
-    subject { CfOpenstackValidator.new({working_dir: tmp_path, cpi_release: release_archive_path}) }
+    let(:options) {{working_dir: tmp_path, cpi_release: release_archive_path}}
+    subject { CfOpenstackValidator.new(options) }
 
     let(:release_archive_path) { expand_project_path('spec/assets/cpi-release.tgz') }
 
@@ -288,6 +289,7 @@ EOF
     end
 
     describe '#execute_specs' do
+      let(:options) {{working_dir: tmp_path, cpi_release: release_archive_path, skip_cleanup: 'TRUE', verbose: 'TRUE'}}
       let(:bundle_command) { 'command' }
       let(:path_environment) { 'path environment' }
       let(:gems_folder) { 'gems folder' }
@@ -302,8 +304,8 @@ EOF
           'BOSH_OPENSTACK_CPI_PATH' => File.join(tmp_path, 'cpi'),
           'BOSH_OPENSTACK_VALIDATOR_CONFIG' => 'validator_config_path',
           'BOSH_OPENSTACK_CPI_CONFIG' => File.join(tmp_path, 'cpi.json'),
-          'BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP' => ENV['BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP'],
-          'VERBOSE_FORMATTER' => ENV['VERBOSE_FORMATTER'],
+          'BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP' => options[:skip_cleanup],
+          'VERBOSE_FORMATTER' => options[:verbose],
           'http_proxy' => ENV['http_proxy'],
           'https_proxy' => ENV['https_proxy'],
           'no_proxy' => ENV['no_proxy'],
@@ -355,6 +357,7 @@ EOF
       end
 
       context 'when option are set' do
+        let(:options) {{working_dir: tmp_path, cpi_release: release_archive_path, tag: 'focus', fail_fast: true}}
         let(:expected_command) {
           [
               "command exec rspec #{expand_project_path('src/specs')}",
@@ -366,8 +369,6 @@ EOF
           ].join(' ')
         }
         it 'should execute specs with fail fast option' do
-          ENV['FAIL_FAST'] = 'true'
-          ENV['TAG'] = 'focus'
           allow(Open3).to receive(:popen2e)
 
           subject.execute_specs('validator_config_path', path_environment, gems_folder, bundle_command)
