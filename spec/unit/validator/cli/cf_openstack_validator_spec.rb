@@ -145,5 +145,18 @@ echo \$INPUT | \$bundle_cmd exec \$BOSH_PACKAGES_DIR/bosh_openstack_cpi/bin/open
 EOF
       end
     end
+
+    describe '#extract_stemcell' do
+      let(:stemcell_path) { expand_project_path('spec/assets/dummy.tgz') }
+
+      it 'should extract the stemcell' do
+        subject.extract_stemcell(stemcell_path)
+
+        extracted_stemcell = File.join(tmp_path, 'stemcell')
+
+        expect(File.directory?(extracted_stemcell)).to be(true)
+        expect(Dir.glob(File.join(extracted_stemcell, '*'))).to_not be_empty
+      end
+    end
   end
 end

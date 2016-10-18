@@ -36,6 +36,12 @@ module Validator::Cli
       extract_target
     end
 
+    def extract_stemcell(archive)
+      stemcell_path = File.join(@working_dir, 'stemcell')
+      FileUtils.mkdir_p(stemcell_path)
+      Untar.extract_archive(archive, stemcell_path)
+    end
+
     def compile_package(package_path)
       target = File.join(@working_dir, 'packages')
       package_name = File.basename(package_path)

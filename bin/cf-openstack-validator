@@ -69,9 +69,11 @@ Steps:
 
 validator = Validator::Cli::CfOpenstackValidator.create(options)
 begin
+  # TODO check installation directory is empty
+  # TODO check installation was successful
   validator.install_cpi_release(options[:cpi_release])
+  validator.extract_stemcell(options[:stemcell])
   validator.prepare_ruby_environment
-  validator.extract_stemcell
   validator.load_config
   validator.execute_specs
 rescue Validator::Cli::ErrorWithLogDetails => e
