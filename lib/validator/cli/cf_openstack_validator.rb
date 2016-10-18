@@ -165,6 +165,31 @@ module Validator::Cli
       end
     end
 
+    def installation_exists?
+      entries = Dir.entries(@working_dir) - ['.', '..']
+      !entries.empty?
+    end
+
+    def check_installation?(cpi_release)
+      unless File.exist?(File.join(@working_dir, '.completed'))
+        error_message = "The CPI installation did not finish successfully.\n" +
+            "Execute 'rm -rf #{@working_dir}' and run the tests again."
+        return [false, error_message]
+      end
+
+      if File.read(File.join(@working_dir, '.completed')) != cpi_release
+        error_message = "Provided CPI and pre-installed CPI don't match.\n" +
+            "Execute 'rm -rf #{@working_dir}' and run the tests again."
+        return [false, error_message]
+      end
+
+      [true, nil]
+    end
+
+    def save_cpi_release_version(cpi_release)
+      File.write(File.join(@working_dir, '.completed'), cpi_release)
+    end
+
     private
 
     def raise_on_failing_status(exit_status, log_path)

@@ -377,5 +377,72 @@ EOF
         end
       end
     end
+
+    describe '#installation_exists?' do
+
+      it 'should return false' do
+        expect(subject.installation_exists?).to eq(false)
+      end
+
+      context 'when installation folder is not empty' do
+        before(:each) do
+          File.write(File.join(tmp_path, 'dummy_installation'), '')
+        end
+
+        after(:each) do
+          FileUtils.rm(File.join(tmp_path, 'dummy_installation'))
+        end
+
+        it 'should return true' do
+          expect(subject.installation_exists?).to eq(true)
+        end
+      end
+    end
+
+    describe '#check_installation?' do
+      before(:each) do
+        File.write(File.join(tmp_path, '.completed'), release_archive_path)
+      end
+
+      after(:each) do
+        File.delete(File.join(tmp_path, '.completed')) if File.exist?(File.join(tmp_path, '.completed'))
+      end
+
+      context 'when installation succeeded' do
+        it 'return true without a message' do
+          expect(subject.check_installation?(release_archive_path)).to eq([true, nil])
+        end
+      end
+
+      context 'when the installation failed' do
+        let(:expected_message) {
+          "The CPI installation did not finish successfully.\n" +
+          "Execute 'rm -rf #{tmp_path}' and run the tests again."
+        }
+        it 'returns false with a message' do
+          File.delete(File.join(tmp_path, '.completed'))
+          expect(subject.check_installation?(release_archive_path)).to eq([false, expected_message])
+        end
+      end
+
+      context 'when the CPI version does not match' do
+        let(:expected_message) {
+          "Provided CPI and pre-installed CPI don't match.\n" +
+              "Execute 'rm -rf #{tmp_path}' and run the tests again."
+        }
+        it 'returns false with a message' do
+          expect(subject.check_installation?('25')).to eq([false, expected_message])
+        end
+      end
+    end
+
+    describe '#save_cpi_release_version' do
+      it 'writes a .completed file with the cpi version' do
+        subject.save_cpi_release_version('cpi version')
+
+        expect(File.exists?(File.join(tmp_path, '.completed'))).to eq(true)
+        expect(File.read(File.join(tmp_path, '.completed'))).to eq('cpi version')
+      end
+    end
   end
 end
