@@ -3,7 +3,7 @@ class CfValidator
     @resources ||= Validator::Resources.new
   end
 
-  def self.configuration
-    @configuration ||= Validator::Configuration.new(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])
+  def self.configuration(validator_config_path = ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])
+    @configuration ||= Validator::Configuration.new(validator_config_path)
   end
 end

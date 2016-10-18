@@ -57,28 +57,33 @@ if !missing_required_options.empty?
   puts option_parser
   exit 1
 end
+context = Validator::Cli::Context.new(options)
+validator = Validator::Cli::CfOpenstackValidator.create(context)
 
-validator = Validator::Cli::CfOpenstackValidator.create(options)
+def exit_on_error(ok, error_message)
+  unless ok
+    puts error_message
+    exit 1
+  end
+end
+
 begin
+  validator.print_working_dir
   unless validator.installation_exists?
-    validator.install_cpi_release(options[:cpi_release])
-    validator.extract_stemcell(options[:stemcell]
-    validator.save_cpi_release_version(options[:cpi_release])
+    validator.install_cpi_release
+    validator.extract_stemcell
+    validator.save_cpi_release_version
   end
-  ok, error = validator.check_installation?(options[:cpi_release])
-  if ok
-    validator.prepare_ruby_environment(validator.path_environment, validator.gems_folder, validator.bundle_command)
-    validator.generate_cpi_config(options[:config])
-    validator.print_gem_environment(validator.path_environment, validator.gems_folder, validator.bundle_command)
-    validator.execute_specs(options[:config], validator.path_environment, validator.gems_folder, validator.bundle_command)
-  else
-    puts error
-  end
+
+  ok, installation_error_message = validator.check_installation?
+  exit_on_error(ok, installation_error_message)
+
+  validator.prepare_ruby_environment
+  ok, validation_error_message = validator.generate_cpi_config
+  exit_on_error(ok, validation_error_message)
+
+  validator.print_gem_environment
+  validator.execute_specs
 rescue Validator::Cli::ErrorWithLogDetails => e
   puts "More details can be found in #{e.log_path}"
 end
-
-main_path = File.expand_path('../../validate', __FILE__)
-cmd = "#{main_path} #{options[:cpi_release]} #{options[:stemcell]} #{options[:config]} #{working_dir}"
-puts cmd
-system(cmd)
