@@ -17,10 +17,10 @@ set -e -x
 : ${CA_CERT:-""}
 
 sudo apt-get update
-sudo apt-get -y install wget make gcc zlib1g-dev libssl-dev ssh ruby # zlibc
+sudo apt-get -y install wget curl make gcc zlib1g-dev libssl-dev ssh ruby # zlibc
 
-gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
-curl -sSL https://get.rvm.io | bash -s stable --ruby
+sudo gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+sudo curl -sSL https://get.rvm.io | bash -s stable --ruby
 source /usr/local/rvm/scripts/rvm
 rvm use 2.3.0
 
