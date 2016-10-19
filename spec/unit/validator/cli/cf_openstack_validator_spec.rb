@@ -225,7 +225,7 @@ EOF
     describe '#execute_specs' do
       let(:context) { double('context',
           path_environment: 'path environment', gems_folder: 'gems folder', bundle_command: 'command', working_dir: working_dir,
-          cpi_release: release_archive_path, skip_cleanup?: 'TRUE', verbose?: 'TRUE', config: 'validator_config_path',
+          cpi_release: release_archive_path, skip_cleanup?: true, verbose?: true, config: 'validator_config_path',
           validator_root_dir: expand_project_path(''), tag: nil, fail_fast?: false)
       }
       let(:env) do
@@ -239,8 +239,8 @@ EOF
           'BOSH_OPENSTACK_CPI_PATH' => File.join(working_dir, 'cpi'),
           'BOSH_OPENSTACK_VALIDATOR_CONFIG' => 'validator_config_path',
           'BOSH_OPENSTACK_CPI_CONFIG' => File.join(working_dir, 'cpi.json'),
-          'BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP' => context.skip_cleanup?,
-          'VERBOSE_FORMATTER' => context.verbose?,
+          'BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP' => context.skip_cleanup?.to_s,
+          'VERBOSE_FORMATTER' => context.verbose?.to_s,
           'http_proxy' => ENV['http_proxy'],
           'https_proxy' => ENV['https_proxy'],
           'no_proxy' => ENV['no_proxy'],
@@ -286,7 +286,7 @@ EOF
       context 'when option are set' do
         let(:context) { double('context',
             path_environment: 'path environment', gems_folder: 'gems folder', bundle_command: 'command', working_dir: working_dir,
-            cpi_release: release_archive_path, skip_cleanup?: 'TRUE', verbose?: 'TRUE', config: 'validator_config_path',
+            cpi_release: release_archive_path, skip_cleanup?: true, verbose?: true, config: 'validator_config_path',
             validator_root_dir: expand_project_path(''), tag: 'focus', fail_fast?: true)
         }
         let(:expected_command) {

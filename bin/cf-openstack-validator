@@ -33,11 +33,11 @@ option_parser = OptionParser.new do |parser|
   end
 
   parser.on('-k', '--skip-cleanup', 'Skip cleanup of OpenStack resources (optional)') do
-    options[:skip_cleanup] = 'true'
+    options[:skip_cleanup] = true
   end
 
   parser.on('-v', '--verbose', 'Print more output for failing tests (optional)') do
-    options[:verbose] = 'true'
+    options[:verbose] = true
   end
 
   parser.on('-f', '--fail-fast', 'Stop execution after the first test failure (optional)') do
