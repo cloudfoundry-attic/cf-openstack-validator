@@ -12,7 +12,7 @@ option_parser = OptionParser.new do |parser|
     exit
   end
 
-  parser.on('--cpi-release RELEASE', 'CPI release location') do |release|
+  parser.on('-r', '--cpi-release RELEASE', 'CPI release location') do |release|
     options[:cpi_release] = release
   end
 
@@ -28,11 +28,11 @@ option_parser = OptionParser.new do |parser|
     options[:working_dir] = working_dir
   end
 
-  parser.on('--tag TAG', 'Run examples that match a specified tag (optional)') do |tag|
+  parser.on('-t', '--tag TAG', 'Run examples that match a specified tag (optional)') do |tag|
     options[:tag] = tag
   end
 
-  parser.on('--skip-cleanup', 'Skip cleanup of OpenStack resources (optional)') do
+  parser.on('-k', '--skip-cleanup', 'Skip cleanup of OpenStack resources (optional)') do
     options[:skip_cleanup] = 'TRUE'
   end
 
@@ -40,7 +40,7 @@ option_parser = OptionParser.new do |parser|
     options[:verbose] = 'TRUE'
   end
 
-  parser.on('--fail-fast', 'Stop execution after the first test failure (optional)') do
+  parser.on('-f', '--fail-fast', 'Stop execution after the first test failure (optional)') do
     options[:fail_fast] = true
   end
 end

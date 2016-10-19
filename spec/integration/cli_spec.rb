@@ -11,14 +11,14 @@ def help_text
   <<EOT
 Usage: cf-openstack-validator [options]
     -h, --help                       Prints this help
-        --cpi-release RELEASE        CPI release location
+    -r, --cpi-release RELEASE        CPI release location
     -s, --stemcell STEMCELL          Stemcell location
     -c, --config CONFIG_FILE         Configuration YAML file location
     -w, --working-directory DIR      Working directory location (optional)
-        --tag TAG                    Run examples that match a specified tag (optional)
-        --skip-cleanup               Skip cleanup of OpenStack resources (optional)
+    -t, --tag TAG                    Run examples that match a specified tag (optional)
+    -k, --skip-cleanup               Skip cleanup of OpenStack resources (optional)
     -v, --verbose                    Print more output for the failing tests (optional)
-        --fail-fast                  Stop execution after the first test failure (optional)
+    -f, --fail-fast                  Stop execution after the first test failure (optional)
 EOT
 end
 
