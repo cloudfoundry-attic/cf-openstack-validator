@@ -410,7 +410,7 @@ EOF
       it 'should list all packages' do
         package_order = subject.release_packages(@package_dir)
 
-        expect(package_order).to eq([@a_dummy_package_path, @common_package_path, @second_dummy_package_path])
+        expect(package_order).to contain_exactly(@a_dummy_package_path, @common_package_path, @second_dummy_package_path)
       end
 
       context 'when packages have dependencies' do

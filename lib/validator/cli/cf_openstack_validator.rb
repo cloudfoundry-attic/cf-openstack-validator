@@ -73,8 +73,15 @@ module Validator::Cli
           'BOSH_INSTALL_TARGET' => package_compilation_dir
       }
       log_path = File.join(log_directory, "packaging-#{package_name}.log")
-      _, status = Open3.capture2e(env, "#{packaging_script} &> #{log_path}", :chdir=>package_path, :unsetenv_others => true)
-      raise_on_failing_status(status.exitstatus, log_path)
+      File.open(log_path, 'w') do |file|
+        Open3.popen2e(env, packaging_script, :chdir=>package_path, :unsetenv_others => true) do |_, stdout_err, wait_thr|
+          stdout_err.each do |line|
+            file.write line
+            file.flush
+          end
+          raise_on_failing_status(wait_thr.value, log_path)
+        end
+      end
     end
 
     def generate_cpi_config
