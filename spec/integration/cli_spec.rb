@@ -15,7 +15,7 @@ Usage: cf-openstack-validator [options]
     -s, --stemcell STEMCELL          Stemcell path
     -c, --config CONFIG_FILE         Configuration YAML file path
     -w, --working-directory DIR      Path used by the Validator to install CPI release and store needed artifacts.
-                                     Defaults to operating system’s temporary file path (optional)
+                                     Defaults is operating system temporary file path (optional)
     -t, --tag TAG                    Run tests that match a specified RSpec tag (optional)
     -k, --skip-cleanup               Skip cleanup of OpenStack resources (optional)
     -v, --verbose                    Print more output for failing tests (optional)

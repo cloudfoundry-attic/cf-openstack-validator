@@ -24,7 +24,7 @@ option_parser = OptionParser.new do |parser|
     options[:config] = config
   end
 
-  parser.on('-w', '--working-directory DIR', 'Path used by the Validator to install CPI release and store needed artifacts.', 'Defaults to operating system’s temporary file path (optional)') do |working_dir|
+  parser.on('-w', '--working-directory DIR', 'Path used by the Validator to install CPI release and store needed artifacts.', 'Defaults is operating system temporary file path (optional)') do |working_dir|
     options[:working_dir] = working_dir
   end
 
