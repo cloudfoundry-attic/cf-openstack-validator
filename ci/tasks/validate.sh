@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e -x
 
-source /etc/profile.d/chruby-with-ruby-2.1.2.sh
-
 : ${AUTH_URL:?}
 : ${USERNAME:?}
 : ${API_KEY:?}
@@ -20,6 +18,11 @@ source /etc/profile.d/chruby-with-ruby-2.1.2.sh
 
 sudo apt-get update
 sudo apt-get -y install wget make gcc zlib1g-dev libssl-dev ssh ruby # zlibc
+
+gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+curl -sSL https://get.rvm.io | bash -s stable --ruby
+source /usr/local/rvm/scripts/rvm
+rvm use 2.3.0
 
 wget -O cpi.tgz http://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=27
 wget -O stemcell.tgz https://d26ekeud912fhb.cloudfront.net/bosh-stemcell/openstack/bosh-stemcell-3262.9-openstack-kvm-ubuntu-trusty-go_agent.tgz
