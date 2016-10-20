@@ -17,7 +17,7 @@ set -e -x
 : ${CA_CERT:-""}
 
 sudo apt-get update
-sudo apt-get -y install wget curl make gcc zlib1g-dev libssl-dev ssh ruby # zlibc
+sudo apt-get -y install wget curl make gcc zlib1g-dev libssl-dev ssh
 
 sudo gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
 sudo curl -sSL https://get.rvm.io | bash -s stable --ruby
@@ -36,9 +36,13 @@ cat validator.yml
 mkdir -p extensions
 cp validator-src/extensions/dummy_extension_spec.sample.rb extensions/dummy_extension_spec.rb
 
-validator-src/validate -r cpi.tgz -s stemcell.tgz -c validator.yml -w $(pwd)/target
+cd validator-src
+gem install bundler
+bundle install
 
-CONFIG_DRIVE='disk' erb validator-src/ci/assets/validator.yml.erb > validator.yml
+./validate -r cpi.tgz -s stemcell.tgz -c validator.yml -w $(pwd)/target
+
+CONFIG_DRIVE='disk' erb ci/assets/validator.yml.erb > validator.yml
 cat validator.yml
 
-validator-src/validate -r cpi.tgz -s stemcell.tgz -c validator.yml -w $(pwd)/target
+./validate -r cpi.tgz -s stemcell.tgz -c validator.yml -w $(pwd)/target
