@@ -1,5 +1,6 @@
 # Extensions
-> Note: This feature is available in versions >=1.2
+> Note: This feature is available in versions >=1.2. 
+> Please keep in mind that the extension API is still under heavy development and subject to change!
 
 In case you have custom validations that you need to run against OpenStack you can create extensions to the validator.
 
