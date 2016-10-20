@@ -74,7 +74,7 @@ module Validator::Cli
       }
       log_path = File.join(log_directory, "packaging-#{package_name}.log")
       File.open(log_path, 'w') do |file|
-        Open3.popen2e(env, packaging_script, :chdir=>package_path, :unsetenv_others => true) do |_, stdout_err, wait_thr|
+        Open3.popen2e(env, packaging_script, :chdir=>package_path) do |_, stdout_err, wait_thr|
           stdout_err.each do |line|
             file.write line
             file.flush
