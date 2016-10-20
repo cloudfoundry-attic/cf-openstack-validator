@@ -3,7 +3,7 @@ module Validator::Cli
 
     def initialize(options)
       @options = options
-      @options[:working_dir] = ensure_working_directory(@options[:working_dir])
+      @options[:working_dir] = ensure_working_directory(File.expand_path(@options[:working_dir]))
       @path_from_env = ENV['PATH']
     end
 

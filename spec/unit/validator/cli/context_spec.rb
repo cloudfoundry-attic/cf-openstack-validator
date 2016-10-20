@@ -14,7 +14,6 @@ module Validator::Cli
     describe :working_dir do
       context 'when path is given' do
 
-
         context 'when path does not exist' do
           let(:options) { { working_dir: File.join(Dir.mktmpdir, 'not_existent') } }
 
@@ -51,6 +50,13 @@ module Validator::Cli
             }.to_not raise_error
 
             expect(File.directory?(path)).to be(true)
+          end
+        end
+
+        context 'when path is relative' do
+          let(:options) { { working_dir: 'some-tmp-dir' } }
+          it 'returns the corresponding absolute path' do
+            expect(subject.working_dir).to eq(File.expand_path('some-tmp-dir'))
           end
         end
       end
