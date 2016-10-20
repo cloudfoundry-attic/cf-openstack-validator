@@ -12,20 +12,18 @@ module Validator::Cli
     end
 
     def install_cpi_release
-      extracted_release_path = deep_extract_release(@context.cpi_release)
-      release_packages(extracted_release_path, ['ruby_openstack_cpi']).each { |package| compile_package(package) }
+      deep_extract_release(@context.cpi_release)
+      release_packages(@context.extracted_cpi_release_dir, ['ruby_openstack_cpi']).each { |package| compile_package(package) }
       render_cpi_executable
     end
 
     def deep_extract_release(archive)
       FileUtils.mkdir_p(@context.extracted_cpi_release_dir)
       Untar.extract_archive(archive, @context.extracted_cpi_release_dir)
-      extract_target = File.join(@context.working_dir, File.basename(archive, '.tgz'))
-      packages_path = File.join(extract_target, 'packages')
+      packages_path = File.join(@context.extracted_cpi_release_dir, 'packages')
       Dir.glob(File.join(packages_path, '*')).each do |package|
         Untar.extract_archive(package, File.join(packages_path, File.basename(package, '.tgz')))
       end
-      extract_target
     end
 
     def extract_stemcell

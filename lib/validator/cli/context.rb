@@ -3,7 +3,7 @@ module Validator::Cli
 
     def initialize(options)
       @options = options
-      @options[:working_dir] = ensure_working_directory(File.expand_path(@options[:working_dir]))
+      @options[:working_dir] = ensure_working_directory(@options[:working_dir])
       @path_from_env = ENV['PATH']
     end
 
@@ -45,7 +45,7 @@ module Validator::Cli
     end
 
     def extracted_cpi_release_dir
-      File.join(working_dir, File.basename(@options[:cpi_release], '.tgz'))
+      File.join(working_dir, 'cpi-release')
     end
 
     def path_environment
@@ -65,7 +65,7 @@ module Validator::Cli
 
     def ensure_working_directory(path)
       if path
-        FileUtils.mkdir_p(path).first
+        File.expand_path(FileUtils.mkdir_p(path).first)
       else
         Dir.mktmpdir
       end
