@@ -36,13 +36,15 @@ cat validator.yml
 mkdir -p extensions
 cp validator-src/extensions/dummy_extension_spec.sample.rb extensions/dummy_extension_spec.rb
 
-cd validator-src
 gem install bundler
+
+pushd validator-src
 bundle install
+popd
 
-./validate -r cpi.tgz -s stemcell.tgz -c validator.yml -w $(pwd)/target
+validator-src/validate -r cpi.tgz -s stemcell.tgz -c validator.yml -w $(pwd)/target
 
-CONFIG_DRIVE='disk' erb ci/assets/validator.yml.erb > validator.yml
+CONFIG_DRIVE='disk' erb validator-src/ci/assets/validator.yml.erb > validator.yml
 cat validator.yml
 
-./validate -r cpi.tgz -s stemcell.tgz -c validator.yml -w $(pwd)/target
+validator-src/validate -r cpi.tgz -s stemcell.tgz -c validator.yml -w $(pwd)/target
