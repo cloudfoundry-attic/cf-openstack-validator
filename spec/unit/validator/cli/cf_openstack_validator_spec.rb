@@ -19,6 +19,32 @@ module Validator::Cli
       end
     end
 
+    describe '#run' do
+      context 'when error is raised' do
+        before(:each) do
+          allow(subject).to receive(:execute_specs).and_raise(ErrorWithLogDetails.new('a-log-path'))
+        end
+
+        it 'exits process with exit code 1' do
+          allow(STDERR).to receive(:puts)
+          expect {
+            subject.run
+          }.to raise_error{ |error|
+            expect(error).to be_a(SystemExit)
+            expect(error.status).to eq(1)
+          }
+        end
+
+        it 'writes the log_path to STDERR' do
+          allow(Kernel).to receive(:exit)
+
+          expect {
+            subject.run
+          }.to output(/a-log-path/).to_stderr
+        end
+      end
+     end
+
     describe '#deep_extract_release' do
       it 'extracts the release and its packages' do
         subject.deep_extract_release(expand_project_path('spec/assets/cpi-release.tgz'))

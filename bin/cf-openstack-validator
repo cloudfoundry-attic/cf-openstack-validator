@@ -52,20 +52,16 @@ missing_required_options = []
     missing_required_options.push(required_option)
   end
 end
+
 if !missing_required_options.empty?
   STDERR.puts("Required options are missing: #{missing_required_options.map { |o| "--#{o.to_s.gsub('_', '-')}" }.join(", ")}")
   puts option_parser
   exit 1
 end
+
 context = Validator::Cli::Context.new(options)
 validator = Validator::Cli::CfOpenstackValidator.create(context)
-
-def exit_on_error(ok, error_message)
-  unless ok
-    puts error_message
-    exit 1
-  end
-end
+validator.run
 
 begin
   validator.print_working_dir
@@ -86,4 +82,12 @@ begin
   validator.execute_specs
 rescue Validator::Cli::ErrorWithLogDetails => e
   puts "More details can be found in #{e.log_path}"
+  Kernel.exit 1
+end
+
+def exit_on_error(ok, error_message)
+  unless ok
+    puts error_message
+    exit 1
+  end
 end

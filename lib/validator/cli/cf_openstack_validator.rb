@@ -11,6 +11,15 @@ module Validator::Cli
       @context = context
     end
 
+    def run
+      begin
+        execute_specs
+      rescue ErrorWithLogDetails => e
+        $stderr.puts("More details can be found in #{e.log_path}")
+        Kernel.exit 1
+      end
+    end
+
     def install_cpi_release
       deep_extract_release(@context.cpi_release)
       release_packages(@context.extracted_cpi_release_dir, ['ruby_openstack_cpi']).each { |package| compile_package(package) }
