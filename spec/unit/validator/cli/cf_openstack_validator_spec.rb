@@ -22,7 +22,7 @@ module Validator::Cli
     describe '#run' do
       context 'when error is raised' do
         before(:each) do
-          allow(subject).to receive(:execute_specs).and_raise(ErrorWithLogDetails.new('a-log-path'))
+          allow(subject).to receive(:execute_specs).and_raise(ErrorWithLogDetails.new('Error executing specs', 'a-log-path'))
         end
 
         it 'exits process with exit code 1' do
@@ -87,7 +87,11 @@ module Validator::Cli
         it 'raises an error with log details' do
           expect{
             subject.compile_package(package_path)
-          }.to raise_error(ErrorWithLogDetails)
+          }.to raise_error do |e|
+            expect(e).to be_a(ErrorWithLogDetails)
+            expect(e.message).to include("Executing '#{package_path}/packaging' failed")
+            expect(e.log_path).to eq(File.join(working_dir, 'logs', 'packaging-broken_package.log'))
+          end
         end
       end
     end
@@ -135,6 +139,39 @@ EOF
       end
     end
 
+    describe '#execute_command' do
+      it 'writes output to logfile' do
+        log_directory = File.join(working_dir, 'logs')
+        logfile = File.join(log_directory, 'logfile.log')
+        FileUtils.mkdir_p(log_directory)
+
+        subject.execute_command(
+           env: {},
+           command: "echo 'bundle log'",
+           log_path: logfile
+        )
+
+        expect(File.exists?(logfile)).to be(true)
+        expect(File.read(logfile)).to eq("bundle log\n")
+      end
+
+      context 'when command fails' do
+        it 'throws exception' do
+          expect {
+            subject.execute_command(
+                env: {},
+                command: "ls /non-existing-dir",
+                log_path: "/dev/null"
+            )
+          } .to raise_error do |e|
+            expect(e).to be_a(Validator::Cli::ErrorWithLogDetails)
+            expect(e.message).to include('ls /non-existing-dir')
+            expect(e.log_path).to eq('/dev/null')
+          end
+        end
+      end
+    end
+
     describe '#prepare_ruby_environment' do
 
       let(:status) { OpenStruct.new(:exitstatus => 0) }
@@ -151,33 +188,16 @@ EOF
       end
 
       it 'should execute bundle install' do
-        allow(Open3).to receive(:capture2e).and_return(['', status])
+        allow(subject).to receive(:execute_command)
 
         subject.prepare_ruby_environment
 
-        expect(Open3).to have_received(:capture2e).with(env, "#{context.bundle_command} install --local", unsetenv_others: true)
-      end
-
-      it 'should write log to `bundle_install.log` file' do
-        allow(Open3).to receive(:capture2e).and_return(['bundle log', status])
-
-        subject.prepare_ruby_environment
-
-        logfile = File.join(working_dir, 'logs', 'bundle_install.log')
-        expect(File.exists?(logfile)).to be(true)
-        expect(File.read(logfile)).to eq('bundle log')
-      end
-
-      context 'when `bundle install` fails' do
-        let(:status) { OpenStruct.new(:exitstatus => 1) }
-
-        it 'raises an error with log details' do
-          allow(Open3).to receive(:capture2e).and_return(['error', status])
-
-          expect {
-            subject.prepare_ruby_environment
-          }.to raise_error(ErrorWithLogDetails)
-        end
+        expect(subject).to have_received(:execute_command).with(
+            hash_including(
+                env: env,
+                command: "#{context.bundle_command} install --local"
+            )
+        )
       end
     end
 
@@ -216,8 +236,7 @@ EOF
     describe '#print_gem_environment' do
       let(:context) { double('context', path_environment: 'path environment', gems_folder: 'gems_folder', bundle_command: 'command', working_dir: working_dir) }
 
-      it 'should print the gem environment and list of all gems' do
-        bundle_command = context.bundle_command
+      it 'should call command to print the gem environment and list of all gems' do
         path_environment = context.path_environment
         gems_folder = context.gems_folder
         env = {
@@ -225,26 +244,14 @@ EOF
             'GEM_PATH' => gems_folder,
             'GEM_HOME' => gems_folder
         }
-        gems_log_content = "it prints gems environment\nGems included by the bundle:"
-        allow(Open3).to receive(:capture2e).and_return([gems_log_content, OpenStruct.new(:exitstatus => 0)])
-
+        allow(subject).to receive(:execute_command)
 
         subject.print_gem_environment
 
-        expect(Open3).to have_received(:capture2e).with(env, 'command exec gem environment && command list', unsetenv_others: true)
-        expect(File.exist?(File.join(working_dir, 'logs', 'gem_environment.log'))).to eq(true)
-        expect(File.read(File.join(working_dir, 'logs', 'gem_environment.log'))).to eq(gems_log_content)
-      end
-
-      context 'when print fails' do
-        let(:context) { double('context', path_environment: '', gems_folder: '', bundle_command: '', working_dir: working_dir)}
-        it 'should raise exception' do
-          allow(Open3).to receive(:capture2e).and_return(['', OpenStruct.new(:exitstatus => 1)])
-
-          expect{
-            subject.print_gem_environment #('', '', '')
-          }.to raise_error(ErrorWithLogDetails)
-        end
+        expect(subject).to have_received(:execute_command).with(hash_including(
+            env: env,
+            command: 'command exec gem environment && command list'
+        ))
       end
     end
 
@@ -305,7 +312,11 @@ EOF
 
           expect{
             subject.execute_specs
-          }.to raise_error(ErrorWithLogDetails)
+          }.to raise_error do |e|
+            expect(e).to be_a(ErrorWithLogDetails)
+            expect(e.message).to include("exec rspec")
+            expect(e.log_path).to eq(File.join(working_dir, 'logs', 'testsuite.log'))
+          end
         end
       end
 

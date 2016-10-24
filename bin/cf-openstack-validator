@@ -61,8 +61,12 @@ end
 
 context = Validator::Cli::Context.new(options)
 validator = Validator::Cli::CfOpenstackValidator.create(context)
-validator.run
 
+# TODO move below block into validator.run
+# 1. Introduce base exception so that `ErrorWithLogDetails < ValidatorException`
+# 2. Remove ok, error pattern (lines 76 and 80), use ValidatorException instead
+# 3. move everything (TM) into validator.run
+# 4. call validator.run
 begin
   validator.print_working_dir
   unless validator.installation_exists?

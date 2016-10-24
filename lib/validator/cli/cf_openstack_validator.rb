@@ -61,10 +61,13 @@ module Validator::Cli
           'GEM_PATH' => @context.gems_folder,
           'GEM_HOME' => @context.gems_folder
       }
-      output, status = Open3.capture2e(env, "#{@context.bundle_command} install --local", :unsetenv_others => true)
       log_path = File.join(log_directory, 'bundle_install.log')
-      File.write(log_path, output)
-      raise_on_failing_status(status.exitstatus, log_path)
+
+      execute_command(
+          env: env,
+          command: "#{@context.bundle_command} install --local",
+          log_path: log_path
+      )
     end
 
     def compile_package(package_path)
@@ -81,13 +84,27 @@ module Validator::Cli
           'PATH' => @context.path_environment
       }
       log_path = File.join(log_directory, "packaging-#{package_name}.log")
+
+      execute_command(
+          env: env,
+          command: packaging_script,
+          chdir: package_path,
+          log_path: log_path
+      )
+    end
+
+    def execute_command(env:, command:, log_path:, **options)
+      options.merge!({unsetenv_others: true})
+
       File.open(log_path, 'w') do |file|
-        Open3.popen2e(env, packaging_script, :chdir=>package_path, :unsetenv_others => true) do |_, stdout_err, wait_thr|
+        Open3.popen2e(env, command, options) do |_, stdout_err, wait_thr|
           stdout_err.each do |line|
             file.write line
             file.flush
           end
-          raise_on_failing_status(wait_thr.value, log_path)
+          unless wait_thr.value == 0
+            raise ErrorWithLogDetails.new("Executing '#{command}' failed", log_path)
+          end
         end
       end
     end
@@ -110,10 +127,12 @@ module Validator::Cli
           'GEM_PATH' => @context.gems_folder,
           'GEM_HOME' => @context.gems_folder
       }
-      output, status = Open3.capture2e(env, "#{@context.bundle_command} exec gem environment && #{@context.bundle_command} list", :unsetenv_others => true)
       log_path = File.join(log_directory, 'gem_environment.log')
-      File.write(log_path, output)
-      raise_on_failing_status(status.exitstatus, log_path)
+      execute_command(
+          env: env,
+          command: "#{@context.bundle_command} exec gem environment && #{@context.bundle_command} list",
+          log_path: log_path
+      )
     end
 
     def execute_specs
@@ -151,7 +170,9 @@ module Validator::Cli
         stdout_out.each do |line|
           puts line
         end
-        raise_on_failing_status(wait_thr.value, log_path)
+        unless wait_thr.value == 0
+          raise ErrorWithLogDetails.new("Executing '#{rspec_command}' failed", log_path)
+        end
       end
     end
 
@@ -189,12 +210,6 @@ module Validator::Cli
     def is_dir_empty?
       entries = Dir.entries(@context.working_dir) - ['.', '..']
       entries.empty?
-    end
-
-    def raise_on_failing_status(exit_status, log_path)
-      unless exit_status == 0
-        raise ErrorWithLogDetails.new(log_path)
-      end
     end
 
     def log_directory

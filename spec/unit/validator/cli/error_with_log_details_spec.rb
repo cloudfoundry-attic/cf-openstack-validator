@@ -3,7 +3,7 @@ require_relative '../../spec_helper'
 module Validator::Cli
   describe ErrorWithLogDetails do
 
-    subject { ErrorWithLogDetails.new(log_path, error_message) }
+    subject { ErrorWithLogDetails.new(error_message, log_path) }
     describe '.new' do
       it 'raises without a log path' do
         expect{ ErrorWithLogDetails.new }.to raise_error(ArgumentError)
@@ -12,6 +12,7 @@ module Validator::Cli
 
     describe '#log_path' do
       let(:log_path) { File.join('/tmp') }
+      let(:error_message) { "Some error message" }
       it 'returns the log path' do
         expect(subject.log_path).to eq('/tmp')
       end
