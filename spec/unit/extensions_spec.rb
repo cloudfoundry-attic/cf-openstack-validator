@@ -176,6 +176,7 @@ extensions:
       end
 
       it 'returns an error object' do
+        allow($stdout).to receive(:puts)
         expect{Extensions.eval(@specs, binding)}.to raise_error(SyntaxError)
       end
 

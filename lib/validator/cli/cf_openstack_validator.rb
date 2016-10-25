@@ -13,9 +13,22 @@ module Validator::Cli
 
     def run
       begin
+        print_working_dir
+        unless installation_exists?
+          install_cpi_release
+          extract_stemcell
+          save_cpi_release_version
+        end
+
+        check_installation
+        prepare_ruby_environment
+        generate_cpi_config
+
+        print_gem_environment
+
         execute_specs
-      rescue ErrorWithLogDetails => e
-        $stderr.puts("More details can be found in #{e.log_path}")
+      rescue ValidatorError => e
+        $stderr.puts(e.message)
         Kernel.exit 1
       end
     end
@@ -113,12 +126,11 @@ module Validator::Cli
       config = CfValidator.configuration(@context.config).all
       ok, error_message = ValidatorConfig.validate(config)
       unless ok
-        return ok, "`validator.yml` is not valid:\n#{error_message}"
+        raise ValidatorError, "`validator.yml` is not valid:\n#{error_message}"
       end
       cpi_config_content = JSON.pretty_generate(Converter.to_cpi_json(CfValidator.configuration.openstack))
       puts "CPI will use the following configuration: \n#{cpi_config_content}"
       File.write(File.join(@context.working_dir, 'cpi.json'), cpi_config_content)
-      return ok, nil
     end
 
     def print_gem_environment
@@ -181,20 +193,18 @@ module Validator::Cli
       !is_dir_empty?
     end
 
-    def check_installation?
+    def check_installation
       unless File.exist?(File.join(@context.working_dir, '.completed'))
         error_message = "The CPI installation did not finish successfully.\n" +
             "Execute 'rm -rf #{@context.working_dir}' and run the tests again."
-        return [false, error_message]
+        raise ValidatorError, error_message
       end
 
       if File.read(File.join(@context.working_dir, '.completed')) != @context.cpi_release
         error_message = "Provided CPI and pre-installed CPI don't match.\n" +
             "Execute 'rm -rf #{@context.working_dir}' and run the tests again."
-        return [false, error_message]
+        raise ValidatorError, error_message
       end
-
-      [true, nil]
     end
 
     def save_cpi_release_version

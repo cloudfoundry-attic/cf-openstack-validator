@@ -46,14 +46,11 @@ option_parser = OptionParser.new do |parser|
 end
 option_parser.parse!
 
-missing_required_options = []
-[:cpi_release, :stemcell, :config].each do |required_option|
-  if !options.include?(required_option)
-    missing_required_options.push(required_option)
-  end
+missing_required_options = [:cpi_release, :stemcell, :config].select do |required_option|
+  !options.include?(required_option)
 end
 
-if !missing_required_options.empty?
+unless missing_required_options.empty?
   STDERR.puts("Required options are missing: #{missing_required_options.map { |o| "--#{o.to_s.gsub('_', '-')}" }.join(", ")}")
   puts option_parser
   exit 1
@@ -61,37 +58,4 @@ end
 
 context = Validator::Cli::Context.new(options)
 validator = Validator::Cli::CfOpenstackValidator.create(context)
-
-# TODO move below block into validator.run
-# 1. Introduce base exception so that `ErrorWithLogDetails < ValidatorException`
-# 2. Remove ok, error pattern (lines 76 and 80), use ValidatorException instead
-# 3. move everything (TM) into validator.run
-# 4. call validator.run
-begin
-  validator.print_working_dir
-  unless validator.installation_exists?
-    validator.install_cpi_release
-    validator.extract_stemcell
-    validator.save_cpi_release_version
-  end
-
-  ok, installation_error_message = validator.check_installation?
-  exit_on_error(ok, installation_error_message)
-
-  validator.prepare_ruby_environment
-  ok, validation_error_message = validator.generate_cpi_config
-  exit_on_error(ok, validation_error_message)
-
-  validator.print_gem_environment
-  validator.execute_specs
-rescue Validator::Cli::ErrorWithLogDetails => e
-  puts "More details can be found in #{e.log_path}"
-  Kernel.exit 1
-end
-
-def exit_on_error(ok, error_message)
-  unless ok
-    puts error_message
-    exit 1
-  end
-end
+validator.run

@@ -1,5 +1,5 @@
 module Validator::Cli
-  class ErrorWithLogDetails < StandardError
+  class ErrorWithLogDetails < ValidatorError
     attr_reader :log_path
 
     def initialize(error_message, log_path)

@@ -20,7 +20,32 @@ module Validator::Cli
     end
 
     describe '#run' do
-      context 'when error is raised' do
+      before(:each) do
+        allow(subject).to receive(:print_working_dir)
+        allow(subject).to receive(:installation_exists?).and_return(true)
+        allow(subject).to receive(:check_installation)
+        allow(subject).to receive(:prepare_ruby_environment)
+        allow(subject).to receive(:generate_cpi_config)
+        allow(subject).to receive(:print_gem_environment)
+        allow(subject).to receive(:execute_specs)
+      end
+      context 'when ValidatorError is raised' do
+        before(:each) do
+          allow(subject).to receive(:check_installation).and_raise(ValidatorError.new('an-error-message'))
+        end
+
+        it 'exits process with exit code 1' do
+          allow(STDERR).to receive(:puts)
+          expect {
+            subject.run
+          }.to raise_error{ |error|
+            expect(error).to be_a(SystemExit)
+            expect(error.status).to eq(1)
+          }
+        end
+      end
+
+      context 'when ErrorWithLogDetails error is raised' do
         before(:each) do
           allow(subject).to receive(:execute_specs).and_raise(ErrorWithLogDetails.new('Error executing specs', 'a-log-path'))
         end
@@ -226,9 +251,9 @@ EOF
         after(:each) {File.delete(validator_config_path)}
 
         it 'should abort generation' do
-          ok, error = subject.generate_cpi_config
-          expect(ok).to eq(false)
-          expect(error).to match(/`validator.yml` is not valid:/)
+          expect {
+            subject.generate_cpi_config
+          }.to raise_error(ValidatorError, /`validator.yml` is not valid:/)
         end
       end
     end
@@ -378,7 +403,7 @@ EOF
       end
     end
 
-    describe '#check_installation?' do
+    describe '#check_installation' do
       before(:each) do
         File.write(File.join(working_dir, '.completed'), release_archive_path)
       end
@@ -388,8 +413,10 @@ EOF
       end
 
       context 'when installation succeeded' do
-        it 'return true without a message' do
-          expect(subject.check_installation?).to eq([true, nil])
+        it 'does not raise a ValidationError' do
+          expect{
+            subject.check_installation
+          }.to_not raise_error
         end
       end
 
@@ -398,9 +425,11 @@ EOF
           "The CPI installation did not finish successfully.\n" +
           "Execute 'rm -rf #{working_dir}' and run the tests again."
         }
-        it 'returns false with a message' do
+        it 'raises a ValidationError' do
           File.delete(File.join(working_dir, '.completed'))
-          expect(subject.check_installation?).to eq([false, expected_message])
+          expect{
+            subject.check_installation
+          }.to raise_error ValidatorError, expected_message
         end
       end
 
@@ -409,10 +438,12 @@ EOF
           "Provided CPI and pre-installed CPI don't match.\n" +
               "Execute 'rm -rf #{working_dir}' and run the tests again."
         }
-        it 'returns false with a message' do
+        it 'raises a ValidationError' do
           allow(context).to receive(:cpi_release).and_return('25')
 
-          expect(subject.check_installation?).to eq([false, expected_message])
+          expect{
+            subject.check_installation
+          }.to raise_error ValidatorError, expected_message
         end
       end
     end
