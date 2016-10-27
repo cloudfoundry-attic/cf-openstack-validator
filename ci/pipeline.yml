@@ -10,12 +10,12 @@ custom:
 groups:
 - name: {{pipeline_name}}
   jobs:
-  - unit-tests
+  - test
   - validate
   - release
 
 jobs:
-- name: unit-tests
+- name: test
   plan:
   - get: validator-src
     trigger: true
@@ -24,13 +24,13 @@ jobs:
   - task: validate
     tags: *tags
     timeout: *timeouts-long
-    file: validator-src/ci/tasks/unit-tests.yml
+    file: validator-src/ci/tasks/test.yml
 
 - name: validate
   serial: true
   plan:
   - get: validator-src
-    passed: [unit-tests]
+    passed: [test]
     trigger: true
     tags: *tags
     timeout: *timeouts-long

@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e -x
+set -e
 
 : ${AUTH_URL:?}
 : ${USERNAME:?}
@@ -23,6 +23,8 @@ sudo gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A17031138
 sudo curl -sSL https://get.rvm.io | bash -s stable --ruby
 source /usr/local/rvm/scripts/rvm
 rvm use 2.3.0
+
+set -x
 
 wget -O cpi.tgz http://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=27
 wget -O stemcell.tgz https://d26ekeud912fhb.cloudfront.net/bosh-stemcell/openstack/bosh-stemcell-3262.9-openstack-kvm-ubuntu-trusty-go_agent.tgz

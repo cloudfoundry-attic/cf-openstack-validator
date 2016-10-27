@@ -11,11 +11,11 @@ def help_text
   <<EOT
 Usage: cf-openstack-validator [options]
     -h, --help                       Prints this help
-    -r, --cpi-release RELEASE        CPI release path
+    -r, --cpi-release RELEASE        CPI release .tgz path
     -s, --stemcell STEMCELL          Stemcell path
     -c, --config CONFIG_FILE         Configuration YAML file path
     -w, --working-directory DIR      Path used by the Validator to install CPI release and store needed artifacts.
-                                     Defaults is operating system temporary file path (optional)
+                                     Defaults to operating system temporary file path (optional)
     -t, --tag TAG                    Run tests that match a specified RSpec tag (optional)
     -k, --skip-cleanup               Skip cleanup of OpenStack resources (optional)
     -v, --verbose                    Print more output for failing tests (optional)

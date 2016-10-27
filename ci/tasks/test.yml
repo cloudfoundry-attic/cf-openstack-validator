@@ -10,4 +10,4 @@ inputs:
 - name: validator-src
 
 run:
-  path: validator-src/ci/tasks/unit-tests.sh
+  path: validator-src/ci/tasks/test.sh
