@@ -35,15 +35,15 @@ end
 ```
 
 **Important:** To ensure that only your test runs during development, we use `fdescribe` instead of `describe.` Set the
-environment variable `TAG=focus` to only run tests focused with the `f` prefix as you can see in the next step. Don't forget
+cli option `--tag focus` to only run tests focused with the `f` prefix as you can see in the next step. Don't forget
 to remove those, before publishing your extension.
 
 ### Run Your Test
 
-Let's run your test. Start the validator execution as usual, prefixed with the focus tag.
+Let's run your test. Start the validator execution as usual, just with the focus tag.
 
 ```bash
-$ TAG=focus ./validate bosh-openstack-cpi-release-<xxx>.tgz bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz validator.yml
+$ ./validate --tag focus --cpi-release bosh-openstack-cpi-release-<xxx>.tgz --stemcell bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz --config validator.yml
 ```
 
 ### Access OpenStack in Your Test
@@ -78,7 +78,7 @@ end
 
 If our test would fail, it would leak resources: Nobody is cleaning up the security group we created. To ensure that resources are cleaned up, even when the test is not completely executed, the validator provides a resource tracking API.
 
-The resource tracking API supports automatic cleanup of OpenStack resources. For debugging cleanup can be skipped by setting the environment variable `BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP` to `true`.
+The resource tracking API supports automatic cleanup of OpenStack resources. For debugging cleanup can be skipped by setting the cli option `--skip-cleanup`.
 
 To use the resource tracking add a statement as follows:
 
@@ -111,7 +111,7 @@ fdescribe 'My extension' do
 end
 ```
 
-If you now run the tests with `BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP=true`, it will not clean up the security group and you will see output similar to:
+If you now run the tests with `--skip-cleanup`, it will not clean up the security group and you will see output similar to:
 ```
 ...
 Finished in 3.28 seconds (files took 0.27329 seconds to load)
@@ -212,7 +212,7 @@ To learn more about the usage of `Fog OpenStack` please have a look at its [docu
 ### Track OpenStack Resources
 
 The validator offers a central handling of OpenStack resources that are created during test runs. It takes care of
-cleaning up all resources at the end of a test run. The user can configure to skip this cleanup for debugging purposes (see [environment variables](../README.md#environment-variables)).
+cleaning up all resources at the end of a test run. The user can configure to skip this cleanup for debugging purposes (`--skip-cleanup`).
 Any leftover resources are reported at the end of the test run.
 
 To hook into this resource management, every extension can create a [ResourceTracker](../lib/validator/api/resource_tracker.rb).

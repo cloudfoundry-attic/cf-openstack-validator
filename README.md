@@ -57,6 +57,13 @@ $ bundle install
 $ ./validate --cpi-release bosh-openstack-cpi-release-<xxx>.tgz --stemcell bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz --config validator.yml
 ```
 
+## Command line help
+
+* To learn about available options run
+```bash
+$ ./validate --help
+```
+
 ## Extensions
 
 You can extend the validator with custom tests. For a detailed description and examples, please have a look at the [extension documentation](./docs/extensions.md).
