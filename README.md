@@ -27,6 +27,7 @@ The validator runs on Mac and Linux.
 Please ensure that the following list is installed on the Linux system
 where the validator is executed:
 
+* ruby 2.x
 * make
 * gcc
 * zlib1g-dev
@@ -46,9 +47,14 @@ $ cp validator.template.yml validator.yml
 ```
 * Download OpenStack CPI from [OpenStack CPI bosh.io](http://bosh.io/releases/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?all=1)
 * Download a stemcell from [OpenStack stemcells bosh.io](http://bosh.io/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent)
+* Install dependencies
+```bash
+$ sudo gem install bundler
+$ bundle install
+```
 * Start validation
 ```bash
-$ ./validate bosh-openstack-cpi-release-<xxx>.tgz bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz validator.yml [<working-dir>]
+$ ./validate --cpi-release bosh-openstack-cpi-release-<xxx>.tgz --stemcell bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz --config validator.yml
 ```
 
 ## Extensions
@@ -56,10 +62,4 @@ $ ./validate bosh-openstack-cpi-release-<xxx>.tgz bosh-stemcell-<xxx>-openstack-
 You can extend the validator with custom tests. For a detailed description and examples, please have a look at the [extension documentation](./docs/extensions.md).
 
 ## Troubleshooting
-The validator doesn't run on your OpenStack? See [additional OpenStack related configuration options](docs/openstack_configurations.md) for possible solutions.
-
-## Environment Variables
-* **FAIL_FAST**: In general, all tests are executed even if some of them fail. In order to stop after the first test failure, specify `FAIL_FAST=true`.
-* **VERBOSE_FORMATTER**: If you are interested in more output for the failing tests, you can set `VERBOSE_FORMATTER=true`.
-* **BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP**: Set this variable to `true` to skip cleanup of OpenStack resources. This can be useful for debugging failing tests.
-* **TAG**: Use this variable to run examples that match a specified tag. (If you are working with fit, fcontext and fdescribe, use TAG=focus)
+The validator does not run on your OpenStack? See [additional OpenStack related configuration options](docs/openstack_configurations.md) for possible solutions.

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+echo "Log to STDOUT"
+(>&2 echo "Log to STDERR")
+
+echo $BOSH_INSTALL_TARGET >$BOSH_INSTALL_TARGET/compiled_file
+echo $BOSH_PACKAGES_DIR >>$BOSH_INSTALL_TARGET/compiled_file
+

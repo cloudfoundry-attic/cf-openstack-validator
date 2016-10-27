@@ -5,6 +5,8 @@ require 'yaml'
 require 'membrane'
 require 'fog/openstack'
 require 'securerandom'
+require 'open3'
+require 'tmpdir'
 
 require_relative 'cf_validator'
 require_relative 'converter'

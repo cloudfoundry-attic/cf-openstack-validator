@@ -1,4 +1,18 @@
 ---
+
+validator:
+  network_id: <replace-me>
+  floating_ip: <replace-me>
+  static_ip: <replace-me>
+  private_key_path: cf-validator.rsa_id
+  public_image_id: <replace-me>
+
+cloud_config:
+  vm_types:
+  - name: default
+    cloud_properties:
+      instance_type: <replace-me>
+
 openstack:
   auth_url: "https://auth.url/v3"
   username: "username"
