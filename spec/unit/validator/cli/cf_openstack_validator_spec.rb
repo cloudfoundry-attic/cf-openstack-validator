@@ -82,6 +82,10 @@ module Validator::Cli
     describe '#compile_package' do
       let(:package_path) { expand_project_path('spec/assets/cpi-release/packages/dummy_package') }
       let(:release_archive_path) { expand_project_path('spec/assets/cpi-release') }
+      let(:compiled_package_dir) { File.join(working_dir, 'packages', 'dummy_package') }
+
+      before(:each) { allow($stdout).to receive(:puts) }
+
       it 'creates package folder' do
         subject.compile_package(package_path)
 
@@ -93,7 +97,6 @@ module Validator::Cli
 
         compiled_file_path = File.join(working_dir, 'packages/dummy_package', 'compiled_file')
         expect(File.exists?(compiled_file_path)).to be(true)
-        compiled_package_dir = File.join(working_dir, 'packages', 'dummy_package')
         compiled_packages_dir = File.join(working_dir, 'packages')
         expect(File.read(compiled_file_path)).to eq("#{compiled_package_dir}\n#{compiled_packages_dir}\n")
       end
@@ -104,6 +107,12 @@ module Validator::Cli
         logfile = File.join(working_dir, 'logs', 'packaging-dummy_package.log')
         expect(File.exists?(logfile)).to be(true)
         expect(File.read(logfile)).to eq("Log to STDOUT\nLog to STDERR\n")
+      end
+
+      it 'writes message to stdout' do
+        expect {
+          subject.compile_package(package_path)
+        }.to output("Compiling package 'dummy_package' into '#{compiled_package_dir}'\n").to_stdout
       end
 
       context 'when the packaging script fails' do
@@ -123,6 +132,8 @@ module Validator::Cli
 
     describe '#install_cpi_release' do
       it 'compiles packages and renders cpi executable' do
+        allow($stdout).to receive(:puts)
+
         subject.install_cpi_release
 
         expect(File.exists?(File.join(working_dir, 'cpi-release/packages/bosh_openstack_cpi/bosh_openstack_cpi/dummy_bosh_openstack_cpi'))).to be(true)

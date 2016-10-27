@@ -87,6 +87,9 @@ module Validator::Cli
       package_name = File.basename(package_path)
       compilation_base_dir = File.join(@context.working_dir, 'packages')
       package_compilation_dir = File.join(@context.working_dir, 'packages', package_name)
+
+      puts "Compiling package '#{package_name}' into '#{package_compilation_dir}'"
+
       FileUtils.mkdir_p(package_compilation_dir)
 
       packaging_script = File.join(package_path, 'packaging')
