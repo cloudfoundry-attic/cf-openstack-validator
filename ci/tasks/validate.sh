@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -e -x
 
 : ${AUTH_URL:?}
 : ${USERNAME:?}
@@ -16,37 +16,24 @@ set -e
 : ${NTP_SERVER:?}
 : ${CA_CERT:-""}
 
-sudo apt-get update
-sudo apt-get -y install wget curl make gcc zlib1g-dev libssl-dev ssh
+# Copy to user's home, because we don't have write permissions on the source directory
+cp -r validator-src ~
 
-sudo gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
-sudo curl -sSL https://get.rvm.io | bash -s stable --ruby
-source /usr/local/rvm/scripts/rvm
-rvm use 2.3.0
-
-set -x
-
-wget -O cpi.tgz http://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=27
-wget -O stemcell.tgz https://d26ekeud912fhb.cloudfront.net/bosh-stemcell/openstack/bosh-stemcell-3262.9-openstack-kvm-ubuntu-trusty-go_agent.tgz
+pushd ~/validator-src
 
 echo "${PRIVATE_KEY}" > cf-validator.rsa_id
 chmod 400 cf-validator.rsa_id
 
-erb validator-src/ci/assets/validator.yml.erb > validator.yml
+erb ci/assets/validator.yml.erb > validator.yml
 cat validator.yml
 
-mkdir -p extensions
-cp validator-src/extensions/dummy_extension_spec.sample.rb extensions/dummy_extension_spec.rb
+cp extensions/dummy_extension_spec.sample.rb extensions/dummy_extension_spec.rb
 
-gem install bundler
+bundle install --path .bundle
 
-pushd validator-src
-bundle install
-popd
+bundle exec validate -r ~/cpi.tgz -s ~/stemcell.tgz -c validator.yml -w target
 
-validator-src/validate -r cpi.tgz -s stemcell.tgz -c validator.yml -w $(pwd)/target
-
-CONFIG_DRIVE='disk' erb validator-src/ci/assets/validator.yml.erb > validator.yml
+CONFIG_DRIVE='disk' erb ci/assets/validator.yml.erb > validator.yml
 cat validator.yml
 
-validator-src/validate -r cpi.tgz -s stemcell.tgz -c validator.yml -w $(pwd)/target
+bundle exec validate -r ~/cpi.tgz -s ~/stemcell.tgz -c validator.yml -w target
