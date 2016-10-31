@@ -14,10 +14,10 @@ describe Converter do
   end
 
   describe '.to_cpi_json' do
-
+    let(:auth_url) { 'https://auth.url/v3' }
     let(:complete_config) do
       {
-          'auth_url' => 'https://auth.url/v3',
+          'auth_url' => auth_url,
           'username' => 'username',
           'password' => 'password',
           'domain' => 'domain',
@@ -26,10 +26,22 @@ describe Converter do
     end
 
     describe 'conversions' do
-      it "appends 'auth/tokens' to 'auth_url' parameter" do
-        rendered_cpi_config = Converter.convert(complete_config)
+      context "when 'auth_url' does not end with '/auth/tokens'" do
+        it "appends 'auth/tokens' to 'auth_url' parameter" do
+          rendered_cpi_config = Converter.convert(complete_config)
 
-        expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/v3/auth/tokens'
+          expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/v3/auth/tokens'
+        end
+      end
+
+      context "when auth_url ends with '/auth/tokens'" do
+        let(:auth_url) { 'https://auth.url/v3/auth/tokens' }
+
+        it "use 'auth_url' parameter as given" do
+          rendered_cpi_config = Converter.convert(complete_config)
+
+          expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/v3/auth/tokens'
+        end
       end
 
       it "replaces 'password' key with 'api_key'" do

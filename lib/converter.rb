@@ -40,7 +40,13 @@ class Converter
   private
 
   PARAM_CONVERTERS = {
-      'auth_url' => ->(key, value) { [key, "#{value}/auth/tokens"] },
+      'auth_url' => ->(key, value) {
+        if value.end_with?('/auth/tokens')
+          [key, value]
+        else
+          [key, "#{value}/auth/tokens"]
+        end
+      },
       'password' => ->(_, value) { ['api_key', value] },
       'connection_options' => {
           'ca_cert' => ->(_, value) {

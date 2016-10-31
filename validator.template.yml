@@ -1,6 +1,6 @@
 ---
 openstack:
-  auth_url: <replace-me> # Keystone V3 URL without /auth/tokens
+  auth_url: <replace-me> # Keystone V3 URL
   username: <replace-me> # String
   password: <replace-me> # String
   domain: <replace-me> # String
