@@ -4,7 +4,7 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: friegger/cf-openstack-validator-ci
+    repository: boshcpi/cf-openstack-validator-ci
     tag: 'latest'
 
 inputs:

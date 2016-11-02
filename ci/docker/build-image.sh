@@ -2,7 +2,7 @@
 
 set -e
 
-DOCKER_IMAGE=${DOCKER_IMAGE:-friegger/cf-openstack-validator-ci}
+DOCKER_IMAGE=${DOCKER_IMAGE:-boshcpi/cf-openstack-validator-ci}
 
 docker login
 
