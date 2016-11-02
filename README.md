@@ -20,6 +20,8 @@ Is your OpenStack installation ready to run BOSH and install Cloud Foundry? Run 
 $ ssh-keygen -t rsa -b 4096 -N "" -f cf-validator.rsa_id
 ```
   * Upload the generated public key to OpenStack as `cf-validator`
+* A public image available in glance
+  * If your OpenStack installation doesn't yet provide any image, you can upload a [CirrOS test image](http://docs.openstack.org/image-guide/obtain-images.html#cirros-test)
 
 ### Environment
 
