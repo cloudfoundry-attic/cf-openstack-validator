@@ -191,7 +191,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can save and retrieve user-data from metadata service' do
-    Validator::Api::skip_test('Skipped optional metadata test. `config_drive` is configured in validator.yml.') if CfValidator.configuration.openstack['config_drive']
+    Validator::Api::skip_test('`config_drive` is configured in validator.yml.') if CfValidator.configuration.openstack['config_drive']
 
     @resources.consumes(:vm_cid_with_floating_ip, 'No VM to use')
 
@@ -210,7 +210,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can save and retrieve user-data from config_drive' do
-    Validator::Api::skip_test('Skipped optional config_drive test. `config_drive` is not configured in validator.yml.') unless CfValidator.configuration.openstack['config_drive']
+    Validator::Api::skip_test('`config_drive` is not configured in validator.yml.') unless CfValidator.configuration.openstack['config_drive']
 
     @resources.consumes(:vm_cid_with_floating_ip, 'No VM to use')
     vcap_password = 'c1oudc0w'

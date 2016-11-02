@@ -3,11 +3,29 @@ require 'pathname'
 require_relative 'cli'
 
 class TestsuiteFormatter < RSpec::Core::Formatters::DocumentationFormatter
-  RSpec::Core::Formatters.register self, :dump_failures, :dump_pending, :dump_summary
+  RSpec::Core::Formatters.register self, :dump_failures, :dump_pending, :dump_summary,
+    :example_started, :example_pending, :example_failed
 
   def initialize(output)
     super
     @env = Cli.new(ENV)
+  end
+
+  def example_started(notification)
+    output.print "#{current_indentation}#{notification.example.description}... "
+  end
+
+  def example_passed(notification)
+    output.puts RSpec::Core::Formatters::ConsoleCodes.wrap("passed", :success)
+  end
+
+  def example_failed(notification)
+    output.puts RSpec::Core::Formatters::ConsoleCodes.wrap("failed", :failure)
+  end
+
+  def example_pending(pending)
+    pending_msg =  pending.example.execution_result.pending_message
+    output.puts RSpec::Core::Formatters::ConsoleCodes.wrap("skipped: #{pending_msg}", :pending)
   end
 
   def dump_failures(notification)

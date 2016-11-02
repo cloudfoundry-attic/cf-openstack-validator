@@ -182,9 +182,8 @@ module Validator::Cli
           "2> #{log_path}"
       ]
       Open3.popen3(env, rspec_command.join(' '), :unsetenv_others => true) do |_, stdout_out, _, wait_thr|
-        stdout_out.each do |line|
-          puts line
-        end
+        stdout_out.each_char {|c| print c }
+
         unless wait_thr.value == 0
           raise ErrorWithLogDetails.new("Executing '#{rspec_command}' failed", log_path)
         end

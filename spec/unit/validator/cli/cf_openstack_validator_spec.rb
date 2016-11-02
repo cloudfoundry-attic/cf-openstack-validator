@@ -335,16 +335,16 @@ EOF
       end
 
       it 'should write the stdout to stdout' do
-        allow(Open3).to receive(:popen3).and_yield('', ['we write stdout to stdout'], [''], OpenStruct.new(:value => 0))
+        allow(Open3).to receive(:popen3).and_yield('', 'we write stdout to stdout', [''], OpenStruct.new(:value => 0))
 
         expect{
           subject.execute_specs
-        }.to output("we write stdout to stdout\n").to_stdout
+        }.to output("we write stdout to stdout").to_stdout
       end
 
       context 'when execution fails' do
         it 'raises an error' do
-          allow(Open3).to receive(:popen3).and_yield('', [''], [''], OpenStruct.new(:value => 1))
+          allow(Open3).to receive(:popen3).and_yield('', '', '', OpenStruct.new(:value => 1))
 
           expect{
             subject.execute_specs

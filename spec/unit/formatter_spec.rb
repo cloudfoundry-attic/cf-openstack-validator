@@ -14,6 +14,63 @@ describe TestsuiteFormatter do
     ENV['VERBOSE_FORMATTER'] = 'false'
   end
 
+  describe '#example_started' do
+    let(:notification) {
+      instance_double(RSpec::Core::Notifications::ExampleNotification)
+    }
+
+    let(:example) { double('example', description: 'example_name') }
+
+    it 'prints the identation and example name' do
+      allow(notification).to receive(:example).and_return(example)
+      allow(subject).to receive(:current_indentation).and_return('IDENTATION')
+
+      subject.example_started(notification)
+
+      expect(output.string).to eq('IDENTATIONexample_name... ')
+    end
+  end
+
+  describe '#example_passed' do
+    it 'it prints `passed` in success color' do
+      allow(RSpec::Core::Formatters::ConsoleCodes).to receive(:wrap).and_call_original
+
+      subject.example_passed(nil)
+
+      expect(RSpec::Core::Formatters::ConsoleCodes).to have_received(:wrap).with(anything, :success)
+      expect(output.string).to eq("passed\n")
+    end
+  end
+
+  describe '#example_failed' do
+    it 'it prints `failed` in failure color' do
+      allow(RSpec::Core::Formatters::ConsoleCodes).to receive(:wrap).and_call_original
+
+      subject.example_failed(nil)
+
+      expect(RSpec::Core::Formatters::ConsoleCodes).to have_received(:wrap).with(anything, :failure)
+      expect(output.string).to eq("failed\n")
+    end
+  end
+
+  describe '#example_pending' do
+
+    let(:notification) {
+      execution_result = double('execution_result', pending_message: 'pending_message')
+      example = double('example', execution_result: execution_result)
+      instance_double(RSpec::Core::Notifications::FailedExampleNotification, example:example)
+    }
+
+    it 'it prints the skipping reason in pending color' do
+      allow(RSpec::Core::Formatters::ConsoleCodes).to receive(:wrap).and_call_original
+
+      subject.example_pending(notification)
+
+      expect(RSpec::Core::Formatters::ConsoleCodes).to have_received(:wrap).with(anything, :pending)
+      expect(output.string).to eq("skipped: pending_message\n")
+    end
+  end
+
   describe '#dump_failures' do
 
     let(:notification) {
