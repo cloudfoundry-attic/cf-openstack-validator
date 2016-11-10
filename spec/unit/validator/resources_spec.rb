@@ -204,5 +204,8 @@ EOF
       @destroyable
     end
 
+    def wait_for
+    end
+
   end
 end

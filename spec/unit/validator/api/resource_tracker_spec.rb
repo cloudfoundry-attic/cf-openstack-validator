@@ -3,10 +3,10 @@ require_relative '../../spec_helper'
 module Validator::Api
   describe ResourceTracker do
 
-    let(:compute) { double('compute', servers: resources, volumes: resources) }
-    let(:network) { double('network', networks: resources, routers: resources) }
+    let(:compute) { double('compute', servers: resources, volumes: resources, snapshots: resources, key_pairs: resources, images: resources, addresses: resources, flavors: resources) }
+    let(:network) { double('network', networks: resources, routers: resources, subnets: resources, floating_ips: resources, security_groups: resources, security_group_rules: resources, ports: resources) }
     let(:resources) { double('resources', get: resource) }
-    let(:resource) { double('resource', name: 'my-resource') }
+    let(:resource) { double('resource', name: 'my-resource', wait_for: nil) }
 
     before (:each) do
       allow(FogOpenStack).to receive(:compute).and_return(compute)
@@ -21,6 +21,42 @@ module Validator::Api
 
         expect(resource_id).to eq('id')
         expect(subject.count).to eq(1)
+      end
+
+      [:servers, :volumes, :images].each do |type|
+        context "when #{type} resource" do
+          it 'calls wait_for using "ready?"' do
+            allow(resource).to receive(:ready?)
+            allow(resource).to receive(:wait_for) { |&block| resource.instance_eval(&block) }
+
+            subject.produce(type) { 'id' }
+
+            expect(resource).to have_received(:ready?)
+          end
+        end
+      end
+
+      (ResourceTracker::RESOURCE_SERVICES.values.flatten - ResourceTracker::TYPE_DEFINITIONS.keys).each do |type|
+        context "when #{type} resource" do
+          it 'does not call wait_for' do
+            subject.produce(type) { 'id' }
+
+            expect(resource).to_not have_received(:wait_for)
+          end
+        end
+      end
+
+      [:networks, :ports, :routers, :snapshots].each do |type|
+        context "when #{type} resource" do
+          it 'calls wait_for using "status"' do
+            allow(resource).to receive(:status)
+            allow(resource).to receive(:wait_for) { |&block| resource.instance_eval(&block) }
+
+            subject.produce(type) { 'id' }
+
+            expect(resource).to have_received(:status)
+          end
+        end
       end
 
       it 'tracks resources from different services' do
@@ -83,7 +119,9 @@ module Validator::Api
     end
 
     describe '#cleanup' do
-      let(:resource) { double('resource', name: 'my-resource', destroy: true) }
+      before do
+        allow(resource).to receive(:destroy).and_return(true)
+      end
 
       it 'destroys all resources' do
         subject.produce(:servers) { 'server_id' }
@@ -104,8 +142,9 @@ module Validator::Api
       end
 
       context 'when a resource cannot be destroyed' do
-
-        let(:resource) { double('resource', name: 'my-resource', destroy: false) }
+        before do
+          allow(resource).to receive(:destroy).and_return(false)
+        end
 
         it 'return false' do
           subject.produce(:servers) { 'server_id' }
@@ -126,10 +165,10 @@ module Validator::Api
 
     describe '#resources' do
 
-      it "returns all resources existing in openstack" do
+      it 'returns all resources existing in openstack' do
         ResourceTracker::RESOURCE_SERVICES.each do |service, types|
           types.each do |type|
-            allow(FogOpenStack).to receive_message_chain(service, type).and_return(double('resource_collection', get: double('resource', name: "#{type}-name")))
+            allow(FogOpenStack).to receive_message_chain(service, type).and_return(double('resource_collection', get: double('resource', name: "#{type}-name", wait_for: nil)))
 
             subject.produce(type) { "#{type}-id" }
           end

@@ -6,6 +6,16 @@ module Validator
           network: [:networks, :ports, :subnets, :floating_ips, :routers, :security_groups, :security_group_rules]
       }
 
+      TYPE_DEFINITIONS = {
+          servers: {wait_block: Proc.new { ready? }},
+          volumes: {wait_block: Proc.new { ready? }},
+          images: {wait_block: Proc.new { ready? }},
+          snapshots: {wait_block: Proc.new { status == 'available' }},
+          networks: {wait_block: Proc.new { status == 'ACTIVE' }},
+          ports: {wait_block: Proc.new { status == 'ACTIVE' }},
+          routers: {wait_block: Proc.new { status == 'ACTIVE' }},
+      }
+
       ##
       # Creates a new resource tracker instance. Each instance manages its own set
       # of resources.
@@ -47,12 +57,15 @@ module Validator
 
         if block_given?
           resource_id = yield
-          resource_name = get_resource(type, resource_id).name
+          resource = get_resource(type, resource_id)
+          if TYPE_DEFINITIONS.key?(type) && TYPE_DEFINITIONS[type].key?(:wait_block)
+            resource.wait_for(&TYPE_DEFINITIONS[type][:wait_block])
+          end
           @resources << {
               type: type,
               id: resource_id,
               provide_as: provide_as,
-              name: resource_name,
+              name: resource.name,
               test_description: RSpec.current_example.full_description
           }
           resource_id
