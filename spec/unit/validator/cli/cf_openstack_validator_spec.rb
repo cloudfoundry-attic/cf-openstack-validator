@@ -313,7 +313,8 @@ EOF
           'http_proxy' => ENV['http_proxy'],
           'https_proxy' => ENV['https_proxy'],
           'no_proxy' => ENV['no_proxy'],
-          'HOME' => ENV['HOME']
+          'HOME' => ENV['HOME'],
+          'EXCON_DEBUG' => 'true'
         }
       end
       let(:expected_command) {
@@ -332,6 +333,14 @@ EOF
         subject.execute_specs
 
         expect(Open3).to have_received(:popen3).with(env, expected_command, unsetenv_others: true)
+      end
+
+      it 'sets EXCON_DEBUG to log fog to STDERR' do
+        allow(Open3).to receive(:popen3)
+
+        subject.execute_specs
+
+        expect(Open3).to have_received(:popen3).with(hash_including('EXCON_DEBUG' => 'true'), any_args)
       end
 
       it 'should write the stdout to stdout' do

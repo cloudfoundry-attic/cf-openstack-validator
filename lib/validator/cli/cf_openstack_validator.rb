@@ -167,7 +167,7 @@ module Validator::Cli
           'https_proxy' => ENV['https_proxy'],
           'no_proxy' => ENV['no_proxy'],
           'HOME' => ENV['HOME']
-      }
+      }.merge(enable_fog_logging_to_stderr)
 
       rspec_command = [
           "#{@context.bundle_command} exec rspec #{File.join(@context.validator_root_dir, 'src', 'specs')}"
@@ -218,6 +218,10 @@ module Validator::Cli
     end
 
     private
+
+    def enable_fog_logging_to_stderr
+      { 'EXCON_DEBUG' => 'true' }
+    end
 
     def is_dir_empty?
       entries = Dir.entries(@context.working_dir) - ['.', '..']
