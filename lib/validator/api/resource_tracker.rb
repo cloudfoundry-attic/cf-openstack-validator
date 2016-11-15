@@ -2,9 +2,8 @@ module Validator
   module Api
     class ResourceTracker
       RESOURCE_SERVICES = {
-          compute: [:addresses, :flavors, :key_pairs, :servers, :volumes, :snapshots],
-          network: [:networks, :ports, :subnets, :floating_ips, :routers, :security_groups, :security_group_rules],
-          image:   [:images]
+          compute: [:addresses, :flavors, :key_pairs, :servers, :volumes, :images, :snapshots],
+          network: [:networks, :ports, :subnets, :floating_ips, :routers, :security_groups, :security_group_rules]
       }
 
       TYPE_DEFINITIONS = {
