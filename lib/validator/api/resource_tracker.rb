@@ -11,7 +11,7 @@ module Validator
       TYPE_DEFINITIONS = {
           servers: {wait_block: Proc.new { ready? }},
           volumes: {wait_block: Proc.new { ready? }},
-          images: {wait_block: Proc.new { ready? }},
+          images: {wait_block: Proc.new { status == 'active' }},
           snapshots: {wait_block: Proc.new { status == 'available' }},
           networks: {wait_block: Proc.new { status == 'ACTIVE' }},
           ports: {wait_block: Proc.new { status == 'ACTIVE' }},
@@ -123,6 +123,8 @@ module Validator
 
       def get_resource(type, id)
         FogOpenStack.send(service(type)).send(type).get(id)
+      rescue Fog::Errors::NotFound
+        nil
       end
 
     end
