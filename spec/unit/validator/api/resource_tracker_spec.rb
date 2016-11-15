@@ -3,7 +3,7 @@ require_relative '../../spec_helper'
 module Validator::Api
   describe ResourceTracker do
 
-    let(:compute) { double('compute', servers: resources, key_pairs: resources, addresses: resources, flavors: resources) }
+    let(:compute) { double('compute', servers: resources, key_pairs: resources, flavors: resources) }
     let(:network) { double('network', networks: resources, routers: resources, subnets: resources, floating_ips: resources, security_groups: resources, security_group_rules: resources, ports: resources) }
     let(:image) { double('image', images: resources) }
     let(:volume) { double('volume', volumes: resources, snapshots: resources) }
@@ -178,7 +178,27 @@ module Validator::Api
             subject.produce(type) { "#{type}-id" }
           end
         end
-        expect(subject.resources.length).to eq(14)
+
+        expect(subject.resources.length).to eq((ResourceTracker::RESOURCE_SERVICES.to_a.flatten - ResourceTracker::RESOURCE_SERVICES.keys).length)
+      end
+
+      context 'when resources do not exist in openstack anymore' do
+        before(:each) do
+          ResourceTracker::RESOURCE_SERVICES.each do |service, types|
+            types.each do |type|
+              allow(FogOpenStack).to receive_message_chain(service, type).and_return(
+                double('resource_collection', get: double('resource', name: "#{type}-name", wait_for: nil)),
+                double('resource_collection', get: nil)
+              )
+
+              subject.produce(type) { "#{type}-id" }
+            end
+          end
+        end
+
+        it 'does not include them' do
+          expect(subject.resources.length).to eq(0)
+        end
       end
 
     end

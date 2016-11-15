@@ -239,7 +239,7 @@ Each resource tracker is responsible for its own set of resources. Checkout the 
 
 **Remark**: Only the following collections are supported:
 
-* **compute**: addresses, flavors, key_pairs, servers
+* **compute**: flavors, key_pairs, servers
 * **network**: networks, ports, subnets, floating_ips, routers, security_groups, security_group_rules
 * **image**: images
 * **volume**: volumes, snapshots
