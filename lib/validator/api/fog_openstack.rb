@@ -17,12 +17,6 @@ module Validator
           Fog::Image::OpenStack::V1.new(convert_to_fog_params(openstack_params))
         end
 
-        def volume
-          Fog::Volume::OpenStack::V2.new(convert_to_fog_params(openstack_params))
-        rescue Fog::OpenStack::Errors::ServiceUnavailable
-          Fog::Volume::OpenStack::V1.new(convert_to_fog_params(openstack_params))
-        end
-
         private
 
         def openstack_params
