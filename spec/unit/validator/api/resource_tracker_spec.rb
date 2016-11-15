@@ -3,14 +3,16 @@ require_relative '../../spec_helper'
 module Validator::Api
   describe ResourceTracker do
 
-    let(:compute) { double('compute', servers: resources, volumes: resources, snapshots: resources, key_pairs: resources, images: resources, addresses: resources, flavors: resources) }
+    let(:compute) { double('compute', servers: resources, volumes: resources, snapshots: resources, key_pairs: resources, addresses: resources, flavors: resources) }
     let(:network) { double('network', networks: resources, routers: resources, subnets: resources, floating_ips: resources, security_groups: resources, security_group_rules: resources, ports: resources) }
+    let(:image) { double('image', images: resources) }
     let(:resources) { double('resources', get: resource) }
     let(:resource) { double('resource', name: 'my-resource', wait_for: nil) }
 
     before (:each) do
       allow(FogOpenStack).to receive(:compute).and_return(compute)
       allow(FogOpenStack).to receive(:network).and_return(network)
+      allow(FogOpenStack).to receive(:image).and_return(image)
     end
 
     describe '.produce' do
@@ -62,8 +64,9 @@ module Validator::Api
       it 'tracks resources from different services' do
         subject.produce(:servers) { 'server_id' }
         subject.produce(:networks) { 'network_id' }
+        subject.produce(:images) { 'image_id' }
 
-        expect(subject.count).to eq(2)
+        expect(subject.count).to eq(3)
       end
 
       context 'given an invalid resource type' do
@@ -126,11 +129,11 @@ module Validator::Api
       it 'destroys all resources' do
         subject.produce(:servers) { 'server_id' }
         subject.produce(:networks) { 'network_id' }
+        subject.produce(:images) { 'image_id' }
 
         subject.cleanup
 
-        expect(FogOpenStack).to have_received(:compute).exactly(3).times
-        expect(FogOpenStack).to have_received(:network).exactly(3).times
+        expect(resource).to have_received(:destroy).exactly(3).times
       end
 
       it 'reports true' do
