@@ -3,9 +3,10 @@ require_relative '../../spec_helper'
 module Validator::Api
   describe ResourceTracker do
 
-    let(:compute) { double('compute', servers: resources, volumes: resources, snapshots: resources, key_pairs: resources, addresses: resources, flavors: resources) }
+    let(:compute) { double('compute', servers: resources, key_pairs: resources, addresses: resources, flavors: resources) }
     let(:network) { double('network', networks: resources, routers: resources, subnets: resources, floating_ips: resources, security_groups: resources, security_group_rules: resources, ports: resources) }
     let(:image) { double('image', images: resources) }
+    let(:volume) { double('volume', volumes: resources, snapshots: resources) }
     let(:resources) { double('resources', get: resource) }
     let(:resource) { double('resource', name: 'my-resource', wait_for: nil) }
 
@@ -13,6 +14,7 @@ module Validator::Api
       allow(FogOpenStack).to receive(:compute).and_return(compute)
       allow(FogOpenStack).to receive(:network).and_return(network)
       allow(FogOpenStack).to receive(:image).and_return(image)
+      allow(FogOpenStack).to receive(:volume).and_return(volume)
     end
 
     describe '.produce' do
