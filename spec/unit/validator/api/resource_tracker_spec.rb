@@ -27,7 +27,7 @@ module Validator::Api
         expect(subject.count).to eq(1)
       end
 
-      [:servers, :volumes, :images].each do |type|
+      [:servers, :volumes].each do |type|
         context "when #{type} resource" do
           it 'calls wait_for using "ready?"' do
             allow(resource).to receive(:ready?)
@@ -50,7 +50,7 @@ module Validator::Api
         end
       end
 
-      [:networks, :ports, :routers, :snapshots].each do |type|
+      [:networks, :ports, :routers, :snapshots, :images].each do |type|
         context "when #{type} resource" do
           it 'calls wait_for using "status"' do
             allow(resource).to receive(:status)
