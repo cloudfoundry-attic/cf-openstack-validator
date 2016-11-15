@@ -49,5 +49,46 @@ module Validator::Api
         end
       end
     end
+
+    describe '.volume' do
+
+      context 'when V2 is available' do
+        before(:each) do
+          allow(Fog::Volume::OpenStack::V2).to receive(:new).and_return(instance_double(Fog::Volume::OpenStack::V2))
+        end
+
+        it 'uses V2 by default' do
+          FogOpenStack.volume
+
+          expect(Fog::Volume::OpenStack::V2).to have_received(:new)
+        end
+      end
+
+      context 'when only V1 is supported' do
+        before(:each) do
+          allow(Fog::Volume::OpenStack::V2).to receive(:new).and_raise(Fog::OpenStack::Errors::ServiceUnavailable)
+          allow(Fog::Volume::OpenStack::V1).to receive(:new).and_return(instance_double(Fog::Volume::OpenStack::V1))
+        end
+
+        it 'falls back to V1' do
+          FogOpenStack.volume
+
+          expect(Fog::Volume::OpenStack::V1).to have_received(:new)
+        end
+      end
+
+      context 'when V2 raises other than ServiceUnavailable' do
+        before(:each) do
+          allow(Fog::Volume::OpenStack::V1).to receive(:new)
+          allow(Fog::Volume::OpenStack::V2).to receive(:new).and_raise('some_error')
+        end
+
+        it 'raises' do
+          expect {
+            FogOpenStack.volume
+          }.to raise_error('some_error')
+        end
+      end
+    end
   end
 end
