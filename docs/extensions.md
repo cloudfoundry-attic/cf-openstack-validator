@@ -188,17 +188,25 @@ of `describe`, `context` or `it` steps, so that the whole test suite is executed
 ### Interact with OpenStack
 
 To interact with OpenStack the validator provides access via an API. Currently the API exposes
-`compute`/`nova` and `network`/`neutron` instances using the library `Fog`. `Fog` is a Ruby library that offers bindings for different IaaS platforms,
-including OpenStack. To create instances do:
+`compute`/`nova`, `image`/`glance` and `network`/`neutron` instances using `Fog`. 
+`Fog` is a Ruby library that offers bindings for different IaaS platforms, including OpenStack. 
+To create instances do:
 
 ```ruby
 # Create a new compute instance
 compute = Validator::Api::FogOpenStack.compute
+# List all servers
 server_collection = compute.servers
 
 # Create a new network instance
 network = Validator::Api::FogOpenStack.network
+# List all networks
 network_collection = network.networks
+
+# Create a new image instance
+image = Validator::Api::FogOpenStack.image
+# List all images
+image_collection = image.images
 ```
 
 The factory methods create a new instance each time you call them. Be aware that creating an instance, will already
@@ -226,8 +234,9 @@ Each resource tracker is responsible for its own set of resources. Checkout the 
 
 **Remark**: Only the following collections are supported:
 
-* **compute**: addresses, flavors, key_pairs, servers, volumes, images, snapshots
+* **compute**: addresses, flavors, key_pairs, servers, volumes, snapshots
 * **network**: networks, ports, subnets, floating_ips, routers, security_groups, security_group_rules
+* **image**: images
 
 This means one can still use other collections the Fog Api offers, but the resource tracker cannot track and clean them up.
 This would then have to be done manually.

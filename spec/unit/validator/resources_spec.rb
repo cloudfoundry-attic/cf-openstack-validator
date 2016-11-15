@@ -3,8 +3,9 @@ require_relative '../spec_helper'
 module Validator
 
   describe Resources do
-    let(:compute) { double('compute', servers: servers, volumes: volumes, images: images, key_pairs: key_pairs) }
+    let(:compute) { double('compute', servers: servers, volumes: volumes, key_pairs: key_pairs) }
     let(:network) { double('network', networks: networks) }
+    let(:image) { double('image', images: images) }
 
 
     let(:server_entries){ [] }
@@ -32,6 +33,7 @@ module Validator
     before (:each) do
       allow(Api::FogOpenStack).to receive(:compute).and_return(compute)
       allow(Api::FogOpenStack).to receive(:network).and_return(network)
+      allow(Api::FogOpenStack).to receive(:image).and_return(image)
     end
 
     describe '.create' do
@@ -55,6 +57,7 @@ module Validator
           it "cleans produced resources for #{type}" do
             allow(compute).to receive(type).and_return(resources)
             allow(network).to receive(type).and_return(resources)
+            allow(image).to receive(type).and_return(resources)
 
             subject.new_tracker.produce(type, provide_as: :resource_id1) {
               '1234-1234-1234-1234'

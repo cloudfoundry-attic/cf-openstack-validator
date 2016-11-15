@@ -72,7 +72,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     expect(server_metadata.get('registry_key')).not_to be_nil, fail_message
   end
 
-  it 'can create a disk in same AZ as VM' do
+  fit 'can create a disk in same AZ as VM' do
     vm_cid = @resources.consumes(:vm_cid, 'No VM to create disk for')
 
     disk_cid = with_cpi('Disk could not be created.') {
