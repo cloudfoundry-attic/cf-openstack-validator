@@ -321,7 +321,7 @@ EOF
         [
             "command exec rspec #{expand_project_path('src/specs')}",
             "--order defined",
-            "--color --tty --require #{expand_project_path('lib/formatter.rb')}",
+            "--color --tty --require #{expand_project_path('lib/validator/formatter.rb')}",
             "--format Validator::TestsuiteFormatter",
             "2> #{File.join(working_dir, 'logs', 'testsuite.log')}"
         ].join(" ")
@@ -377,7 +377,7 @@ EOF
               '--tag focus',
               '--fail-fast',
               '--order defined',
-              "--color --tty --require #{expand_project_path('lib/formatter.rb')}",
+              "--color --tty --require #{expand_project_path('lib/validator/formatter.rb')}",
               '--format Validator::TestsuiteFormatter',
               "2> #{File.join(working_dir, 'logs', 'testsuite.log')}"
           ].join(' ')
