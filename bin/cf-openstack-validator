@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require_relative '../lib/validator/cli/cli'
+require_relative '../lib/validator/cli'
 
 options = {}
 option_parser = OptionParser.new do |parser|

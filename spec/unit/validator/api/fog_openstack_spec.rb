@@ -6,7 +6,7 @@ module Validator::Api
     before(:each) do
       configuration = instance_double(Validator::Configuration)
       allow(configuration).to receive(:openstack).and_return({})
-      allow(CfValidator).to receive(:configuration).and_return(configuration)
+      allow(Validator::CfValidator).to receive(:configuration).and_return(configuration)
     end
 
     describe '.image' do

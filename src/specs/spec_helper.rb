@@ -24,11 +24,11 @@ def server_params
       :name => 'validator-test-vm',
       :image_ref => image_id,
       :flavor_ref => flavor.id,
-      :config_drive => !!CfValidator.configuration.openstack['config_drive'],
+      :config_drive => !!Validator::CfValidator.configuration.openstack['config_drive'],
       :nics =>[{'net_id' => validator_options['network_id']}]
   }
 
-  if CfValidator.configuration.openstack['boot_from_volume']
+  if Validator::CfValidator.configuration.openstack['boot_from_volume']
     server_params[:block_device_mapping_v2] = [{
                                                    :uuid => image_id,
                                                    :source_type => 'image',
@@ -58,7 +58,7 @@ def openstack_suite
   @openstack_suite = RSpec.describe 'Your OpenStack', order: :openstack do
 
     after(:all) do
-      CfValidator.resources.cleanup unless Cli.new(ENV).skip_cleanup?
+      Validator::CfValidator.resources.cleanup unless Validator::Options.new(ENV).skip_cleanup?
     end
 
   end

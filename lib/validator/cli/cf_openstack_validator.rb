@@ -126,12 +126,12 @@ module Validator::Cli
     end
 
     def generate_cpi_config
-      config = CfValidator.configuration(@context.config).all
-      ok, error_message = ValidatorConfig.validate(config)
+      config = Validator::CfValidator.configuration(@context.config).all
+      ok, error_message = Validator::ValidatorConfig.validate(config)
       unless ok
         raise ValidatorError, "`validator.yml` is not valid:\n#{error_message}"
       end
-      cpi_config_content = JSON.pretty_generate(Converter.to_cpi_json(CfValidator.configuration.openstack))
+      cpi_config_content = JSON.pretty_generate(Validator::Converter.to_cpi_json(Validator::CfValidator.configuration.openstack))
       puts "CPI will use the following configuration: \n#{cpi_config_content}"
       File.write(File.join(@context.working_dir, 'cpi.json'), cpi_config_content)
     end
@@ -177,8 +177,8 @@ module Validator::Cli
       rspec_command += ['--fail-fast'] if @context.fail_fast?
       rspec_command += [
           '--order defined',
-          "--color --tty --require #{File.join(@context.validator_root_dir, 'lib', 'formatter.rb')}",
-          '--format TestsuiteFormatter',
+          "--color --tty --require #{File.join(@context.validator_root_dir, 'lib', 'validator', 'formatter.rb')}",
+          '--format Validator::TestsuiteFormatter',
           "2> #{log_path}"
       ]
       Open3.popen3(env, rspec_command.join(' '), :unsetenv_others => true) do |_, stdout_out, _, wait_thr|

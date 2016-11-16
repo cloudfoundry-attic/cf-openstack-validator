@@ -50,11 +50,11 @@ extensions:
   describe '.openstack_config' do
     it 'uses Converter to convert values from validator.yml' do
       allow(YAML).to receive(:load_file).and_return({'openstack' => {}})
-      allow(Converter).to receive(:convert)
+      allow(Validator::Converter).to receive(:convert)
 
       subject.openstack
 
-      expect(Converter).to have_received(:convert)
+      expect(Validator::Converter).to have_received(:convert)
     end
   end
 end

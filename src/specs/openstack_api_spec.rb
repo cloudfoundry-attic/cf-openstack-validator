@@ -33,7 +33,7 @@ openstack_suite.context 'API', position: 1, order: :global do
         pending('For this test Neutron is required.')
         raise e
       end
-      @configured_security_groups = default_vm_type_cloud_properties['security_groups'] || CfValidator.configuration.openstack['default_security_groups'] || ['default']
+      @configured_security_groups = default_vm_type_cloud_properties['security_groups'] || Validator::CfValidator.configuration.openstack['default_security_groups'] || ['default']
     end
 
     it 'has ingress rule for SSH' do

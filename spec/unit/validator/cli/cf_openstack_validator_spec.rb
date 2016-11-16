@@ -242,18 +242,18 @@ EOF
 
       before(:each) do
         #Validator::Configuration is a singleton that is why we need to mock it here for the tests
-        allow(CfValidator).to receive(:configuration).and_return(Validator::Configuration.new(validator_config_path))
+        allow(Validator::CfValidator).to receive(:configuration).and_return(Validator::Configuration.new(validator_config_path))
       end
 
       it 'should generate cpi config and print out' do
-        allow(Converter).to receive(:to_cpi_json).and_return([])
+        allow(Validator::Converter).to receive(:to_cpi_json).and_return([])
 
         expect{
           subject.generate_cpi_config
         }.to output(/CPI will use the following configuration/).to_stdout
 
         expect(File.exist?(File.join(working_dir, 'cpi.json'))).to eq(true)
-        expect(Converter).to have_received(:to_cpi_json).with(CfValidator.configuration.openstack)
+        expect(Validator::Converter).to have_received(:to_cpi_json).with(Validator::CfValidator.configuration.openstack)
       end
 
       context 'when config is invalid' do
@@ -322,7 +322,7 @@ EOF
             "command exec rspec #{expand_project_path('src/specs')}",
             "--order defined",
             "--color --tty --require #{expand_project_path('lib/formatter.rb')}",
-            "--format TestsuiteFormatter",
+            "--format Validator::TestsuiteFormatter",
             "2> #{File.join(working_dir, 'logs', 'testsuite.log')}"
         ].join(" ")
       }
@@ -378,7 +378,7 @@ EOF
               '--fail-fast',
               '--order defined',
               "--color --tty --require #{expand_project_path('lib/formatter.rb')}",
-              '--format TestsuiteFormatter',
+              '--format Validator::TestsuiteFormatter',
               "2> #{File.join(working_dir, 'logs', 'testsuite.log')}"
           ].join(' ')
         }

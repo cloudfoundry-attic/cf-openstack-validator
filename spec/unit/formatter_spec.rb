@@ -1,9 +1,9 @@
 require_relative 'spec_helper'
 
-describe TestsuiteFormatter do
+describe Validator::TestsuiteFormatter do
 
   subject {
-    TestsuiteFormatter.new output
+    Validator::TestsuiteFormatter.new output
   }
 
   let(:output) {
@@ -204,7 +204,7 @@ describe TestsuiteFormatter do
 
     it 'gets the summary from the resource tracker' do
       allow(resources).to receive(:summary).and_return('resources-summary')
-      allow(CfValidator).to receive(:resources).and_return(resources)
+      allow(Validator::CfValidator).to receive(:resources).and_return(resources)
 
       subject.dump_summary(summary)
 

@@ -1,7 +1,7 @@
 require_relative 'spec_helper'
 
-describe Cli do
-  subject { Cli.new(env) }
+describe Validator::Options do
+  subject { Validator::Options.new(env) }
 
   describe '#skip_cleanup?' do
     context 'when ENV["BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP"]' do

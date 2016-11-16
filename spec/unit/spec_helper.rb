@@ -1,6 +1,6 @@
 require 'rspec'
 require_relative '../../lib/validator'
-require_relative '../../lib/validator/cli/cli'
+require_relative '../../lib/validator/cli'
 
 def expand_project_path(relative_project_path)
   File.expand_path(File.join('../../../', relative_project_path), __FILE__)

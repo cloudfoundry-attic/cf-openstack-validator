@@ -1,7 +1,7 @@
 require_relative 'spec_helper'
 require 'fileutils'
 
-describe Extensions do
+describe Validator::Extensions do
 
   before(:each) do
     @tmpdir = Dir.mktmpdir
@@ -28,7 +28,7 @@ describe Extensions do
 
       context 'and contains no _spec.rb files' do
         it 'returns no specs' do
-          expect(Extensions.all.size).to eq(0)
+          expect(Validator::Extensions.all.size).to eq(0)
         end
       end
 
@@ -39,7 +39,7 @@ describe Extensions do
         end
 
         it 'returns all specs' do
-          specs = Extensions.all
+          specs = Validator::Extensions.all
           expect(specs.size).to eq(2)
           expect(specs).to eq(["#{@extensionsdir}/test1_spec.rb", "#{@extensionsdir}/test2_spec.rb"])
         end
@@ -50,7 +50,7 @@ describe Extensions do
           end
 
           it 'returns only the spec files' do
-            specs = Extensions.all
+            specs = Validator::Extensions.all
             expect(specs.size).to equal(2)
             expect(specs).to eq(["#{@extensionsdir}/test1_spec.rb", "#{@extensionsdir}/test2_spec.rb"])
           end
@@ -60,7 +60,7 @@ describe Extensions do
 
     context 'when default extension folder does not exist' do
       it 'returns no specs' do
-        specs = Extensions.all
+        specs = Validator::Extensions.all
         expect(specs.size).to eq(0)
       end
     end
@@ -93,7 +93,7 @@ extensions:
           end
 
           it 'returns all specs' do
-            specs = Extensions.all
+            specs = Validator::Extensions.all
             expect(specs.size).to eq(1)
             expect(specs).to eq([@non_default_spec])
           end
@@ -119,7 +119,7 @@ extensions:
           end
 
           it 'returns all specs' do
-            specs = Extensions.all
+            specs = Validator::Extensions.all
             expect(specs.size).to eq(1)
             expect(specs).to eq([@non_default_spec])
           end
@@ -144,7 +144,7 @@ extensions:
         end
 
         it 'raises an StandardError' do
-          expect{ Extensions.all }.to raise_error(StandardError, /\/non-existent' is not a directory./)
+          expect{ Validator::Extensions.all }.to raise_error(StandardError, /\/non-existent' is not a directory./)
         end
       end
 
@@ -166,7 +166,9 @@ extensions:
     end
 
     it 'tells which extension it is running' do
-      expect{Extensions.eval(@specs, binding)}.to output("Evaluating extension: #{@extensionsdir}/test1_spec.rb\nEvaluating extension: #{@extensionsdir}/test2_spec.rb\n").to_stdout
+      expect {
+        Validator::Extensions.eval(@specs, binding)
+      }.to output("Evaluating extension: #{@extensionsdir}/test1_spec.rb\nEvaluating extension: #{@extensionsdir}/test2_spec.rb\n").to_stdout
     end
 
     context 'when extension evaluation raises an exception' do
@@ -177,13 +179,15 @@ extensions:
 
       it 'returns an error object' do
         allow($stdout).to receive(:puts)
-        expect{Extensions.eval(@specs, binding)}.to raise_error(SyntaxError)
+        expect{
+          Validator::Extensions.eval(@specs, binding)
+        }.to raise_error(SyntaxError)
       end
 
       it 'prints to the error to stdout' do
         expect{
           begin
-            Extensions.eval(@specs, binding)
+            Validator::Extensions.eval(@specs, binding)
           rescue SyntaxError
             # not relevant for test
           end
@@ -209,9 +213,9 @@ extensions:
           end
 
           it 'prints the errors backtrace to stdout' do
-            expect{
+            expect {
               begin
-                Extensions.eval(@specs, binding)
+                Validator::Extensions.eval(@specs, binding)
               rescue SyntaxError
                 # not relevant for test
               end
@@ -225,9 +229,9 @@ extensions:
           end
 
           it 'prints the errors without backtrace to stdout' do
-            expect{
+            expect {
               begin
-                Extensions.eval(@specs, binding)
+                Validator::Extensions.eval(@specs, binding)
               rescue SyntaxError
                 # not relevant for test
               end
