@@ -38,6 +38,11 @@ jobs:
     trigger: true
     tags: *tags
     timeout: *timeouts-long
+  - get: pipeline-time-trigger
+    passed: [test]
+    trigger: true
+    tags: *tags
+    timeout: *timeouts-long
   - task: validate
     tags: *tags
     timeout: *timeouts-long
