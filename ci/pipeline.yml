@@ -17,6 +17,10 @@ groups:
 jobs:
 - name: test
   plan:
+  - get: pipeline-time-trigger
+    trigger: true
+    tags: *tags
+    timeout: *timeouts-long
   - get: validator-src
     trigger: true
     tags: *tags
@@ -113,3 +117,7 @@ resources:
     branch: release-semver
     file: VERSION
     private_key: {{validator_github_private_key}}
+- name: pipeline-time-trigger
+  type: time
+  source:
+    interval: 1h
