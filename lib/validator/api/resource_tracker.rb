@@ -23,7 +23,7 @@ module Validator
       # of resources.
       #
       def self.create
-        CfValidator.resources.new_tracker
+        Validator::Api.resources.new_tracker
       end
 
       def initialize

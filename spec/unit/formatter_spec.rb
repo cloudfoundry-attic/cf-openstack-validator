@@ -190,6 +190,8 @@ describe Validator::TestsuiteFormatter do
     let(:resources) { instance_double(Validator::Resources) }
 
     before(:each) do
+      allow(Validator::Api).to receive(:resources).and_return(resources)
+      allow(resources).to receive(:summary).and_return('resources-summary')
       allow(summary).to receive(:formatted_duration).and_return('47.11')
       allow(summary).to receive(:formatted_load_time).and_return('11.47')
       allow(summary).to receive(:failure_count).and_return(failure_count)
@@ -203,9 +205,6 @@ describe Validator::TestsuiteFormatter do
     end
 
     it 'gets the summary from the resource tracker' do
-      allow(resources).to receive(:summary).and_return('resources-summary')
-      allow(Validator::CfValidator).to receive(:resources).and_return(resources)
-
       subject.dump_summary(summary)
 
       expect(output.string).to include('resources-summary')

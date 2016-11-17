@@ -4,6 +4,12 @@ RSpec.configure do |config|
   config.register_ordering(:openstack) do |items|
     items.sort_by { |item| item.metadata[:position] }
   end
+
+  config.add_setting :validator_config
+  config.validator_config = Validator::Configuration.new(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])
+
+  config.add_setting :validator_resources
+  config.validator_resources = Validator::Resources.new
 end
 
 def red(string)
@@ -24,11 +30,11 @@ def server_params
       :name => 'validator-test-vm',
       :image_ref => image_id,
       :flavor_ref => flavor.id,
-      :config_drive => !!Validator::CfValidator.configuration.openstack['config_drive'],
+      :config_drive => !!Validator::Api.configuration.openstack['config_drive'],
       :nics =>[{'net_id' => validator_options['network_id']}]
   }
 
-  if Validator::CfValidator.configuration.openstack['boot_from_volume']
+  if Validator::Api.configuration.openstack['boot_from_volume']
     server_params[:block_device_mapping_v2] = [{
                                                    :uuid => image_id,
                                                    :source_type => 'image',
@@ -58,7 +64,7 @@ def openstack_suite
   @openstack_suite = RSpec.describe 'Your OpenStack', order: :openstack do
 
     after(:all) do
-      Validator::CfValidator.resources.cleanup unless Validator::Options.new(ENV).skip_cleanup?
+      Validator::Api.resources.cleanup unless Validator::Options.new(ENV).skip_cleanup?
     end
 
   end

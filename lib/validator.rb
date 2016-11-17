@@ -10,7 +10,6 @@ require 'tmpdir'
 require 'pathname'
 require 'socket'
 
-require_relative 'validator/cf_validator'
 require_relative 'validator/converter'
 require_relative 'validator/formatter'
 require_relative 'validator/network_helper'

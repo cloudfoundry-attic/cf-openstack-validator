@@ -13,7 +13,35 @@ describe Validator::Configuration do
     FileUtils.rm_rf(tmpdir)
   end
 
-  describe '.extension_config' do
+  describe '#all' do
+    let(:validator_config_content) do
+      <<EOT
+---
+openstack:
+  key: value
+validator:
+  another_key: another_value
+cloud_config:
+  cloud_key: cloud_value
+extensions:
+  custom_key: custom_value
+EOT
+    end
+
+    before(:each) do
+      if validator_config_content
+        File.write(validator_config, validator_config_content)
+      else
+        File.write(validator_config, "---\n{}")
+      end
+    end
+
+    it 'returns the complete configuration' do
+      expect(subject.all).to eq(YAML.load(validator_config_content))
+    end
+  end
+
+  describe '#extensions' do
 
     let(:validator_config_content) { nil }
 
@@ -47,7 +75,7 @@ extensions:
     end
   end
 
-  describe '.openstack_config' do
+  describe '#openstack' do
     it 'uses Converter to convert values from validator.yml' do
       allow(YAML).to receive(:load_file).and_return({'openstack' => {}})
       allow(Validator::Converter).to receive(:convert)

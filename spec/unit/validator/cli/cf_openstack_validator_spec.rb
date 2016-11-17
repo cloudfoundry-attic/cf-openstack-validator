@@ -240,10 +240,7 @@ EOF
     describe '#generate_cpi_config' do
       let(:validator_config_path) { expand_project_path(File.join('spec', 'assets', 'validator.yml')) }
 
-      before(:each) do
-        #Validator::Configuration is a singleton that is why we need to mock it here for the tests
-        allow(Validator::CfValidator).to receive(:configuration).and_return(Validator::Configuration.new(validator_config_path))
-      end
+      let(:options) {{working_dir: working_dir, cpi_release: release_archive_path, config: validator_config_path}}
 
       it 'should generate cpi config and print out' do
         allow(Validator::Converter).to receive(:to_cpi_json).and_return([])
@@ -253,7 +250,7 @@ EOF
         }.to output(/CPI will use the following configuration/).to_stdout
 
         expect(File.exist?(File.join(working_dir, 'cpi.json'))).to eq(true)
-        expect(Validator::Converter).to have_received(:to_cpi_json).with(Validator::CfValidator.configuration.openstack)
+        expect(Validator::Converter).to have_received(:to_cpi_json).with(Validator::Configuration.new(validator_config_path).openstack)
       end
 
       context 'when config is invalid' do

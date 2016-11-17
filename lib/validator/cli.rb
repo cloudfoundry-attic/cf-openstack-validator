@@ -5,7 +5,6 @@ require 'yaml'
 require 'membrane'
 require 'socket'
 
-require_relative 'cf_validator'
 require_relative 'validator_config'
 require_relative 'converter'
 require_relative 'network_helper'

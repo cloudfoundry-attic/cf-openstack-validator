@@ -145,7 +145,7 @@ extensions:
     port: 22
 ```
 
-The complete hash at `config` can be retrieved from your test by calling `CfValidator.configuration.extensions`.
+The complete hash at `config` can be retrieved from your test by calling `Validator::Api.configuration.extensions`.
 > Note that the configuration will be globally available to all running extensions.
 
 ```ruby
@@ -156,7 +156,7 @@ fdescribe 'My extension' do
     @compute = Validator::Api::FogOpenStack.compute
   end
 
-  let(:config) { CfValidator.configuration.extensions }
+  let(:config) { Validator::Api.configuration.extensions }
   it 'can create a security group allowing SSH' do
     ssh_security_group = nil
     ssh_security_group_id = @resources.produce(:security_groups, provide_as: :my_security_group_id) do

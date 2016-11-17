@@ -126,12 +126,12 @@ module Validator::Cli
     end
 
     def generate_cpi_config
-      config = Validator::CfValidator.configuration(@context.config).all
-      ok, error_message = Validator::ValidatorConfig.validate(config)
+      configuration = Validator::Configuration.new(@context.config)
+      ok, error_message = Validator::ValidatorConfig.validate(configuration.all)
       unless ok
         raise ValidatorError, "`validator.yml` is not valid:\n#{error_message}"
       end
-      cpi_config_content = JSON.pretty_generate(Validator::Converter.to_cpi_json(Validator::CfValidator.configuration.openstack))
+      cpi_config_content = JSON.pretty_generate(Validator::Converter.to_cpi_json(configuration.openstack))
       puts "CPI will use the following configuration: \n#{cpi_config_content}"
       File.write(File.join(@context.working_dir, 'cpi.json'), cpi_config_content)
     end

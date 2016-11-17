@@ -26,7 +26,7 @@ module Validator
         private
 
         def openstack_params
-          CfValidator.configuration.openstack
+          Api.configuration.openstack
         end
 
         def convert_to_fog_params(options)
