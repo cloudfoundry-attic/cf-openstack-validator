@@ -6,7 +6,7 @@ describe 'My extension' do
   end
 
   context 'when requiring custom configuration' do
-    let(:config) { Validator::Api::Configuration.extension }
+    let(:config) { Validator::CfValidator.configuration.extensions }
     it 'is available' do
       expect(config['custom-config-key']).to eq('custom-config-value')
     end
