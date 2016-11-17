@@ -250,7 +250,7 @@ EOF
         }.to output(/CPI will use the following configuration/).to_stdout
 
         expect(File.exist?(File.join(working_dir, 'cpi.json'))).to eq(true)
-        expect(Validator::Converter).to have_received(:to_cpi_json).with(Validator::Configuration.new(validator_config_path).openstack)
+        expect(Validator::Converter).to have_received(:to_cpi_json).with(Validator::Api::Configuration.new(validator_config_path).openstack)
       end
 
       context 'when config is invalid' do

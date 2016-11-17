@@ -1,12 +1,12 @@
-require_relative 'spec_helper'
+require_relative '../../spec_helper'
 
-describe Validator::Configuration do
+describe Validator::Api::Configuration do
 
   let(:tmpdir) { Dir.mktmpdir }
   let(:validator_config) { File.join(tmpdir, 'validator.yml') }
 
   subject {
-    Validator::Configuration.new(validator_config)
+    Validator::Api::Configuration.new(validator_config)
   }
 
   after(:each) do

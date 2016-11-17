@@ -1,11 +1,11 @@
-require_relative 'spec_helper'
+require_relative '../spec_helper'
 
 describe Validator::Converter do
 
   describe 'end to end' do
-    let(:config) { Validator::Configuration.new("#{File.dirname(__FILE__)}/../assets/validator.yml") }
+    let(:config) { Validator::Api::Configuration.new("#{File.dirname(__FILE__)}/../../assets/validator.yml") }
     it 'produces the expected result for the given input' do
-      expected_cpi_config =  YAML.load_file("#{File.dirname(__FILE__)}/../assets/expected_cpi.json")
+      expected_cpi_config =  YAML.load_file("#{File.dirname(__FILE__)}/../../assets/expected_cpi.json")
 
       allow(Validator::NetworkHelper).to receive(:next_free_ephemeral_port).and_return(11111)
 

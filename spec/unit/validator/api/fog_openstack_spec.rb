@@ -4,7 +4,7 @@ module Validator::Api
   describe FogOpenStack do
 
     before(:each) do
-      configuration = instance_double(Validator::Configuration)
+      configuration = instance_double(Validator::Api::Configuration)
       allow(configuration).to receive(:openstack).and_return({})
       allow(Validator::Api).to receive(:configuration).and_return(configuration)
     end

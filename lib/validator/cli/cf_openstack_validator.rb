@@ -126,7 +126,7 @@ module Validator::Cli
     end
 
     def generate_cpi_config
-      configuration = Validator::Configuration.new(@context.config)
+      configuration = Validator::Api::Configuration.new(@context.config)
       ok, error_message = Validator::ValidatorConfig.validate(configuration.all)
       unless ok
         raise ValidatorError, "`validator.yml` is not valid:\n#{error_message}"

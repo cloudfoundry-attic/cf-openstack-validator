@@ -1,4 +1,4 @@
-require_relative 'spec_helper'
+require_relative '../spec_helper'
 
 describe Validator::NetworkHelper do
   describe '.next_free_ephemeral_port' do

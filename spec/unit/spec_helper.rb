@@ -1,4 +1,5 @@
 require 'rspec'
+require 'fileutils'
 require_relative '../../lib/validator'
 require_relative '../../lib/validator/cli'
 

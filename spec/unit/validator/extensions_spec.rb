@@ -1,5 +1,4 @@
-require_relative 'spec_helper'
-require 'fileutils'
+require_relative '../spec_helper'
 
 describe Validator::Extensions do
 

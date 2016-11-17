@@ -8,7 +8,7 @@ RSpec.configure do |config|
   end
 
   config.add_setting :validator_config
-  config.validator_config = Validator::Configuration.new(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])
+  config.validator_config = Validator::Api::Configuration.new(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])
 
   config.add_setting :validator_resources
   config.validator_resources = Validator::Resources.new
