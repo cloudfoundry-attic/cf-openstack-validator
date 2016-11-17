@@ -190,7 +190,8 @@ describe Validator::TestsuiteFormatter do
     let(:resources) { instance_double(Validator::Resources) }
 
     before(:each) do
-      allow(Validator::Api).to receive(:resources).and_return(resources)
+      allow_any_instance_of(RSpec::Core::Configuration).to receive(:validator_resources).and_return(resources)
+
       allow(resources).to receive(:summary).and_return('resources-summary')
       allow(summary).to receive(:formatted_duration).and_return('47.11')
       allow(summary).to receive(:formatted_load_time).and_return('11.47')

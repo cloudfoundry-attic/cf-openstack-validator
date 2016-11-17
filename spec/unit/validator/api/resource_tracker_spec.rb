@@ -17,6 +17,14 @@ module Validator::Api
       allow(FogOpenStack).to receive(:volume).and_return(volume)
     end
 
+    describe '.create' do
+      it 'creates new tracker' do
+        allow_any_instance_of(RSpec::Core::Configuration).to receive(:validator_resources).and_return(Validator::Resources.new)
+
+        expect(ResourceTracker.create).to be_a(ResourceTracker)
+      end
+    end
+
     describe '.produce' do
       it 'tracks created resources' do
         resource_id = subject.produce(:servers) {

@@ -13,12 +13,5 @@ module Validator
     def self.configuration
       RSpec::configuration.validator_config
     end
-
-    # Returns a Validator::Resource object containing all ResourceTrackers
-    #
-    # The `validator_resources` is defined when starting the test suite in spec_helper.rb
-    def self.resources
-      RSpec::configuration.validator_resources
-    end
   end
 end

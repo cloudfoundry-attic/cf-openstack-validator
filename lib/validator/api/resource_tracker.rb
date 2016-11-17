@@ -23,7 +23,7 @@ module Validator
       # of resources.
       #
       def self.create
-        Validator::Api.resources.new_tracker
+        RSpec::configuration.validator_resources.new_tracker
       end
 
       def initialize

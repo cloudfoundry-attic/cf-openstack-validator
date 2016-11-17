@@ -64,7 +64,7 @@ def openstack_suite
   @openstack_suite = RSpec.describe 'Your OpenStack', order: :openstack do
 
     after(:all) do
-      Validator::Api.resources.cleanup unless Validator::Options.new(ENV).skip_cleanup?
+      RSpec::configuration.validator_resources.cleanup unless Validator::Options.new(ENV).skip_cleanup?
     end
 
   end
