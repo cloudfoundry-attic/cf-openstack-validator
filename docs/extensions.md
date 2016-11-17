@@ -86,13 +86,13 @@ To use the resource tracking add a statement as follows:
 fdescribe 'My extension' do
 
   before(:all) do
-    @resources = Validator::Api::ResourceTracker.create
+    @resource_tracker = Validator::Api::ResourceTracker.create
     @compute = Validator::Api::FogOpenStack.compute
   end
 
   it 'can create a security group allowing SSH' do
     ssh_security_group = nil
-    ssh_security_group_id = @resources.produce(:security_groups, provide_as: :my_security_group_id) do
+    ssh_security_group_id = @resource_tracker.produce(:security_groups, provide_as: :my_security_group_id) do
       ssh_security_group = @compute.security_groups.create({ 'name' => 'allow-ssh', 'description' => '' })
       ssh_security_group.id
     end
@@ -127,11 +127,11 @@ Note that you have to manually clean up the security group in the OpenStack UI o
 
 ### Share Resources Between Tests
 
-You can consume resources you produced in your test using the resource tracker API in other tests by using the `consume` call:
+You can consume resources you produced in your test using the resource tracker API in other tests by using the `consumes` call:
 
 ```ruby
 it 'uses security group' do
-  ssh_security_group_id = @resources.consume(:my_security_group_id)
+  ssh_security_group_id = @resource_tracker.consumes(:my_security_group_id)
   expect(@compute.security_groups.get(ssh_security_group_id)).to_not be_nil
 end
 ```
@@ -152,14 +152,14 @@ The complete hash at `config` can be retrieved from your test by calling `Valida
 fdescribe 'My extension' do
 
   before(:all) do
-    @resources = Validator::Api::ResourceTracker.create
+    @resource_tracker = Validator::Api::ResourceTracker.create
     @compute = Validator::Api::FogOpenStack.compute
   end
 
   let(:config) { Validator::Api.configuration.extensions }
   it 'can create a security group allowing SSH' do
     ssh_security_group = nil
-    ssh_security_group_id = @resources.produce(:security_groups, provide_as: :my_security_group_id) do
+    ssh_security_group_id = @resource_tracker.produce(:security_groups, provide_as: :my_security_group_id) do
       ssh_security_group = @compute.security_groups.create({ 'name' => 'allow-ssh', 'description' => '' })
       ssh_security_group.id
     end
@@ -232,9 +232,9 @@ To hook into this resource management, every extension can create a [ResourceTra
 
 ```ruby
 # create a resource tracker instance
-resources = Validator::Api::ResourceTracker.create
+resource_tracker = Validator::Api::ResourceTracker.create
 ```
-Such an instance provides `produce` and `consume` methods to manage resources tied to the resource tracker.
+Such an instance provides `produce` and `consumes` methods to manage resources tied to the resource tracker.
 Each resource tracker is responsible for its own set of resources. Checkout the methods documentation [here](lib/validator/api/resource_tracker.rb).
 
 **Remark**: Only the following collections are supported:

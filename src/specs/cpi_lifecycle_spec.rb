@@ -16,7 +16,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
     _, @server_thread = create_server(registry_port)
     @cpi = cpi(@cpi_path, @log_path)
-    @resources = Validator::Api::ResourceTracker.create
+    @resource_tracker = Validator::Api::ResourceTracker.create
     @compute = Validator::Api::FogOpenStack.compute
   }
 
@@ -27,7 +27,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   it 'can save a stemcell' do
     stemcell_manifest = YAML.load_file(File.join(@stemcell_path, 'stemcell.MF'))
     stemcell_cid = with_cpi('Stemcell could not be uploaded') {
-      @resources.produce(:images, provide_as: :stemcell_cid) {
+      @resource_tracker.produce(:images, provide_as: :stemcell_cid) {
         @cpi.create_stemcell(File.join(@stemcell_path, 'image'), stemcell_manifest['cloud_properties'])
       }
     }
@@ -35,10 +35,10 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can create a VM' do
-    stemcell_id = @resources.consumes(:stemcell_cid, 'No stemcell available')
+    stemcell_id = @resource_tracker.consumes(:stemcell_cid, 'No stemcell available')
 
     vm_cid = with_cpi('VM could not be created.') {
-      @resources.produce(:servers, provide_as: :vm_cid) {
+      @resource_tracker.produce(:servers, provide_as: :vm_cid) {
         @cpi.create_vm(
             'agent-id',
             stemcell_id,
@@ -54,7 +54,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'has VM cid' do
-    vm_cid = @resources.consumes(:vm_cid, 'No VM to check')
+    vm_cid = @resource_tracker.consumes(:vm_cid, 'No VM to check')
 
     has_vm = with_cpi('VM cid could not be found.') {
       @cpi.has_vm?(vm_cid)
@@ -64,7 +64,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can set VM metadata' do
-    vm_cid = @resources.consumes(:vm_cid, 'No VM to set metadata for')
+    vm_cid = @resource_tracker.consumes(:vm_cid, 'No VM to set metadata for')
 
     server_metadata = @compute.servers.get(vm_cid).metadata
     fail_message = "VM metadata registry key was not written for VM with ID #{vm_cid}."
@@ -73,10 +73,10 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   fit 'can create a disk in same AZ as VM' do
-    vm_cid = @resources.consumes(:vm_cid, 'No VM to create disk for')
+    vm_cid = @resource_tracker.consumes(:vm_cid, 'No VM to create disk for')
 
     disk_cid = with_cpi('Disk could not be created.') {
-      @resources.produce(:volumes, provide_as: :disk_cid) {
+      @resource_tracker.produce(:volumes, provide_as: :disk_cid) {
         @cpi.create_disk(2048, {}, vm_cid)
       }
     }
@@ -85,7 +85,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'has disk cid' do
-    disk_cid = @resources.consumes(:disk_cid, 'No disk to check')
+    disk_cid = @resource_tracker.consumes(:disk_cid, 'No disk to check')
 
     has_disk = with_cpi('Disk cid could not be found.') {
       @cpi.has_disk?(disk_cid)
@@ -95,8 +95,8 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can attach the disk to the VM' do
-    vm_cid = @resources.consumes(:vm_cid, 'No VM to attach disk to')
-    disk_cid = @resources.consumes(:disk_cid, 'No disk to attach')
+    vm_cid = @resource_tracker.consumes(:vm_cid, 'No VM to attach disk to')
+    disk_cid = @resource_tracker.consumes(:disk_cid, 'No disk to attach')
 
     with_cpi("Disk '#{disk_cid}' could not be attached to VM '#{vm_cid}'.") {
       @cpi.attach_disk(vm_cid, disk_cid)
@@ -104,8 +104,8 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can detach the disk from the VM' do
-    vm_cid = @resources.consumes(:vm_cid, 'No VM to detach disk from')
-    disk_cid = @resources.consumes(:disk_cid, 'No disk to detach')
+    vm_cid = @resource_tracker.consumes(:vm_cid, 'No VM to detach disk from')
+    disk_cid = @resource_tracker.consumes(:disk_cid, 'No disk to detach')
 
     with_cpi("Disk '#{disk_cid}' could not be detached from VM '#{vm_cid}'.") {
       @cpi.detach_disk(vm_cid, disk_cid)
@@ -113,10 +113,10 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can take a snapshot' do
-    disk_cid = @resources.consumes(:disk_cid, 'No disk to create snapshot from')
+    disk_cid = @resource_tracker.consumes(:disk_cid, 'No disk to create snapshot from')
 
     snapshot_cid = with_cpi("Snapshot for disk '#{disk_cid}' could not be taken.") {
-      @resources.produce(:snapshots, provide_as: :snapshot_cid) {
+      @resource_tracker.produce(:snapshots, provide_as: :snapshot_cid) {
         @cpi.snapshot_disk(disk_cid, {})
       }
     }
@@ -125,8 +125,8 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can delete a snapshot' do
-    snapshot_cid = @resources.consumes(:snapshot_cid, 'No snapshot to delete')
-    disk_cid = @resources.consumes(:disk_cid, 'No disk to delete snapshot from')
+    snapshot_cid = @resource_tracker.consumes(:snapshot_cid, 'No snapshot to delete')
+    disk_cid = @resource_tracker.consumes(:disk_cid, 'No disk to delete snapshot from')
 
     with_cpi("Snapshot '#{snapshot_cid}' for disk '#{disk_cid}' could not be deleted.") {
       @cpi.delete_snapshot(snapshot_cid)
@@ -134,7 +134,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can delete the disk' do
-    disk_cid = @resources.consumes(:disk_cid, 'No disk to delete')
+    disk_cid = @resource_tracker.consumes(:disk_cid, 'No disk to delete')
 
     with_cpi("Disk '#{disk_cid}' could not be deleted.") {
       @cpi.delete_disk(disk_cid)
@@ -142,7 +142,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can delete the VM' do
-    vm_cid = @resources.consumes(:vm_cid, 'No vm to delete')
+    vm_cid = @resource_tracker.consumes(:vm_cid, 'No vm to delete')
 
     with_cpi("VM '#{vm_cid}' could not be deleted.") {
       @cpi.delete_vm(vm_cid)
@@ -150,10 +150,10 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can attach floating IP to a VM' do
-    stemcell_cid = @resources.consumes(:stemcell_cid, 'No stemcell to create VM from')
+    stemcell_cid = @resource_tracker.consumes(:stemcell_cid, 'No stemcell to create VM from')
 
     vm_cid = with_cpi('Floating IP could not be attached.') {
-      @resources.produce(:servers, provide_as: :vm_cid_with_floating_ip) {
+      @resource_tracker.produce(:servers, provide_as: :vm_cid_with_floating_ip) {
         @cpi.create_vm(
             'agent-id',
             stemcell_cid,
@@ -174,7 +174,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can access the internet' do
-    @resources.consumes(:vm_cid_with_floating_ip, 'No VM to use')
+    @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
 
     _, err, status = execute_ssh_command_on_vm(private_key_path,
                                             validator_options["floating_ip"], "nslookup github.com")
@@ -193,7 +193,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   it 'can save and retrieve user-data from metadata service' do
     Validator::Api::skip_test('`config_drive` is configured in validator.yml.') if Validator::Api.configuration.openstack['config_drive']
 
-    @resources.consumes(:vm_cid_with_floating_ip, 'No VM to use')
+    @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
 
     response, err, status = execute_ssh_command_on_vm(private_key_path,
                                                validator_options['floating_ip'], 'curl -m 10 http://169.254.169.254/latest/user-data')
@@ -212,7 +212,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   it 'can save and retrieve user-data from config_drive' do
     Validator::Api::skip_test('`config_drive` is not configured in validator.yml.') unless Validator::Api.configuration.openstack['config_drive']
 
-    @resources.consumes(:vm_cid_with_floating_ip, 'No VM to use')
+    @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
     vcap_password = 'c1oudc0w'
     sudo_command = "echo #{vcap_password}| sudo -S"
     mount_path = "/tmp/#{SecureRandom.uuid}"
@@ -238,7 +238,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'allows a VM to reach the configured NTP server' do
-    @resources.consumes(:vm_cid_with_floating_ip, 'No VM to use')
+    @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
 
     ntp = YAML.load_file(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])['validator']['ntp'] || ['0.pool.ntp.org', '1.pool.ntp.org']
     sudo = " echo 'c1oudc0w' | sudo -S"
@@ -253,11 +253,11 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'allows one VM to reach port 22 of another VM within the same network' do
-    @resources.consumes(:vm_cid_with_floating_ip, 'No VM to use')
-    stemcell_cid = @resources.consumes(:stemcell_cid, 'No stemcell to create VM from')
+    @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
+    stemcell_cid = @resource_tracker.consumes(:stemcell_cid, 'No stemcell to create VM from')
 
     second_vm_cid = with_cpi('Second VM could not be created.') {
-      @resources.produce(:servers) {
+      @resource_tracker.produce(:servers) {
         @cpi.create_vm(
             'agent-id',
             stemcell_cid,
@@ -279,10 +279,10 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can create a VM with static IP' do
-    stemcell_cid = @resources.consumes(:stemcell_cid, 'No stemcell to create VM from')
+    stemcell_cid = @resource_tracker.consumes(:stemcell_cid, 'No stemcell to create VM from')
 
     vm_cid_static_ip = with_cpi('VM with static IP could not be created.') {
-      @resources.produce(:servers, provide_as: :vm_cid_static_ip) {
+      @resource_tracker.produce(:servers, provide_as: :vm_cid_static_ip) {
         @cpi.create_vm(
           'agent-id',
           stemcell_cid,
@@ -298,8 +298,8 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'allows one VM to reach port 22 of another VM with static IP within the same network' do
-    @resources.consumes(:vm_cid_with_floating_ip, 'No VM with floating IP to use')
-    @resources.consumes(:vm_cid_static_ip, 'No VM with static IP to use')
+    @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM with floating IP to use')
+    @resource_tracker.consumes(:vm_cid_static_ip, 'No VM with static IP to use')
 
     _, err, status = execute_ssh_command_on_vm_with_retry(private_key_path, validator_options["floating_ip"], "nc -zv #{validator_options["static_ip"]} 22")
 
@@ -310,7 +310,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     large_disk_cid = with_cpi("Large disk could not be created.\n" +
         'Hint: If you are using DevStack, you need to manually set a ' +
         'larger backing file size in your localrc.') {
-      @resources.produce(:volumes, provide_as: :large_disk_cid){
+      @resource_tracker.produce(:volumes, provide_as: :large_disk_cid){
         @cpi.create_disk(30720, {})
       }
     }
@@ -319,7 +319,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can delete large disk' do
-    large_disk_cid = @resources.consumes(:large_disk_cid, 'No large disk to delete')
+    large_disk_cid = @resource_tracker.consumes(:large_disk_cid, 'No large disk to delete')
 
     with_cpi("Large disk '#{large_disk_cid}' could not be deleted.") {
       @cpi.delete_disk(large_disk_cid)
@@ -327,7 +327,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can delete a stemcell' do
-    stemcell_cid = @resources.consumes(:stemcell_cid, 'No stemcell to delete')
+    stemcell_cid = @resource_tracker.consumes(:stemcell_cid, 'No stemcell to delete')
 
     with_cpi('Stemcell could not be deleted') {
       @cpi.delete_stemcell(stemcell_cid)

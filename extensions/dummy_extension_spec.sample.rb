@@ -36,11 +36,11 @@ describe 'My extension' do
     let(:compute) { Validator::Api::FogOpenStack.compute }
 
     before(:all) do
-      @resources = Validator::Api::ResourceTracker.create
+      @resource_tracker = Validator::Api::ResourceTracker.create
     end
 
     it 'produces a resource' do
-      resource_id = @resources.produce(:volumes, provide_as: :test_volume) {
+      resource_id = @resource_tracker.produce(:volumes, provide_as: :test_volume) {
         compute.volumes.create({
             :name => 'validator-test-volume',
             :description => '',
@@ -52,13 +52,13 @@ describe 'My extension' do
     end
 
     it 'consumes an existing resource' do
-      resource_id = @resources.consumes(:test_volume)
+      resource_id = @resource_tracker.consumes(:test_volume)
 
       expect(resource_id).to_not be_nil
     end
 
     it 'consumes a non-existing resource' do
-      @resources.consumes(:non_existing_resource)
+      @resource_tracker.consumes(:non_existing_resource)
 
       fail('Test should have been marked pending')
     end
