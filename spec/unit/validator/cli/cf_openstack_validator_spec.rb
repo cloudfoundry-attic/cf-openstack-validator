@@ -3,8 +3,8 @@ require_relative '../../spec_helper'
 module Validator::Cli
   describe CfOpenstackValidator do
     let(:working_dir) { tmp_path }
-    let(:options) {{working_dir: working_dir, cpi_release: release_archive_path}}
-    let(:context) { Context.new(options) }
+    let(:options) {{cpi_release: release_archive_path}}
+    let(:context) { Context.new(options, working_dir) }
     subject { CfOpenstackValidator.new(context) }
 
     let(:release_archive_path) { expand_project_path('spec/assets/cpi-release.tgz') }
@@ -163,7 +163,7 @@ EOF
     end
 
     describe '#extract_stemcell' do
-      let(:options) { {working_dir: working_dir, stemcell: expand_project_path('spec/assets/dummy.tgz')} }
+      let(:options) { {stemcell: expand_project_path('spec/assets/dummy.tgz')} }
 
       it 'should extract the stemcell' do
         subject.extract_stemcell
@@ -240,7 +240,7 @@ EOF
     describe '#generate_cpi_config' do
       let(:validator_config_path) { expand_project_path(File.join('spec', 'assets', 'validator.yml')) }
 
-      let(:options) {{working_dir: working_dir, cpi_release: release_archive_path, config: validator_config_path}}
+      let(:options) {{cpi_release: release_archive_path, config: validator_config_path}}
 
       it 'should generate cpi config and print out' do
         allow(Validator::Converter).to receive(:to_cpi_json).and_return([])

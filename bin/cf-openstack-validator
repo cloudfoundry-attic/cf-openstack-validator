@@ -24,10 +24,6 @@ option_parser = OptionParser.new do |parser|
     options[:config] = config
   end
 
-  parser.on('-w', '--working-directory DIR', 'Path used by the Validator to install CPI release and store needed artifacts.', 'Defaults to operating system temporary file path (optional)') do |working_dir|
-    options[:working_dir] = working_dir
-  end
-
   parser.on('-t', '--tag TAG', 'Run tests that match a specified RSpec tag (optional)') do |tag|
     options[:tag] = tag
   end

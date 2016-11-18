@@ -1,15 +1,15 @@
 module Validator::Cli
   class Context
 
-    def initialize(options)
+    def initialize(options, working_dir = "#{ENV['HOME']}/.cf-openstack-validator")
       @options = options
-      @options[:working_dir] = ensure_working_directory(@options[:working_dir])
+      @working_dir = working_dir
+      ensure_working_directory(@working_dir)
       @path_from_env = ENV['PATH']
     end
 
-
     def working_dir
-      @options[:working_dir]
+      @working_dir
     end
 
     def tag
@@ -63,11 +63,9 @@ module Validator::Cli
 
     private
 
-    def ensure_working_directory(path)
-      if path
-        File.expand_path(FileUtils.mkdir_p(path).first)
-      else
-        Dir.mktmpdir
+    def ensure_working_directory(directory)
+      unless File.directory?(directory)
+        FileUtils.mkdir(directory)
       end
     end
   end
