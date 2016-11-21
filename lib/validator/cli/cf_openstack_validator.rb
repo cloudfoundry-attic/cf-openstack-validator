@@ -14,18 +14,11 @@ module Validator::Cli
     def run
       begin
         print_working_dir
-        unless installation_exists?
-          install_cpi_release
-          extract_stemcell
-          save_cpi_release_version
-        end
-
-        check_installation
+        install_cpi_release
+        extract_stemcell
         prepare_ruby_environment
         generate_cpi_config
-
         print_gem_environment
-
         execute_specs
       rescue ValidatorError => e
         $stderr.puts(e.message)
@@ -34,12 +27,21 @@ module Validator::Cli
     end
 
     def install_cpi_release
+      if cpi_version_is_installed?
+        puts "CPI #{@context.cpi_release} is already installed. Skipping installation"
+        return
+      end
+
+      delete_old_cpi
       deep_extract_release(@context.cpi_release)
       release_packages(@context.extracted_cpi_release_dir, ['ruby_openstack_cpi']).each { |package| compile_package(package) }
       render_cpi_executable
+      save_cpi_release_version
+      check_installation
     end
 
     def deep_extract_release(archive)
+      puts 'Extracting CPI release'
       FileUtils.mkdir_p(@context.extracted_cpi_release_dir)
       Untar.extract_archive(archive, @context.extracted_cpi_release_dir)
       packages_path = File.join(@context.extracted_cpi_release_dir, 'packages')
@@ -50,7 +52,12 @@ module Validator::Cli
 
     def extract_stemcell
       stemcell_path = File.join(@context.working_dir, 'stemcell')
+      if File.exists?(stemcell_path)
+        puts 'Deleting old stemcell'
+        FileUtils.rm_r(stemcell_path)
+      end
       FileUtils.mkdir_p(stemcell_path)
+      puts 'Extracting stemcell'
       Untar.extract_archive(@context.stemcell, stemcell_path)
     end
 
@@ -190,20 +197,9 @@ module Validator::Cli
       end
     end
 
-    def installation_exists?
-      return false unless File.exist?(@context.working_dir)
-      !is_dir_empty?
-    end
-
     def check_installation
       unless File.exist?(File.join(@context.working_dir, '.completed'))
         error_message = "The CPI installation did not finish successfully.\n" +
-            "Execute 'rm -rf #{@context.working_dir}' and run the tests again."
-        raise ValidatorError, error_message
-      end
-
-      if File.read(File.join(@context.working_dir, '.completed')) != @context.cpi_release
-        error_message = "Provided CPI and pre-installed CPI don't match.\n" +
             "Execute 'rm -rf #{@context.working_dir}' and run the tests again."
         raise ValidatorError, error_message
       end
@@ -247,8 +243,28 @@ bundle_cmd="\$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin/bundle"
 read -r INPUT
 echo \$INPUT | \$bundle_cmd exec \$BOSH_PACKAGES_DIR/bosh_openstack_cpi/bin/openstack_cpi #{File.join(@context.working_dir, 'cpi.json')}
 EOF
-      File.write(File.join(@context.working_dir, 'cpi'), cpi_content)
-      FileUtils.chmod('+x',File.join(@context.working_dir, 'cpi'))
+      File.write(cpi_bin_path, cpi_content)
+      FileUtils.chmod('+x', cpi_bin_path)
+    end
+
+    def cpi_bin_path
+      File.join(@context.working_dir, 'cpi')
+    end
+
+    def delete_old_cpi
+      if File.exists?(@context.extracted_cpi_release_dir)
+        puts 'Deleting old CPI installation'
+        FileUtils.rm_r(File.join(@context.extracted_cpi_release_dir))
+      end
+      if File.exists?(cpi_bin_path)
+        File.delete(cpi_bin_path)
+      end
+    end
+
+    def cpi_version_is_installed?
+      completed_marker_path = File.join(@context.working_dir, '.completed')
+
+      File.exists?(completed_marker_path) && File.read(completed_marker_path) == @context.cpi_release
     end
   end
 end

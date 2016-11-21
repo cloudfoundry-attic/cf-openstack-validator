@@ -3,13 +3,14 @@ require_relative '../../spec_helper'
 module Validator::Cli
   describe CfOpenstackValidator do
     let(:working_dir) { tmp_path }
-    let(:options) {{cpi_release: release_archive_path}}
+    let(:options) {{cpi_release: release_archive_path, stemcell: expand_project_path('spec/assets/dummy.tgz')}}
     let(:context) { Context.new(options, working_dir) }
     subject { CfOpenstackValidator.new(context) }
 
     let(:release_archive_path) { expand_project_path('spec/assets/cpi-release.tgz') }
 
     before(:each) do
+      allow($stdout).to receive(:puts)
       FileUtils.mkdir_p(working_dir)
     end
 
@@ -22,7 +23,6 @@ module Validator::Cli
     describe '#run' do
       before(:each) do
         allow(subject).to receive(:print_working_dir)
-        allow(subject).to receive(:installation_exists?).and_return(true)
         allow(subject).to receive(:check_installation)
         allow(subject).to receive(:prepare_ruby_environment)
         allow(subject).to receive(:generate_cpi_config)
@@ -131,11 +131,57 @@ module Validator::Cli
     end
 
     describe '#install_cpi_release' do
-      it 'compiles packages and renders cpi executable' do
-        allow($stdout).to receive(:puts)
+      context 'when there is no cpi installed' do
+        it 'compiles packages and renders cpi executable' do
+          subject.install_cpi_release
 
-        subject.install_cpi_release
+          verify_cpi_installation
+        end
+      end
 
+      context 'when there is an cpi installed' do
+        context 'when the installed cpi version matches the given version' do
+          let(:release_archive_path) { expand_project_path('spec/assets/cpi-release.tgz') }
+
+          before(:each) do
+            subject.save_cpi_release_version
+          end
+
+          it 'does not re-install the cpi' do
+            allow(subject).to receive(:deep_extract_release)
+
+            subject.install_cpi_release
+
+            expect(subject).to_not have_received(:deep_extract_release)
+          end
+        end
+
+        context 'when the installed cpi version does not match the given version' do
+          let(:release_archive_path) { expand_project_path('spec/assets/cpi-release.tgz') }
+
+          before(:each){
+            File.write(File.join(context.working_dir, '.completed'), 'old-version')
+          }
+
+          it 'deletes and installs the cpi' do
+            allow(File).to receive(:delete).and_call_original
+            cpi_dir = FileUtils.mkdir_p(File.join(context.working_dir, 'cpi-release'))
+            to_be_deleted_path = File.join(cpi_dir, 'should_be_deleted')
+            cpi_bin_path = File.join(context.working_dir, 'cpi')
+            File.write(to_be_deleted_path, '')
+            File.write(cpi_bin_path, '')
+
+            subject.install_cpi_release
+
+            expect(File.exists?(to_be_deleted_path)).to be(false)
+            expect(File.read(cpi_bin_path)).to_not eq('')
+            expect(File).to have_received(:delete).with(cpi_bin_path)
+            verify_cpi_installation
+          end
+        end
+      end
+
+      def verify_cpi_installation
         expect(File.exists?(File.join(working_dir, 'cpi-release/packages/bosh_openstack_cpi/bosh_openstack_cpi/dummy_bosh_openstack_cpi'))).to be(true)
         expect(File.exists?(File.join(working_dir, 'cpi-release/packages/ruby_openstack_cpi/ruby_openstack_cpi/dummy_ruby_openstack_cpi'))).to be(true)
 
@@ -165,13 +211,16 @@ EOF
     describe '#extract_stemcell' do
       let(:options) { {stemcell: expand_project_path('spec/assets/dummy.tgz')} }
 
-      it 'should extract the stemcell' do
+      it ' deletes and extracts the stemcell' do
+        stemcell_path = FileUtils.mkdir_p(File.join(working_dir, 'stemcell')).first
+        to_be_deleted_path = File.join(stemcell_path, 'to_be_deleted')
+        File.write(to_be_deleted_path, '')
+
         subject.extract_stemcell
 
-        extracted_stemcell = File.join(working_dir, 'stemcell')
-
-        expect(File.directory?(extracted_stemcell)).to be(true)
-        expect(Dir.glob(File.join(extracted_stemcell, '*'))).to_not be_empty
+        expect(File.exists?(to_be_deleted_path)).to be(false)
+        expect(File.directory?(stemcell_path)).to be(true)
+        expect(Dir.glob(File.join(stemcell_path, '*'))).to_not be_empty
       end
     end
 
@@ -389,37 +438,6 @@ EOF
       end
     end
 
-    describe '#installation_exists?' do
-
-      context 'should return false for non existing folder' do
-        before(:each) { FileUtils.rm_r(working_dir) }
-
-        it 'should return false' do
-          expect(subject.installation_exists?).to eq(false)
-        end
-      end
-
-      context 'should return false for empty folder' do
-        it 'should return false' do
-          expect(subject.installation_exists?).to eq(false)
-        end
-      end
-
-      context 'when installation folder is not empty' do
-        before(:each) do
-          File.write(File.join(working_dir, 'dummy_installation'), '')
-        end
-
-        after(:each) do
-          FileUtils.rm(File.join(working_dir, 'dummy_installation'))
-        end
-
-        it 'should return true' do
-          expect(subject.installation_exists?).to eq(true)
-        end
-      end
-    end
-
     describe '#check_installation' do
       before(:each) do
         File.write(File.join(working_dir, '.completed'), release_archive_path)
@@ -444,20 +462,6 @@ EOF
         }
         it 'raises a ValidationError' do
           File.delete(File.join(working_dir, '.completed'))
-          expect{
-            subject.check_installation
-          }.to raise_error ValidatorError, expected_message
-        end
-      end
-
-      context 'when the CPI version does not match' do
-        let(:expected_message) {
-          "Provided CPI and pre-installed CPI don't match.\n" +
-              "Execute 'rm -rf #{working_dir}' and run the tests again."
-        }
-        it 'raises a ValidationError' do
-          allow(context).to receive(:cpi_release).and_return('25')
-
           expect{
             subject.check_installation
           }.to raise_error ValidatorError, expected_message
