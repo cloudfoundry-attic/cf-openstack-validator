@@ -14,7 +14,7 @@ module Validator::Cli
     def run
       begin
         print_working_dir
-        install_cpi_release
+        prepare_cpi_release
         extract_stemcell
         prepare_ruby_environment
         generate_cpi_config
@@ -26,29 +26,18 @@ module Validator::Cli
       end
     end
 
-    def openstack_cpi_bin_is_valid?
-      unless @context.openstack_cpi_bin_from_env.nil?
-        if File.exists?(@context.openstack_cpi_bin_from_env)
-          return true
-        else
-          raise ValidatorError, "CPI executable is not found at OPENSTACK_CPI_BIN=#{@context.openstack_cpi_bin_from_env}"
-        end
+    def prepare_cpi_release
+      if @context.cpi_release
+        install_cpi_release
+      elsif cpi_bin_env?
+        add_cpi_bin_env
+      else
+        @context.set_cpi_release(download_cpi_release)
+        install_cpi_release
       end
     end
 
     def install_cpi_release
-      if openstack_cpi_bin_is_valid?
-        @context.cpi_bin_path = @context.openstack_cpi_bin_from_env
-        puts "OPENSTACK_CPI_BIN is set in ENV. Using already installed OpenStack CPI from `#{@context.openstack_cpi_bin_from_env}`."
-        return
-      else
-        @context.cpi_bin_path = @context.default_cpi_bin_path
-      end
-
-      if @context.cpi_release.nil?
-        @context.set_cpi_release(download_cpi_release)
-      end
-
       if cpi_version_is_installed?
         puts "CPI #{@context.cpi_release} is already installed. Skipping installation"
         return
@@ -238,7 +227,9 @@ module Validator::Cli
     def download_cpi_release
       cpi_release_name = latest_cpi_file_name
       cpi_release_path = File.join(@context.working_dir, cpi_release_name)
-      unless File.exists?(cpi_release_path)
+      if File.exists?(cpi_release_path)
+        puts "Skipping CPI release download. Using existing CPI '#{cpi_release_name}'"
+      else
         puts "Downloading CPI release '#{cpi_release_name}'"
         temp_download_file = open(@context.cpi_release_url_latest)
         File.rename(temp_download_file, cpi_release_path)
@@ -246,7 +237,20 @@ module Validator::Cli
       cpi_release_path
     end
 
+    def add_cpi_bin_env
+      unless File.exists?(@context.openstack_cpi_bin_from_env)
+        raise ValidatorError, "CPI executable is not found at OPENSTACK_CPI_BIN=#{@context.openstack_cpi_bin_from_env}"
+      end
+
+      @context.cpi_bin_path = @context.openstack_cpi_bin_from_env
+      puts "OPENSTACK_CPI_BIN is set in ENV. Using already installed OpenStack CPI from `#{@context.openstack_cpi_bin_from_env}`."
+    end
+
     private
+
+    def cpi_bin_env?
+      @context.openstack_cpi_bin_from_env != nil
+    end
 
     def latest_cpi_file_name
       begin

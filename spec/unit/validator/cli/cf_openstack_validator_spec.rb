@@ -131,50 +131,6 @@ module Validator::Cli
     end
 
     describe '#install_cpi_release' do
-      context 'when OPENSTACK_CPI_BIN is defined' do
-        let(:cpi_path) {File.join(working_dir, 'provided-cpi')}
-        before do
-          ENV['OPENSTACK_CPI_BIN'] = cpi_path
-        end
-        after do
-          ENV.delete('OPENSTACK_CPI_BIN')
-        end
-
-        context 'and the file exists' do
-          before do
-            File.write(cpi_path, '')
-          end
-          it 'skips the cpi installation' do
-            subject.install_cpi_release
-
-            expect(File.exists?(cpi_path)).to eq(true)
-            expect(File.exists?(File.join(working_dir, 'cpi'))).to be(false)
-          end
-
-          it 'sets context.cpi_bin_path to OPENSTACK_CPI_BIN' do
-            subject.install_cpi_release
-
-            expect(context.cpi_bin_path).to eq(cpi_path)
-          end
-        end
-
-        context 'and the file does not exists' do
-          it 'raises error' do
-            expect{
-              subject.install_cpi_release
-            }.to raise_error ValidatorError, "CPI executable is not found at OPENSTACK_CPI_BIN=#{context.openstack_cpi_bin_from_env}"
-          end
-        end
-      end
-
-      context 'when OPENSTACK_CPI_BIN is not defined' do
-        it 'sets context.cpi_bin_path to default cpi_bin_path' do
-          subject.install_cpi_release
-
-          expect(context.cpi_bin_path).to eq(context.default_cpi_bin_path)
-        end
-      end
-
       context 'when there is no cpi installed' do
         it 'compiles packages and renders cpi executable' do
           subject.install_cpi_release
@@ -222,45 +178,6 @@ module Validator::Cli
             expect(File).to have_received(:delete).with(cpi_bin_path)
             verify_cpi_installation
           end
-        end
-      end
-
-      context 'when cpi-release option is not set' do
-        let(:release_archive_path) { }
-        it 'downloads the latest cpi release and updates context' do
-          allow(subject).to receive(:download_cpi_release).and_return('downloaded-cpi-release.tgz')
-          allow(subject).to receive(:delete_old_cpi)
-          allow(subject).to receive(:deep_extract_release)
-          allow(subject).to receive(:release_packages).and_return([])
-          allow(subject).to receive(:render_cpi_executable)
-          allow(subject).to receive(:save_cpi_release_version)
-          allow(subject).to receive(:check_installation)
-          allow(subject).to receive(:compile_package)
-
-          subject.install_cpi_release
-
-
-          expect(subject).to have_received(:download_cpi_release)
-          expect(context.cpi_release).to eq('downloaded-cpi-release.tgz')
-        end
-      end
-
-      context 'when cpi-release option is set' do
-        it 'downloads the latest cpi release and updates context' do
-          allow(subject).to receive(:download_cpi_release)
-          allow(subject).to receive(:delete_old_cpi)
-          allow(subject).to receive(:deep_extract_release)
-          allow(subject).to receive(:release_packages).and_return([])
-          allow(subject).to receive(:render_cpi_executable)
-          allow(subject).to receive(:save_cpi_release_version)
-          allow(subject).to receive(:check_installation)
-          allow(subject).to receive(:compile_package)
-
-          subject.install_cpi_release
-
-
-          expect(subject).to_not have_received(:download_cpi_release)
-          expect(context.cpi_release).to eq(options[:cpi_release])
         end
       end
 
@@ -641,6 +558,94 @@ EOF
 
           expect(subject).to_not have_received(:open).with(download_url)
           expect(cpi_release_path).to eq(expected_cpi_release_path)
+        end
+      end
+    end
+
+  describe '#prepare_cpi_release' do
+      context 'when cpi-release option is specified' do
+        it 'installs cpi' do
+          allow(subject).to receive(:install_cpi_release)
+          allow(subject).to receive(:add_cpi_bin_env)
+          allow(subject).to receive(:download_cpi_release)
+
+          subject.prepare_cpi_release
+
+          expect(subject).to have_received(:install_cpi_release)
+          expect(subject).to_not have_received(:add_cpi_bin_env)
+          expect(subject).to_not have_received(:download_cpi_release)
+        end
+      end
+
+      context 'when cpi-release option is not specified' do
+        let(:release_archive_path) { }
+
+        context 'when OPENSTACK_CPI_BIN environment variable is set to a valid cpi release' do
+          before(:each) do
+            allow(subject).to receive(:cpi_bin_env?).and_return(true)
+          end
+
+          it 'adds cpi binary location to the context' do
+            allow(subject).to receive(:install_cpi_release)
+            allow(subject).to receive(:add_cpi_bin_env)
+            allow(subject).to receive(:download_cpi_release)
+
+            subject.prepare_cpi_release
+
+            expect(subject).to have_received(:add_cpi_bin_env)
+            expect(subject).to_not have_received(:install_cpi_release)
+            expect(subject).to_not have_received(:download_cpi_release)
+          end
+        end
+
+        context 'when OPENSTACK_CPI_BIN environment variable is not set' do
+          before(:each) do
+            allow(subject).to receive(:openstack_cpi_bin_is_valid?).and_return(false)
+          end
+
+          it 'adds cpi binary location to the context' do
+            allow(subject).to receive(:install_cpi_release)
+            allow(subject).to receive(:add_cpi_bin_env)
+            allow(subject).to receive(:download_cpi_release)
+
+            subject.prepare_cpi_release
+
+            expect(subject).to have_received(:download_cpi_release)
+            expect(subject).to have_received(:install_cpi_release)
+            expect(subject).to_not have_received(:add_cpi_bin_env)
+          end
+        end
+      end
+    end
+
+    describe '#add_cpi_bin_env' do
+      context 'when OPENSTACK_CPI_BIN is defined' do
+        let(:cpi_path) {File.join(working_dir, 'provided-cpi')}
+        before(:each) do
+          ENV['OPENSTACK_CPI_BIN'] = cpi_path
+        end
+        after do
+          ENV.delete('OPENSTACK_CPI_BIN')
+        end
+
+        context 'and the file exists' do
+          before(:each) do
+            File.write(cpi_path, '')
+          end
+
+          it 'sets context.cpi_bin_path to OPENSTACK_CPI_BIN' do
+            subject.add_cpi_bin_env
+
+            expect(context.cpi_bin_path).to eq(cpi_path)
+          end
+        end
+
+        context 'and the file does not exists' do
+          it 'raises error' do
+            expect{
+              subject.add_cpi_bin_env
+            }.to raise_error ValidatorError, "CPI executable is not found at OPENSTACK_CPI_BIN=#{context.openstack_cpi_bin_from_env}"
+          end
         end
       end
     end

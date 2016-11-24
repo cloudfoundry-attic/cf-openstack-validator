@@ -12,6 +12,12 @@ module Validator::Cli
       end
     end
 
+    describe '#cpi_bin_path' do
+      it 'sets the default' do
+        expect(subject.cpi_bin_path).to eq(File.join(subject.working_dir, 'cpi'))
+      end
+    end
+
     describe :openstack_cpi_bin_from_env do
       context 'when ENV var is set' do
         before do
