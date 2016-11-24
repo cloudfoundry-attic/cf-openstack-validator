@@ -11,7 +11,7 @@ def help_text
   <<EOT
 Usage: cf-openstack-validator [options]
     -h, --help                       Prints this help
-    -r, --cpi-release RELEASE        CPI release .tgz path
+    -r, --cpi-release RELEASE        CPI release .tgz path. Latest version will be downloaded if not specified (optional)
     -s, --stemcell STEMCELL          Stemcell path
     -c, --config CONFIG_FILE         Configuration YAML file path
     -t, --tag TAG                    Run tests that match a specified RSpec tag (optional)
@@ -33,7 +33,7 @@ describe 'Command Line' do
   it 'checks for required options' do
     stdout, stderr, exit_code = run_validator('')
     expect(exit_code.exitstatus).to eq(1)
-    expect(stderr).to eq("Required options are missing: --cpi-release, --stemcell, --config\n")
+    expect(stderr).to eq("Required options are missing: --stemcell, --config\n")
     expect(stdout).to eq(help_text)
   end
 

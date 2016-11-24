@@ -4,6 +4,7 @@ require 'json'
 require 'yaml'
 require 'membrane'
 require 'socket'
+require 'open-uri'
 
 require_relative 'validator_config'
 require_relative 'converter'

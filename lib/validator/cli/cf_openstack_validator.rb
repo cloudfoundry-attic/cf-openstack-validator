@@ -45,6 +45,10 @@ module Validator::Cli
         @context.cpi_bin_path = @context.default_cpi_bin_path
       end
 
+      if @context.cpi_release.nil?
+        @context.set_cpi_release(download_cpi_release)
+      end
+
       if cpi_version_is_installed?
         puts "CPI #{@context.cpi_release} is already installed. Skipping installation"
         return
@@ -231,7 +235,26 @@ module Validator::Cli
       puts "Using '#{@context.working_dir}' as working directory"
     end
 
+    def download_cpi_release
+      cpi_release_name = latest_cpi_file_name
+      cpi_release_path = File.join(@context.working_dir, cpi_release_name)
+      unless File.exists?(cpi_release_path)
+        puts "Downloading CPI release '#{cpi_release_name}'"
+        temp_download_file = open(@context.cpi_release_url_latest)
+        File.rename(temp_download_file, cpi_release_path)
+      end
+      cpi_release_path
+    end
+
     private
+
+    def latest_cpi_file_name
+      begin
+        open(@context.cpi_release_url_latest, :redirect => false)
+      rescue OpenURI::HTTPRedirect => redirect
+        redirect.uri.to_s.match(/bosh-openstack-cpi-release-\d+\.tgz/)[0]
+      end
+    end
 
     def enable_fog_logging_to_stderr
       { 'EXCON_DEBUG' => 'true' }

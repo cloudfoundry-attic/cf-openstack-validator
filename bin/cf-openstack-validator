@@ -12,7 +12,7 @@ option_parser = OptionParser.new do |parser|
     exit
   end
 
-  parser.on('-r', '--cpi-release RELEASE', 'CPI release .tgz path') do |release|
+  parser.on('-r', '--cpi-release RELEASE', 'CPI release .tgz path. Latest version will be downloaded if not specified (optional)') do |release|
     options[:cpi_release] = release
   end
 
@@ -42,7 +42,7 @@ option_parser = OptionParser.new do |parser|
 end
 option_parser.parse!
 
-missing_required_options = [:cpi_release, :stemcell, :config].select do |required_option|
+missing_required_options = [:stemcell, :config].select do |required_option|
   !options.include?(required_option)
 end
 

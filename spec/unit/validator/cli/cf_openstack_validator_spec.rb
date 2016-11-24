@@ -225,6 +225,45 @@ module Validator::Cli
         end
       end
 
+      context 'when cpi-release option is not set' do
+        let(:release_archive_path) { }
+        it 'downloads the latest cpi release and updates context' do
+          allow(subject).to receive(:download_cpi_release).and_return('downloaded-cpi-release.tgz')
+          allow(subject).to receive(:delete_old_cpi)
+          allow(subject).to receive(:deep_extract_release)
+          allow(subject).to receive(:release_packages).and_return([])
+          allow(subject).to receive(:render_cpi_executable)
+          allow(subject).to receive(:save_cpi_release_version)
+          allow(subject).to receive(:check_installation)
+          allow(subject).to receive(:compile_package)
+
+          subject.install_cpi_release
+
+
+          expect(subject).to have_received(:download_cpi_release)
+          expect(context.cpi_release).to eq('downloaded-cpi-release.tgz')
+        end
+      end
+
+      context 'when cpi-release option is set' do
+        it 'downloads the latest cpi release and updates context' do
+          allow(subject).to receive(:download_cpi_release)
+          allow(subject).to receive(:delete_old_cpi)
+          allow(subject).to receive(:deep_extract_release)
+          allow(subject).to receive(:release_packages).and_return([])
+          allow(subject).to receive(:render_cpi_executable)
+          allow(subject).to receive(:save_cpi_release_version)
+          allow(subject).to receive(:check_installation)
+          allow(subject).to receive(:compile_package)
+
+          subject.install_cpi_release
+
+
+          expect(subject).to_not have_received(:download_cpi_release)
+          expect(context.cpi_release).to eq(options[:cpi_release])
+        end
+      end
+
       def verify_cpi_installation
         expect(File.exists?(File.join(working_dir, 'cpi-release/packages/bosh_openstack_cpi/bosh_openstack_cpi/dummy_bosh_openstack_cpi'))).to be(true)
         expect(File.exists?(File.join(working_dir, 'cpi-release/packages/ruby_openstack_cpi/ruby_openstack_cpi/dummy_ruby_openstack_cpi'))).to be(true)
@@ -570,6 +609,39 @@ EOF
         expect{
           subject.print_working_dir
         }.to output("Using '#{context.working_dir}' as working directory\n").to_stdout
+      end
+    end
+
+    describe '#download_cpi_release' do
+      let(:download_url) { 'https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release' }
+      let(:redirect_exception) { OpenURI::HTTPRedirect.new(nil, nil, URI('https://some-site/some-path?filename=bosh-openstack-cpi-release-42.tgz&some-other-text')) }
+      let(:expected_cpi_release_path) { File.join(context.working_dir, 'bosh-openstack-cpi-release-42.tgz') }
+
+      it 'downloads the cpi with original name into working_dir' do
+        downloaded_file = File.new(File.join(working_dir, 'cpi.tgz'), 'w')
+        File.write(downloaded_file, 'some-response')
+        allow(downloaded_file).to receive(:meta).and_return( {'content-disposition' => 'bosh-openstack-cpi-release-42.tgz'})
+        allow(subject).to receive(:open).with(download_url, :redirect => false).and_raise(redirect_exception)
+        allow(subject).to receive(:open).with(download_url).and_return(downloaded_file)
+
+        cpi_release_path = subject.download_cpi_release
+
+        expect(subject).to have_received(:open).with(download_url)
+        expect(cpi_release_path).to eq(expected_cpi_release_path)
+        expect(File.exists?(expected_cpi_release_path)).to be true
+        expect(File.read(expected_cpi_release_path)).to eq('some-response')
+      end
+
+      context 'when cpi release already exists in working_dir' do
+        it 'skips download' do
+          File.new(expected_cpi_release_path, 'w')
+          allow(subject).to receive(:open).and_raise(redirect_exception)
+
+          cpi_release_path = subject.download_cpi_release
+
+          expect(subject).to_not have_received(:open).with(download_url)
+          expect(cpi_release_path).to eq(expected_cpi_release_path)
+        end
       end
     end
   end

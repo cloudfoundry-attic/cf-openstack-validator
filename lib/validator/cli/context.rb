@@ -1,17 +1,19 @@
 module Validator::Cli
   class Context
 
-    attr_reader :openstack_cpi_bin_from_env, :default_cpi_bin_path, :working_dir
+    attr_reader :openstack_cpi_bin_from_env, :default_cpi_bin_path, :working_dir, :cpi_release_url_latest
 
     attr_accessor :cpi_bin_path
 
     def initialize(options, working_dir = "#{ENV['HOME']}/.cf-openstack-validator")
       @options = options
+      @cpi_release_path = @options[:cpi_release]
       @working_dir = working_dir
       ensure_working_directory(@working_dir)
       @path_from_env = ENV['PATH']
       @openstack_cpi_bin_from_env = ENV['OPENSTACK_CPI_BIN']
       @default_cpi_bin_path = File.join(@working_dir, 'cpi')
+      @cpi_release_url_latest = 'https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release'
     end
 
     def tag
@@ -35,7 +37,11 @@ module Validator::Cli
     end
 
     def cpi_release
-      @options[:cpi_release]
+      @cpi_release_path
+    end
+
+    def set_cpi_release(cpi_release_path)
+      @cpi_release_path = cpi_release_path
     end
 
     def config
