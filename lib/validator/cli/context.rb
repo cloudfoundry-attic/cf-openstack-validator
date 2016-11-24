@@ -1,15 +1,17 @@
 module Validator::Cli
   class Context
 
+    attr_reader :openstack_cpi_bin_from_env, :default_cpi_bin_path, :working_dir
+
+    attr_accessor :cpi_bin_path
+
     def initialize(options, working_dir = "#{ENV['HOME']}/.cf-openstack-validator")
       @options = options
       @working_dir = working_dir
       ensure_working_directory(@working_dir)
       @path_from_env = ENV['PATH']
-    end
-
-    def working_dir
-      @working_dir
+      @openstack_cpi_bin_from_env = ENV['OPENSTACK_CPI_BIN']
+      @default_cpi_bin_path = File.join(@working_dir, 'cpi')
     end
 
     def tag

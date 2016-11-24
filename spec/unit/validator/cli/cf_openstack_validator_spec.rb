@@ -131,6 +131,50 @@ module Validator::Cli
     end
 
     describe '#install_cpi_release' do
+      context 'when OPENSTACK_CPI_BIN is defined' do
+        let(:cpi_path) {File.join(working_dir, 'provided-cpi')}
+        before do
+          ENV['OPENSTACK_CPI_BIN'] = cpi_path
+        end
+        after do
+          ENV.delete('OPENSTACK_CPI_BIN')
+        end
+
+        context 'and the file exists' do
+          before do
+            File.write(cpi_path, '')
+          end
+          it 'skips the cpi installation' do
+            subject.install_cpi_release
+
+            expect(File.exists?(cpi_path)).to eq(true)
+            expect(File.exists?(File.join(working_dir, 'cpi'))).to be(false)
+          end
+
+          it 'sets context.cpi_bin_path to OPENSTACK_CPI_BIN' do
+            subject.install_cpi_release
+
+            expect(context.cpi_bin_path).to eq(cpi_path)
+          end
+        end
+
+        context 'and the file does not exists' do
+          it 'raises error' do
+            expect{
+              subject.install_cpi_release
+            }.to raise_error ValidatorError, "CPI executable is not found at OPENSTACK_CPI_BIN=#{context.openstack_cpi_bin_from_env}"
+          end
+        end
+      end
+
+      context 'when OPENSTACK_CPI_BIN is not defined' do
+        it 'sets context.cpi_bin_path to default cpi_bin_path' do
+          subject.install_cpi_release
+
+          expect(context.cpi_bin_path).to eq(context.default_cpi_bin_path)
+        end
+      end
+
       context 'when there is no cpi installed' do
         it 'compiles packages and renders cpi executable' do
           subject.install_cpi_release
@@ -341,7 +385,8 @@ EOF
       let(:context) { double('context',
           path_environment: 'path environment', gems_folder: 'gems folder', bundle_command: 'command', working_dir: working_dir,
           cpi_release: release_archive_path, skip_cleanup?: true, verbose?: true, config: 'validator_config_path',
-          validator_root_dir: expand_project_path(''), tag: nil, fail_fast?: false)
+          validator_root_dir: expand_project_path(''), tag: nil, fail_fast?: false,
+          cpi_bin_path: File.join(working_dir, 'cpi'))
       }
       let(:env) do
         {
@@ -351,7 +396,7 @@ EOF
           'BOSH_PACKAGES_DIR' => File.join(working_dir, 'packages'),
           'BOSH_OPENSTACK_CPI_LOG_PATH' => File.join(working_dir, 'logs'),
           'BOSH_OPENSTACK_STEMCELL_PATH' => File.join(working_dir, 'stemcell'),
-          'BOSH_OPENSTACK_CPI_PATH' => File.join(working_dir, 'cpi'),
+          'BOSH_OPENSTACK_CPI_PATH' => context.cpi_bin_path,
           'BOSH_OPENSTACK_VALIDATOR_CONFIG' => 'validator_config_path',
           'BOSH_OPENSTACK_CPI_CONFIG' => File.join(working_dir, 'cpi.json'),
           'BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP' => context.skip_cleanup?.to_s,
@@ -415,7 +460,8 @@ EOF
         let(:context) { double('context',
             path_environment: 'path environment', gems_folder: 'gems folder', bundle_command: 'command', working_dir: working_dir,
             cpi_release: release_archive_path, skip_cleanup?: true, verbose?: true, config: 'validator_config_path',
-            validator_root_dir: expand_project_path(''), tag: 'focus', fail_fast?: true)
+            validator_root_dir: expand_project_path(''), tag: 'focus', fail_fast?: true,
+            cpi_bin_path: File.join(working_dir, 'cpi'))
         }
         let(:expected_command) {
           [
