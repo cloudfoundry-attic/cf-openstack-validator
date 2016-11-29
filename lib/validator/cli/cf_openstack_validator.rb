@@ -242,6 +242,10 @@ module Validator::Cli
         raise ValidatorError, "CPI executable is not found at OPENSTACK_CPI_BIN=#{@context.openstack_cpi_bin_from_env}"
       end
 
+      if File.directory?(@context.openstack_cpi_bin_from_env)
+        raise ValidatorError, "OPENSTACK_CPI_BIN points to a folder and not an executable. (#{@context.openstack_cpi_bin_from_env})"
+      end
+
       @context.cpi_bin_path = @context.openstack_cpi_bin_from_env
       puts "OPENSTACK_CPI_BIN is set in ENV. Using already installed OpenStack CPI from `#{@context.openstack_cpi_bin_from_env}`."
     end

@@ -640,6 +640,18 @@ EOF
           end
         end
 
+        context 'and the given path is a folder' do
+          before(:each) do
+            FileUtils.mkdir_p(cpi_path)
+          end
+
+          it 'raises error' do
+            expect{
+              subject.add_cpi_bin_env
+            }.to raise_error ValidatorError, "OPENSTACK_CPI_BIN points to a folder and not an executable. (#{context.openstack_cpi_bin_from_env})"
+          end
+        end
+
         context 'and the file does not exists' do
           it 'raises error' do
             expect{

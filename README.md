@@ -60,6 +60,14 @@ $ bundle install
 $ ./validate --cpi-release bosh-openstack-cpi-release-<xxx>.tgz --stemcell bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz --config validator.yml
 ```
 
+### When using self compiled CPI
+
+If you have an existing compiled CPI in your system you can make the validator aware of it by using the `OPENSTACK_CPI_BIN` environment variable.
+
+```bash
+OPENSTACK_CPI_BIN=/path/to/cpi/executable ./validate --stemcell bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz --config validator.yml
+```
+
 ## Command line help
 
 * To learn about available options run
