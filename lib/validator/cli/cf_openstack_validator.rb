@@ -50,20 +50,31 @@ module Validator::Cli
       install_cpi_release
     end
 
-    def install_cpi_release
-      sha1 = file_sha1(@context.cpi_release_path)
-      if cpi_version_is_installed?(sha1)
-        puts "CPI #{@context.cpi_release_path} is already installed. Skipping installation"
+    def with_state_file(message, source, destination)
+      sha1 = file_sha1(source)
+      completed_marker_path = File.join(destination, '.completed')
+      if File.exists?(completed_marker_path) && File.read(completed_marker_path) == sha1
+        puts message
         return
       end
 
-      delete_old_cpi
-      deep_extract_release(@context.cpi_release_path)
-      release_packages(@context.extracted_cpi_release_dir, ['ruby_openstack_cpi']).each do |package|
-        compile_package(package)
+      if block_given?
+        yield
       end
-      render_cpi_executable
-      save_cpi_release_version(sha1)
+
+      File.write(File.join(destination, '.completed'), sha1)
+    end
+
+    def install_cpi_release
+      message = "CPI '#{@context.cpi_release_path}' is already installed. Skipping installation"
+      with_state_file(message, @context.cpi_release_path, @context.extracted_cpi_release_dir) do
+        delete_old_cpi
+        deep_extract_release(@context.cpi_release_path)
+        release_packages(@context.extracted_cpi_release_dir, ['ruby_openstack_cpi']).each do |package|
+          compile_package(package)
+        end
+        render_cpi_executable
+      end
     end
 
     def deep_extract_release(archive)
@@ -78,13 +89,16 @@ module Validator::Cli
 
     def extract_stemcell
       stemcell_path = File.join(@context.working_dir, 'stemcell')
-      if File.exists?(stemcell_path)
-        puts 'Deleting old stemcell'
-        FileUtils.rm_r(stemcell_path)
+      message = "Stemcell '#{@context.stemcell}' is already extracted to '#{stemcell_path}'"
+      with_state_file(message, @context.stemcell, stemcell_path) do
+        if File.exists?(stemcell_path)
+          puts 'Deleting old stemcell'
+          FileUtils.rm_r(stemcell_path)
+        end
+        FileUtils.mkdir_p(stemcell_path)
+        puts 'Extracting stemcell'
+        Untar.extract_archive(@context.stemcell, stemcell_path)
       end
-      FileUtils.mkdir_p(stemcell_path)
-      puts 'Extracting stemcell'
-      Untar.extract_archive(@context.stemcell, stemcell_path)
     end
 
     def release_packages(release_path, install_order=[])
@@ -222,10 +236,6 @@ module Validator::Cli
       end
     end
 
-    def save_cpi_release_version(sha1)
-      File.write(File.join(@context.extracted_cpi_release_dir, '.completed'), sha1)
-    end
-
     def print_working_dir
       puts "Using '#{@context.working_dir}' as working directory"
     end
@@ -322,12 +332,6 @@ EOF
       if File.exists?(@context.cpi_bin_path)
         File.delete(@context.cpi_bin_path)
       end
-    end
-
-    def cpi_version_is_installed?(sha1)
-      completed_marker_path = File.join(@context.extracted_cpi_release_dir, '.completed')
-
-      File.exists?(completed_marker_path) && File.read(completed_marker_path) == sha1
     end
   end
 end

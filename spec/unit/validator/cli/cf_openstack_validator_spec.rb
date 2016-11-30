@@ -131,7 +131,7 @@ module Validator::Cli
 
           before(:each) do
             FileUtils.mkdir_p(context.extracted_cpi_release_dir)
-            subject.save_cpi_release_version(release_archive_sha1)
+            File.write(File.join(context.extracted_cpi_release_dir, '.completed'), release_archive_sha1)
           end
 
           it 'does not re-install the cpi' do
@@ -197,7 +197,8 @@ EOF
     end
 
     describe '#extract_stemcell' do
-      let(:options) { {stemcell: expand_project_path('spec/assets/dummy.tgz')} }
+      let(:stemcell) { expand_project_path('spec/assets/dummy.tgz') }
+      let(:options) { {stemcell: stemcell} }
 
       it ' deletes and extracts the stemcell' do
         stemcell_path = FileUtils.mkdir_p(File.join(working_dir, 'stemcell')).first
@@ -209,6 +210,18 @@ EOF
         expect(File.exists?(to_be_deleted_path)).to be(false)
         expect(File.directory?(stemcell_path)).to be(true)
         expect(Dir.glob(File.join(stemcell_path, '*'))).to_not be_empty
+      end
+
+      context 'when stemcell already extracted' do
+        it 'skips extraction' do
+          stemcell_path = FileUtils.mkdir_p(File.join(working_dir, 'stemcell')).first
+          stemcell_sha1 = Digest::SHA1.file(stemcell).to_s
+          File.write(File.join(stemcell_path, '.completed'), stemcell_sha1)
+
+          expect{
+            subject.extract_stemcell
+          }.to output(/is already extracted to/).to_stdout
+        end
       end
     end
 
@@ -424,16 +437,6 @@ EOF
 
           expect(Open3).to have_received(:popen3).with(env, expected_command, unsetenv_others: true)
         end
-      end
-    end
-
-    describe '#save_cpi_release_version' do
-      it 'writes a .completed file with the cpi version' do
-        FileUtils.mkdir_p(context.extracted_cpi_release_dir)
-        subject.save_cpi_release_version('cpi-release-sha1')
-
-        expect(File.exists?(File.join(context.extracted_cpi_release_dir, '.completed'))).to eq(true)
-        expect(File.read(File.join(context.extracted_cpi_release_dir, '.completed'))).to eq('cpi-release-sha1')
       end
     end
 
