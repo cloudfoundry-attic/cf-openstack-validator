@@ -1,7 +1,7 @@
 require_relative 'api/fog_openstack'
+require_relative 'api/cpi_helpers'
 require_relative 'api/resource_tracker'
 require_relative 'api/helpers'
-require_relative 'api/cpi_helpers'
 require_relative 'api/configuration'
 
 module Validator

@@ -37,7 +37,7 @@ module Validator::Cli
     end
 
     def install_cpi_release_from_config
-      if last_download_succesful?
+      if last_download_successful?
         puts 'Skipping CPI release download'
         cpi_release_path = File.join(@context.working_dir, 'bosh-openstack-cpi-release.tgz')
       else
@@ -270,7 +270,7 @@ module Validator::Cli
       end
     end
 
-    def last_download_succesful?
+    def last_download_successful?
       return false if !File.exists?(download_state_file)
       File.read(download_state_file) == configured_cpi_release['url']
     end

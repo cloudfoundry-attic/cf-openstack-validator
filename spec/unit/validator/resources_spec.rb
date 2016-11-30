@@ -57,6 +57,8 @@ module Validator
 
         Api::ResourceTracker.resource_types.each do |type|
           it "cleans produced resources for #{type}" do
+            cpi = instance_double(Bosh::Clouds::ExternalCpi, delete_vm: nil)
+            allow(Bosh::Clouds::ExternalCpi).to receive(:new).and_return(cpi)
             allow(compute).to receive(type).and_return(resources)
             allow(network).to receive(type).and_return(resources)
             allow(image).to receive(type).and_return(resources)

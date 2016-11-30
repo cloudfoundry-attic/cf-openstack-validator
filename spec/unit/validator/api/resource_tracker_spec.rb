@@ -132,8 +132,10 @@ module Validator::Api
     end
 
     describe '#cleanup' do
+      let(:cpi) { instance_double(Bosh::Clouds::ExternalCpi, delete_vm: nil) }
       before do
         allow(resource).to receive(:destroy).and_return(true)
+        allow(Bosh::Clouds::ExternalCpi).to receive(:new).and_return(cpi)
       end
 
       it 'destroys all resources' do
@@ -143,11 +145,12 @@ module Validator::Api
 
         subject.cleanup
 
-        expect(resource).to have_received(:destroy).exactly(3).times
+        expect(resource).to have_received(:destroy).exactly(2).times
+        expect(cpi).to have_received(:delete_vm).with('server_id')
       end
 
       it 'reports true' do
-        subject.produce(:servers) { 'server_id' }
+        subject.produce(:images) { 'image_id' }
 
         success = subject.cleanup
 
@@ -160,7 +163,7 @@ module Validator::Api
         end
 
         it 'return false' do
-          subject.produce(:servers) { 'server_id' }
+          subject.produce(:images) { 'image_id' }
 
           success = subject.cleanup
 
@@ -168,6 +171,21 @@ module Validator::Api
         end
       end
 
+      context 'when a server cannot be destroyed' do
+        before do
+          cpi = instance_double(Bosh::Clouds::ExternalCpi)
+          allow(cpi).to receive(:delete_vm).and_raise(Bosh::Clouds::CloudError)
+          allow(Bosh::Clouds::ExternalCpi).to receive(:new).and_return(cpi)
+        end
+
+        it 'return false' do
+          subject.produce(:servers) { 'server_id' }
+
+          success = subject.cleanup
+
+          expect(success).to eq(false)
+        end
+      end
     end
 
     describe '#count' do

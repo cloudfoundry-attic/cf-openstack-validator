@@ -1,6 +1,8 @@
 module Validator
   module Api
     class ResourceTracker
+      extend Validator::Api::CpiHelpers
+
       RESOURCE_SERVICES = {
           compute: [:flavors, :key_pairs, :servers],
           network: [:networks, :ports, :subnets, :floating_ips, :routers, :security_groups, :security_group_rules],
@@ -9,7 +11,14 @@ module Validator
       }
 
       TYPE_DEFINITIONS = {
-          servers: {wait_block: Proc.new { ready? }},
+          servers: {wait_block: Proc.new { ready? }, destroy_block: Proc.new do |vm_cid|
+            begin
+              cpi.delete_vm(vm_cid)
+              true
+            rescue Bosh::Clouds::CloudError => e
+              false
+            end
+          end },
           volumes: {wait_block: Proc.new { ready? }},
           images: {wait_block: Proc.new { status == 'active' }},
           snapshots: {wait_block: Proc.new { status == 'available' }},
@@ -97,7 +106,11 @@ module Validator
 
       def cleanup
         resources.map do |resource|
-          get_resource(resource[:type], resource[:id]).destroy
+          if TYPE_DEFINITIONS.key?(resource[:type]) && TYPE_DEFINITIONS[resource[:type]].key?(:destroy_block)
+            TYPE_DEFINITIONS[resource[:type]][:destroy_block].call(resource[:id])
+          else
+            get_resource(resource[:type], resource[:id]).destroy
+          end
         end.all?
       end
 

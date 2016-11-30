@@ -16,14 +16,9 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     @cloud_config      = cloud_config
     @log_path          = log_path
 
-    _, @server_thread = create_server(registry_port)
     @cpi = cpi(@cpi_path, @log_path)
     @resource_tracker = Validator::Api::ResourceTracker.create
     @compute = Validator::Api::FogOpenStack.compute
-  }
-
-  after(:all) {
-    kill_server(@server_thread)
   }
 
   it 'can save a stemcell' do
