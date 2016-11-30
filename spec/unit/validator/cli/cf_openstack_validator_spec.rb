@@ -155,13 +155,17 @@ module Validator::Cli
             allow(File).to receive(:delete).and_call_original
             cpi_dir = FileUtils.mkdir_p(File.join(context.working_dir, 'cpi-release'))
             to_be_deleted_path = File.join(cpi_dir, 'should_be_deleted')
+            packages_dir = FileUtils.mkdir_p(File.join(context.working_dir, 'packages'))
+            package_to_be_deleted = File.join(packages_dir, 'some-package')
             cpi_bin_path = File.join(context.working_dir, 'cpi')
             File.write(to_be_deleted_path, '')
             File.write(cpi_bin_path, '')
+            File.write(package_to_be_deleted, '')
 
             subject.install_cpi_release
 
             expect(File.exists?(to_be_deleted_path)).to be(false)
+            expect(File.exists?(package_to_be_deleted)).to be(false)
             expect(File.read(cpi_bin_path)).to_not eq('')
             expect(File).to have_received(:delete).with(cpi_bin_path)
             verify_cpi_installation

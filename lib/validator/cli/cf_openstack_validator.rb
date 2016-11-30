@@ -309,7 +309,7 @@ module Validator::Cli
       cpi_content = <<EOF
 #!/usr/bin/env bash
 
-BOSH_PACKAGES_DIR=\${BOSH_PACKAGES_DIR:-#{File.join(@context.working_dir, 'packages')}}
+BOSH_PACKAGES_DIR=\${BOSH_PACKAGES_DIR:-#{@context.packages_path}}
 
 PATH=\$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin:\$PATH
 export PATH
@@ -329,9 +329,8 @@ EOF
         puts 'Deleting old CPI installation'
         FileUtils.rm_r(File.join(@context.extracted_cpi_release_dir))
       end
-      if File.exists?(@context.cpi_bin_path)
-        File.delete(@context.cpi_bin_path)
-      end
+      File.delete(@context.cpi_bin_path) if File.exists?(@context.cpi_bin_path)
+      FileUtils.rm_r(@context.packages_path) if File.exists?(@context.packages_path)
     end
   end
 end
