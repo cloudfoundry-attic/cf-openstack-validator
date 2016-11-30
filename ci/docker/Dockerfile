@@ -23,5 +23,4 @@ RUN ["/bin/bash", "-l", "-c", "gem install bundler --no-ri --no-rdoc"]
 RUN useradd -ms /bin/bash validator-ci
 USER validator-ci
 
-RUN wget -O ~/cpi.tgz http://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=27
 RUN wget -O ~/stemcell.tgz https://d26ekeud912fhb.cloudfront.net/bosh-stemcell/openstack/bosh-stemcell-3262.9-openstack-kvm-ubuntu-trusty-go_agent.tgz

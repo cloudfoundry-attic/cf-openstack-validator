@@ -31,7 +31,7 @@ cp extensions/dummy_extension_spec.sample.rb extensions/dummy_extension_spec.rb
 
 bundle install --path .bundle
 
-bundle exec validate -r ~/cpi.tgz -s ~/stemcell.tgz -c validator.yml
+bundle exec validate -s ~/stemcell.tgz -c validator.yml
 
 CONFIG_DRIVE='disk' erb ci/assets/validator.yml.erb > validator.yml
 cat validator.yml
