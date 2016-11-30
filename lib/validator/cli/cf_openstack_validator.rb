@@ -37,14 +37,13 @@ module Validator::Cli
     end
 
     def install_cpi_release_from_config
+      cpi_release_path = File.join(@context.working_dir, 'bosh-openstack-cpi-release.tgz')
       if last_download_successful?
-        puts 'Skipping CPI release download'
-        cpi_release_path = File.join(@context.working_dir, 'bosh-openstack-cpi-release.tgz')
+        puts "Skipping CPI release download. Using CPI at '#{cpi_release_path}'."
       else
-        puts "Downloading CPI release from '#{configured_cpi_release['url']}'"
-        cpi_release_path = download_cpi_release(configured_cpi_release['url'], 'bosh-openstack-cpi-release.tgz')
+        puts "Downloading CPI release from '#{configured_cpi_release['url']}' to '#{cpi_release_path}'"
+        download_cpi_release(configured_cpi_release['url'], cpi_release_path)
       end
-      puts "Using CPI at '#{cpi_release_path}'"
       validate_download(cpi_release_path)
       update_download_state
       @context.cpi_release_path = cpi_release_path
@@ -52,17 +51,19 @@ module Validator::Cli
     end
 
     def install_cpi_release
-      if cpi_version_is_installed?
+      sha1 = file_sha1(@context.cpi_release_path)
+      if cpi_version_is_installed?(sha1)
         puts "CPI #{@context.cpi_release_path} is already installed. Skipping installation"
         return
       end
 
       delete_old_cpi
       deep_extract_release(@context.cpi_release_path)
-      release_packages(@context.extracted_cpi_release_dir, ['ruby_openstack_cpi']).each { |package| compile_package(package) }
+      release_packages(@context.extracted_cpi_release_dir, ['ruby_openstack_cpi']).each do |package|
+        compile_package(package)
+      end
       render_cpi_executable
-      save_cpi_release_version
-      check_installation
+      save_cpi_release_version(sha1)
     end
 
     def deep_extract_release(archive)
@@ -221,27 +222,17 @@ module Validator::Cli
       end
     end
 
-    def check_installation
-      unless File.exist?(File.join(@context.working_dir, '.completed'))
-        error_message = "The CPI installation did not finish successfully.\n" +
-            "Execute 'rm -rf #{@context.working_dir}' and run the tests again."
-        raise ValidatorError, error_message
-      end
-    end
-
-    def save_cpi_release_version
-      File.write(File.join(@context.working_dir, '.completed'), @context.cpi_release_path)
+    def save_cpi_release_version(sha1)
+      File.write(File.join(@context.extracted_cpi_release_dir, '.completed'), sha1)
     end
 
     def print_working_dir
       puts "Using '#{@context.working_dir}' as working directory"
     end
 
-    def download_cpi_release(download_url, local_file_name)
-      cpi_release_path = File.join(@context.working_dir, local_file_name)
+    def download_cpi_release(download_url, cpi_release_path)
       temp_download_file = open(download_url)
       File.rename(temp_download_file, cpi_release_path)
-      cpi_release_path
     end
 
     def add_cpi_bin_env
@@ -264,10 +255,14 @@ module Validator::Cli
     end
 
     def validate_download(cpi_release_path)
-      cpi_release_sha1 = Digest::SHA1.file(cpi_release_path)
+      cpi_release_sha1 = file_sha1(cpi_release_path)
       if (cpi_release_sha1 != configured_cpi_release['sha1'])
         raise ValidatorError, "Configured SHA1 '#{configured_cpi_release['sha1']}' does not match downloaded CPI SHA1 '#{cpi_release_sha1}'"
       end
+    end
+
+    def file_sha1(file_path)
+      Digest::SHA1.file(file_path).to_s
     end
 
     def last_download_successful?
@@ -329,10 +324,10 @@ EOF
       end
     end
 
-    def cpi_version_is_installed?
-      completed_marker_path = File.join(@context.working_dir, '.completed')
+    def cpi_version_is_installed?(sha1)
+      completed_marker_path = File.join(@context.extracted_cpi_release_dir, '.completed')
 
-      File.exists?(completed_marker_path) && File.read(completed_marker_path) == @context.cpi_release_path
+      File.exists?(completed_marker_path) && File.read(completed_marker_path) == sha1
     end
   end
 end

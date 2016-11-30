@@ -8,6 +8,7 @@ module Validator::Cli
     subject { CfOpenstackValidator.new(context) }
 
     let(:release_archive_path) { expand_project_path('spec/assets/cpi-release.tgz') }
+    let(:release_archive_sha1) { Digest::SHA1.file(expand_project_path('spec/assets/cpi-release.tgz')) }
 
     before(:each) do
       allow($stdout).to receive(:puts)
@@ -28,21 +29,6 @@ module Validator::Cli
         allow(subject).to receive(:generate_cpi_config)
         allow(subject).to receive(:print_gem_environment)
         allow(subject).to receive(:execute_specs)
-      end
-      context 'when ValidatorError is raised' do
-        before(:each) do
-          allow(subject).to receive(:check_installation).and_raise(ValidatorError.new('an-error-message'))
-        end
-
-        it 'exits process with exit code 1' do
-          allow(STDERR).to receive(:puts)
-          expect {
-            subject.run
-          }.to raise_error{ |error|
-            expect(error).to be_a(SystemExit)
-            expect(error.status).to eq(1)
-          }
-        end
       end
 
       context 'when ErrorWithLogDetails error is raised' do
@@ -144,7 +130,8 @@ module Validator::Cli
           let(:release_archive_path) { expand_project_path('spec/assets/cpi-release.tgz') }
 
           before(:each) do
-            subject.save_cpi_release_version
+            FileUtils.mkdir_p(context.extracted_cpi_release_dir)
+            subject.save_cpi_release_version(release_archive_sha1)
           end
 
           it 'does not re-install the cpi' do
@@ -160,7 +147,8 @@ module Validator::Cli
           let(:release_archive_path) { expand_project_path('spec/assets/cpi-release.tgz') }
 
           before(:each){
-            File.write(File.join(context.working_dir, '.completed'), 'old-version')
+            FileUtils.mkdir_p(context.extracted_cpi_release_dir)
+            File.write(File.join(context.extracted_cpi_release_dir, '.completed'), 'old-sha1')
           }
 
           it 'deletes and installs the cpi' do
@@ -439,45 +427,13 @@ EOF
       end
     end
 
-    describe '#check_installation' do
-      before(:each) do
-        File.write(File.join(working_dir, '.completed'), release_archive_path)
-      end
-
-      after(:each) do
-        File.delete(File.join(working_dir, '.completed')) if File.exist?(File.join(working_dir, '.completed'))
-      end
-
-      context 'when installation succeeded' do
-        it 'does not raise a ValidationError' do
-          expect{
-            subject.check_installation
-          }.to_not raise_error
-        end
-      end
-
-      context 'when the installation failed' do
-        let(:expected_message) {
-          "The CPI installation did not finish successfully.\n" +
-          "Execute 'rm -rf #{working_dir}' and run the tests again."
-        }
-        it 'raises a ValidationError' do
-          File.delete(File.join(working_dir, '.completed'))
-          expect{
-            subject.check_installation
-          }.to raise_error ValidatorError, expected_message
-        end
-      end
-    end
-
     describe '#save_cpi_release_version' do
       it 'writes a .completed file with the cpi version' do
-        allow(context).to receive(:cpi_release_path).and_return('cpi version')
+        FileUtils.mkdir_p(context.extracted_cpi_release_dir)
+        subject.save_cpi_release_version('cpi-release-sha1')
 
-        subject.save_cpi_release_version
-
-        expect(File.exists?(File.join(working_dir, '.completed'))).to eq(true)
-        expect(File.read(File.join(working_dir, '.completed'))).to eq('cpi version')
+        expect(File.exists?(File.join(context.extracted_cpi_release_dir, '.completed'))).to eq(true)
+        expect(File.read(File.join(context.extracted_cpi_release_dir, '.completed'))).to eq('cpi-release-sha1')
       end
     end
 
@@ -540,10 +496,9 @@ EOF
       it 'downloads the cpi with the name given into working_dir' do
         allow(subject).to receive(:open).with(download_url).and_return(downloaded_temp_file_path)
 
-        cpi_release_path = subject.download_cpi_release(download_url, 'cpi-release-download')
+        subject.download_cpi_release(download_url, expected_cpi_release_path)
 
         expect(subject).to have_received(:open).with(download_url)
-        expect(cpi_release_path).to eq(expected_cpi_release_path)
         expect(File.exists?(expected_cpi_release_path)).to be true
         expect(File.read(expected_cpi_release_path)).to eq('some-response')
       end
@@ -553,7 +508,7 @@ EOF
           File.write(File.new(expected_cpi_release_path, 'w'), 'some-old-version-of-cpi')
           allow(subject).to receive(:open).with(download_url).and_return(downloaded_temp_file_path)
 
-          subject.download_cpi_release(download_url, 'cpi-release-download')
+          subject.download_cpi_release(download_url, expected_cpi_release_path)
 
           expect(subject).to have_received(:open).with(download_url)
           expect(File.read(expected_cpi_release_path)).to eq('some-response')
@@ -719,7 +674,7 @@ EOF
                 subject.install_cpi_release_from_config
               }.to_not raise_error
 
-              expect(subject).to have_received(:download_cpi_release).with('cpi-download-url', 'bosh-openstack-cpi-release.tgz')
+              expect(subject).to have_received(:download_cpi_release).with('cpi-download-url', expected_cpi_release_path)
               expect(context.cpi_release_path).to eq(expected_cpi_release_path)
               expect(subject).to have_received(:install_cpi_release)
               expect(File.read(File.join(working_dir, '.download_completed'))).to eq('cpi-download-url')
@@ -748,7 +703,7 @@ EOF
               subject.install_cpi_release_from_config
             }.to_not raise_error
 
-            expect(subject).to have_received(:download_cpi_release).with('cpi-download-url', 'bosh-openstack-cpi-release.tgz')
+            expect(subject).to have_received(:download_cpi_release).with('cpi-download-url', expected_cpi_release_path)
             expect(context.cpi_release_path).to eq(expected_cpi_release_path)
             expect(subject).to have_received(:install_cpi_release)
             expect(File.read(File.join(working_dir, '.download_completed'))).to eq('cpi-download-url')
