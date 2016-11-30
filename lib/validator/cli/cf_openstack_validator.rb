@@ -14,10 +14,10 @@ module Validator::Cli
     def run
       begin
         print_working_dir
+        generate_cpi_config
         prepare_cpi_release
         extract_stemcell
         prepare_ruby_environment
-        generate_cpi_config
         print_gem_environment
         execute_specs
       rescue ValidatorError => e
@@ -27,24 +27,38 @@ module Validator::Cli
     end
 
     def prepare_cpi_release
-      if @context.cpi_release
+      if @context.cpi_release_path
         install_cpi_release
       elsif cpi_bin_env?
         add_cpi_bin_env
       else
-        @context.set_cpi_release(download_cpi_release)
-        install_cpi_release
+        install_cpi_release_from_config
       end
+    end
+
+    def install_cpi_release_from_config
+      if last_download_succesful?
+        puts 'Skipping CPI release download'
+        cpi_release_path = File.join(@context.working_dir, 'bosh-openstack-cpi-release.tgz')
+      else
+        puts "Downloading CPI release from '#{configured_cpi_release['url']}'"
+        cpi_release_path = download_cpi_release(configured_cpi_release['url'], 'bosh-openstack-cpi-release.tgz')
+      end
+      puts "Using CPI at '#{cpi_release_path}'"
+      validate_download(cpi_release_path)
+      update_download_state
+      @context.cpi_release_path = cpi_release_path
+      install_cpi_release
     end
 
     def install_cpi_release
       if cpi_version_is_installed?
-        puts "CPI #{@context.cpi_release} is already installed. Skipping installation"
+        puts "CPI #{@context.cpi_release_path} is already installed. Skipping installation"
         return
       end
 
       delete_old_cpi
-      deep_extract_release(@context.cpi_release)
+      deep_extract_release(@context.cpi_release_path)
       release_packages(@context.extracted_cpi_release_dir, ['ruby_openstack_cpi']).each { |package| compile_package(package) }
       render_cpi_executable
       save_cpi_release_version
@@ -144,12 +158,11 @@ module Validator::Cli
     end
 
     def generate_cpi_config
-      configuration = Validator::Api::Configuration.new(@context.config)
-      ok, error_message = Validator::ValidatorConfig.validate(configuration.all)
+      ok, error_message = Validator::ValidatorConfig.validate(@context.config.all)
       unless ok
         raise ValidatorError, "`validator.yml` is not valid:\n#{error_message}"
       end
-      cpi_config_content = JSON.pretty_generate(Validator::Converter.to_cpi_json(configuration.openstack))
+      cpi_config_content = JSON.pretty_generate(Validator::Converter.to_cpi_json(@context.config.openstack))
       puts "CPI will use the following configuration: \n#{cpi_config_content}"
       File.write(File.join(@context.working_dir, 'cpi.json'), cpi_config_content)
     end
@@ -177,7 +190,7 @@ module Validator::Cli
           'BOSH_OPENSTACK_CPI_LOG_PATH' => File.join(@context.working_dir, 'logs'),
           'BOSH_OPENSTACK_STEMCELL_PATH' => File.join(@context.working_dir, 'stemcell'),
           'BOSH_OPENSTACK_CPI_PATH' => @context.cpi_bin_path,
-          'BOSH_OPENSTACK_VALIDATOR_CONFIG' => @context.config,
+          'BOSH_OPENSTACK_VALIDATOR_CONFIG' => @context.config_path,
           'BOSH_OPENSTACK_CPI_CONFIG' => File.join(@context.working_dir, 'cpi.json'),
           'BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP' => @context.skip_cleanup?.to_s,
           'VERBOSE_FORMATTER' => @context.verbose?.to_s,
@@ -217,23 +230,17 @@ module Validator::Cli
     end
 
     def save_cpi_release_version
-      File.write(File.join(@context.working_dir, '.completed'), @context.cpi_release)
+      File.write(File.join(@context.working_dir, '.completed'), @context.cpi_release_path)
     end
 
     def print_working_dir
       puts "Using '#{@context.working_dir}' as working directory"
     end
 
-    def download_cpi_release
-      cpi_release_name = latest_cpi_file_name
-      cpi_release_path = File.join(@context.working_dir, cpi_release_name)
-      if File.exists?(cpi_release_path)
-        puts "Skipping CPI release download. Using existing CPI '#{cpi_release_name}'"
-      else
-        puts "Downloading CPI release '#{cpi_release_name}'"
-        temp_download_file = open(@context.cpi_release_url_latest)
-        File.rename(temp_download_file, cpi_release_path)
-      end
+    def download_cpi_release(download_url, local_file_name)
+      cpi_release_path = File.join(@context.working_dir, local_file_name)
+      temp_download_file = open(download_url)
+      File.rename(temp_download_file, cpi_release_path)
       cpi_release_path
     end
 
@@ -252,16 +259,32 @@ module Validator::Cli
 
     private
 
-    def cpi_bin_env?
-      @context.openstack_cpi_bin_from_env != nil
+    def update_download_state
+      File.write(download_state_file, configured_cpi_release['url'])
     end
 
-    def latest_cpi_file_name
-      begin
-        open(@context.cpi_release_url_latest, :redirect => false)
-      rescue OpenURI::HTTPRedirect => redirect
-        redirect.uri.to_s.match(/bosh-openstack-cpi-release-\d+\.tgz/)[0]
+    def validate_download(cpi_release_path)
+      cpi_release_sha1 = Digest::SHA1.file(cpi_release_path)
+      if (cpi_release_sha1 != configured_cpi_release['sha1'])
+        raise ValidatorError, "Configured SHA1 '#{configured_cpi_release['sha1']}' does not match downloaded CPI SHA1 '#{cpi_release_sha1}'"
       end
+    end
+
+    def last_download_succesful?
+      return false if !File.exists?(download_state_file)
+      File.read(download_state_file) == configured_cpi_release['url']
+    end
+
+    def download_state_file
+      File.join(@context.working_dir, '.download_completed')
+    end
+
+    def configured_cpi_release
+      @context.config.validator['releases'][0]
+    end
+
+    def cpi_bin_env?
+      @context.openstack_cpi_bin_from_env != nil
     end
 
     def enable_fog_logging_to_stderr
@@ -309,7 +332,7 @@ EOF
     def cpi_version_is_installed?
       completed_marker_path = File.join(@context.working_dir, '.completed')
 
-      File.exists?(completed_marker_path) && File.read(completed_marker_path) == @context.cpi_release
+      File.exists?(completed_marker_path) && File.read(completed_marker_path) == @context.cpi_release_path
     end
   end
 end

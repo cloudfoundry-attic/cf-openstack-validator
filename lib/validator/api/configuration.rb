@@ -11,6 +11,10 @@ module Validator
         end
       end
 
+      def validator
+        all.fetch('validator')
+      end
+
       def openstack
         Converter.convert(all.fetch('openstack'))
       end

@@ -41,6 +41,28 @@ EOT
     end
   end
 
+  describe '#validator' do
+    let(:validator_config_content) do
+      <<EOT
+---
+validator:
+  another_key: another_value
+EOT
+    end
+
+    before(:each) do
+      if validator_config_content
+        File.write(validator_config, validator_config_content)
+      else
+        File.write(validator_config, "---\n{}")
+      end
+    end
+
+    it 'returns the validator section' do
+      expect(subject.validator).to eq({ 'another_key' => 'another_value' })
+    end
+  end
+
   describe '#extensions' do
 
     let(:validator_config_content) { nil }

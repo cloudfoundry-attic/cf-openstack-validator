@@ -4,6 +4,7 @@ require 'optparse'
 require_relative '../lib/validator/cli'
 
 options = {}
+required_options = {stemcell: '--stemcell', config_path: '--config'}
 option_parser = OptionParser.new do |parser|
   parser.banner = 'Usage: cf-openstack-validator [options]'
 
@@ -16,12 +17,12 @@ option_parser = OptionParser.new do |parser|
     options[:cpi_release] = release
   end
 
-  parser.on('-s', '--stemcell STEMCELL', 'Stemcell path') do |stemcell|
+  parser.on('-s', "#{required_options[:stemcell]} STEMCELL", 'Stemcell path') do |stemcell|
     options[:stemcell] = stemcell
   end
 
-  parser.on('-c', '--config CONFIG_FILE', 'Configuration YAML file path') do |config|
-    options[:config] = config
+  parser.on('-c', "#{required_options[:config_path]} CONFIG_FILE", 'Configuration YAML file path') do |config_path|
+    options[:config_path] = config_path
   end
 
   parser.on('-t', '--tag TAG', 'Run tests that match a specified RSpec tag (optional)') do |tag|
@@ -42,12 +43,12 @@ option_parser = OptionParser.new do |parser|
 end
 option_parser.parse!
 
-missing_required_options = [:stemcell, :config].select do |required_option|
+missing_required_options = required_options.keys.select do |required_option|
   !options.include?(required_option)
 end
 
 unless missing_required_options.empty?
-  STDERR.puts("Required options are missing: #{missing_required_options.map { |o| "--#{o.to_s.gsub('_', '-')}" }.join(", ")}")
+  STDERR.puts("Required options are missing: #{missing_required_options.map { |o| required_options[o] }.join(", ")}")
   puts option_parser
   exit 1
 end

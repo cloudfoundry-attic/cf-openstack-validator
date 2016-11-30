@@ -6,6 +6,10 @@ validator:
   static_ip: <replace-me>
   private_key_path: cf-validator.rsa_id
   public_image_id: <replace-me>
+  releases:
+  - name: bosh-openstack-cpi
+    url: cpi-download-url
+    sha1: cpi-sha1
 
 cloud_config:
   vm_types:

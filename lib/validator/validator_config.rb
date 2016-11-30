@@ -27,6 +27,11 @@ module Validator
               'static_ip' => String,
               'private_key_path' => String,
               'public_image_id' => String,
+              'releases' => [{
+                'name' => 'bosh-openstack-cpi',
+                'url' => String,
+                'sha1' => String
+              }]
           },
           'cloud_config' => {
               'vm_types' => [{

@@ -5,6 +5,7 @@ require 'yaml'
 require 'membrane'
 require 'socket'
 require 'open-uri'
+require 'digest'
 
 require_relative 'validator_config'
 require_relative 'converter'

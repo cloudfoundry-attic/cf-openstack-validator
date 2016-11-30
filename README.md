@@ -48,7 +48,6 @@ To run on Mac the `Xcode` command line tools have to be installed.
 ```bash
 $ cp validator.template.yml validator.yml
 ```
-* Download OpenStack CPI from [OpenStack CPI bosh.io](http://bosh.io/releases/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?all=1)
 * Download a stemcell from [OpenStack stemcells bosh.io](http://bosh.io/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent)
 * Install dependencies
 ```bash
@@ -57,16 +56,14 @@ $ bundle install
 ```
 * Start validation
 ```bash
-$ ./validate --cpi-release bosh-openstack-cpi-release-<xxx>.tgz --stemcell bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz --config validator.yml
+$ ./validate --stemcell bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz --config validator.yml
 ```
 
-### When using self compiled CPI
+## Configure CPI used by validator
 
-If you have an existing compiled CPI in your system you can make the validator aware of it by using the `OPENSTACK_CPI_BIN` environment variable.
+Validator downloads CPI release from the URL specified in the validator configuration. You can override this by specifying the `--cpi-release` command line option with the path to a CPI release tarball. 
 
-```bash
-OPENSTACK_CPI_BIN=/path/to/cpi/executable ./validate --stemcell bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz --config validator.yml
-```
+If you already have a CPI compiled, you can specify the path to the executable in the environment variable `OPENSTACK_CPI_BIN`. This is used when no CPI release is specified on the command line. It overrides the setting in the validator configuration file.
 
 ## Command line help
 

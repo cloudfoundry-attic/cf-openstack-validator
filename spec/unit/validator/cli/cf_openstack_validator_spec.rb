@@ -289,13 +289,12 @@ EOF
     describe '#generate_cpi_config' do
       let(:validator_config_path) { expand_project_path(File.join('spec', 'assets', 'validator.yml')) }
 
-      let(:options) {{cpi_release: release_archive_path, config: validator_config_path}}
+      let(:options) {{cpi_release: release_archive_path, config_path: validator_config_path}}
 
       it 'should generate cpi config and print out' do
         allow(Validator::Converter).to receive(:to_cpi_json).and_return([])
 
-        expect{
-          subject.generate_cpi_config
+        expect{ subject.generate_cpi_config
         }.to output(/CPI will use the following configuration/).to_stdout
 
         expect(File.exist?(File.join(working_dir, 'cpi.json'))).to eq(true)
@@ -340,7 +339,7 @@ EOF
     describe '#execute_specs' do
       let(:context) { double('context',
           path_environment: 'path environment', gems_folder: 'gems folder', bundle_command: 'command', working_dir: working_dir,
-          cpi_release: release_archive_path, skip_cleanup?: true, verbose?: true, config: 'validator_config_path',
+          cpi_release: release_archive_path, skip_cleanup?: true, verbose?: true, config_path: 'validator_config_path',
           validator_root_dir: expand_project_path(''), tag: nil, fail_fast?: false,
           cpi_bin_path: File.join(working_dir, 'cpi'))
       }
@@ -415,7 +414,7 @@ EOF
       context 'when option are set' do
         let(:context) { double('context',
             path_environment: 'path environment', gems_folder: 'gems folder', bundle_command: 'command', working_dir: working_dir,
-            cpi_release: release_archive_path, skip_cleanup?: true, verbose?: true, config: 'validator_config_path',
+            cpi_release: release_archive_path, skip_cleanup?: true, verbose?: true, config_path: 'validator_config_path',
             validator_root_dir: expand_project_path(''), tag: 'focus', fail_fast?: true,
             cpi_bin_path: File.join(working_dir, 'cpi'))
         }
@@ -473,7 +472,7 @@ EOF
 
     describe '#save_cpi_release_version' do
       it 'writes a .completed file with the cpi version' do
-        allow(context).to receive(:cpi_release).and_return('cpi version')
+        allow(context).to receive(:cpi_release_path).and_return('cpi version')
 
         subject.save_cpi_release_version
 
@@ -531,17 +530,17 @@ EOF
 
     describe '#download_cpi_release' do
       let(:download_url) { 'https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release' }
-      let(:redirect_exception) { OpenURI::HTTPRedirect.new(nil, nil, URI('https://some-site/some-path?filename=bosh-openstack-cpi-release-42.tgz&some-other-text')) }
-      let(:expected_cpi_release_path) { File.join(context.working_dir, 'bosh-openstack-cpi-release-42.tgz') }
+      let(:expected_cpi_release_path) { File.join(context.working_dir, 'cpi-release-download') }
+      let(:downloaded_temp_file_path) { File.join(working_dir, 'cpi.tgz') }
 
-      it 'downloads the cpi with original name into working_dir' do
-        downloaded_file = File.new(File.join(working_dir, 'cpi.tgz'), 'w')
-        File.write(downloaded_file, 'some-response')
-        allow(downloaded_file).to receive(:meta).and_return( {'content-disposition' => 'bosh-openstack-cpi-release-42.tgz'})
-        allow(subject).to receive(:open).with(download_url, :redirect => false).and_raise(redirect_exception)
-        allow(subject).to receive(:open).with(download_url).and_return(downloaded_file)
+      before(:each){
+        File.write(File.new(downloaded_temp_file_path, 'w'), 'some-response')
+      }
 
-        cpi_release_path = subject.download_cpi_release
+      it 'downloads the cpi with the name given into working_dir' do
+        allow(subject).to receive(:open).with(download_url).and_return(downloaded_temp_file_path)
+
+        cpi_release_path = subject.download_cpi_release(download_url, 'cpi-release-download')
 
         expect(subject).to have_received(:open).with(download_url)
         expect(cpi_release_path).to eq(expected_cpi_release_path)
@@ -550,14 +549,14 @@ EOF
       end
 
       context 'when cpi release already exists in working_dir' do
-        it 'skips download' do
-          File.new(expected_cpi_release_path, 'w')
-          allow(subject).to receive(:open).and_raise(redirect_exception)
+        it 'downloads cpi and overrides existing one' do
+          File.write(File.new(expected_cpi_release_path, 'w'), 'some-old-version-of-cpi')
+          allow(subject).to receive(:open).with(download_url).and_return(downloaded_temp_file_path)
 
-          cpi_release_path = subject.download_cpi_release
+          subject.download_cpi_release(download_url, 'cpi-release-download')
 
-          expect(subject).to_not have_received(:open).with(download_url)
-          expect(cpi_release_path).to eq(expected_cpi_release_path)
+          expect(subject).to have_received(:open).with(download_url)
+          expect(File.read(expected_cpi_release_path)).to eq('some-response')
         end
       end
     end
@@ -606,12 +605,12 @@ EOF
           it 'adds cpi binary location to the context' do
             allow(subject).to receive(:install_cpi_release)
             allow(subject).to receive(:add_cpi_bin_env)
-            allow(subject).to receive(:download_cpi_release)
+            allow(subject).to receive(:install_cpi_release_from_config)
 
             subject.prepare_cpi_release
 
-            expect(subject).to have_received(:download_cpi_release)
-            expect(subject).to have_received(:install_cpi_release)
+            expect(subject).to have_received(:install_cpi_release_from_config)
+            expect(subject).to_not have_received(:install_cpi_release)
             expect(subject).to_not have_received(:add_cpi_bin_env)
           end
         end
@@ -657,6 +656,114 @@ EOF
             expect{
               subject.add_cpi_bin_env
             }.to raise_error ValidatorError, "CPI executable is not found at OPENSTACK_CPI_BIN=#{context.openstack_cpi_bin_from_env}"
+          end
+        end
+      end
+    end
+
+    describe '#install_cpi_release_from_config' do
+      let(:validator_config_path) { expand_project_path(File.join('spec', 'assets', 'validator.yml')) }
+      let(:options) {{config_path: validator_config_path}}
+      let(:expected_sha1) { 'cpi-sha1' }
+      let(:expected_cpi_release_path) { File.join(working_dir, 'bosh-openstack-cpi-release.tgz') }
+
+      before do
+        allow(subject).to receive(:download_cpi_release).and_return(expected_cpi_release_path)
+        allow(Digest::SHA1).to receive(:file).and_return(expected_sha1)
+        allow(subject).to receive(:install_cpi_release)
+      end
+
+      context 'when download state file exists' do
+        context 'if cpi was successfully downloaded from same url before' do
+          before do
+            File.write(File.join(working_dir, '.download_completed'), 'cpi-download-url')
+          end
+
+          context 'without errors' do
+
+            it 'downloads cpi, sets path, and installs cpi' do
+              expect {
+                subject.install_cpi_release_from_config
+              }.to_not raise_error
+
+              expect(subject).to_not have_received(:download_cpi_release)
+              expect(context.cpi_release_path).to eq(expected_cpi_release_path)
+              expect(subject).to have_received(:install_cpi_release)
+              expect(File.read(File.join(working_dir, '.download_completed'))).to eq('cpi-download-url')
+            end
+          end
+
+          context 'when sha1 does not match' do
+            before do
+              allow(Digest::SHA1).to receive(:file).and_return('invalid-sha1')
+            end
+
+            it 'raises error' do
+              expect {
+                subject.install_cpi_release_from_config
+              }.to raise_error(ValidatorError, "Configured SHA1 '#{expected_sha1}' does not match downloaded CPI SHA1 'invalid-sha1'")
+            end
+          end
+
+        end
+
+        context 'if cpi was downloaded from different URL before' do
+          before do
+            File.write(File.join(working_dir, '.download_completed'), 'previous-cpi-download-url')
+          end
+
+          context 'without errors' do
+
+            it 'downloads cpi, sets path, and installs cpi' do
+              expect {
+                subject.install_cpi_release_from_config
+              }.to_not raise_error
+
+              expect(subject).to have_received(:download_cpi_release).with('cpi-download-url', 'bosh-openstack-cpi-release.tgz')
+              expect(context.cpi_release_path).to eq(expected_cpi_release_path)
+              expect(subject).to have_received(:install_cpi_release)
+              expect(File.read(File.join(working_dir, '.download_completed'))).to eq('cpi-download-url')
+            end
+          end
+
+          context 'when sha1 does not match' do
+            before do
+              allow(Digest::SHA1).to receive(:file).and_return('invalid-sha1')
+            end
+
+            it 'raises error' do
+              expect {
+                subject.install_cpi_release_from_config
+              }.to raise_error(ValidatorError, "Configured SHA1 '#{expected_sha1}' does not match downloaded CPI SHA1 'invalid-sha1'")
+            end
+          end
+        end
+      end
+
+      context 'if no download state file exists' do
+        context 'without errors' do
+
+          it 'downloads cpi, sets path, and installs cpi' do
+            expect {
+              subject.install_cpi_release_from_config
+            }.to_not raise_error
+
+            expect(subject).to have_received(:download_cpi_release).with('cpi-download-url', 'bosh-openstack-cpi-release.tgz')
+            expect(context.cpi_release_path).to eq(expected_cpi_release_path)
+            expect(subject).to have_received(:install_cpi_release)
+            expect(File.read(File.join(working_dir, '.download_completed'))).to eq('cpi-download-url')
+          end
+        end
+
+        context 'when sha1 does not match' do
+          before do
+            allow(Digest::SHA1).to receive(:file).and_return('invalid-sha1')
+          end
+
+          it 'raises error' do
+            expect {
+              subject.install_cpi_release_from_config
+            }.to raise_error(ValidatorError, "Configured SHA1 '#{expected_sha1}' does not match downloaded CPI SHA1 'invalid-sha1'")
           end
         end
       end

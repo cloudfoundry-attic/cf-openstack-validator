@@ -16,7 +16,12 @@ describe 'ValidatorConfig' do
         'floating_ip' => '',
         'static_ip' => '',
         'private_key_path' => '',
-        'public_image_id' => ''
+        'public_image_id' => '',
+        'releases' => [{
+          'name' => 'bosh-openstack-cpi',
+          'url' => 'String',
+          'sha1' => 'String'
+        }]
       },
       'cloud_config'=> {
         'vm_types' => [{
@@ -68,6 +73,18 @@ describe 'ValidatorConfig' do
       ok, err_message = Validator::ValidatorConfig.validate(invalid_config)
 
       expect(err_message).to match(/stemcell_public_visibility => Expected instance of true or false/)
+      expect(ok).to eq(false)
+    end
+  end
+
+  context 'when cpi release name has a wrong value' do
+    it 'returns an error' do
+      invalid_config = valid_config
+      invalid_config['validator']['releases'][0]['name'] = 'wrong-name'
+
+      ok, err_message = Validator::ValidatorConfig.validate(invalid_config)
+
+      expect(err_message).to eq('{ validator => { releases => At index 0: { name => Expected bosh-openstack-cpi, given wrong-name } } }')
       expect(ok).to eq(false)
     end
   end

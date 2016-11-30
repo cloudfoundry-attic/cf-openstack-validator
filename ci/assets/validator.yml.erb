@@ -24,6 +24,10 @@ validator:
   private_key_path: cf-validator.rsa_id # relative to validator.yml, no absolute path supported
   ntp: [<%=ENV['NTP_SERVER']%>] # if your openstack requires specific NTP servers, list them here!
   public_image_id: <%=ENV['PUBLIC_IMAGE_ID']%>
+  releases:
+    - name: bosh-openstack-cpi
+      url: https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=28
+      sha1: beae72c7a105923ee74e7dfd6930e9aa75d86e05
 
 cloud_config:
   vm_types: # TODO link to bosh.io?
