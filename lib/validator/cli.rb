@@ -7,7 +7,7 @@ require 'socket'
 require 'open-uri'
 require 'digest'
 
-require_relative 'validator_config'
+require_relative 'config_validator'
 require_relative 'converter'
 require_relative 'network_helper'
 require_relative 'api/configuration'

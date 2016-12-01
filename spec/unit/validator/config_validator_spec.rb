@@ -35,7 +35,7 @@ describe 'ValidatorConfig' do
   end
 
   it 'validates a given object' do
-    ok, err_message = Validator::ValidatorConfig.validate(valid_config)
+    ok, err_message = Validator::ConfigValidator.validate(valid_config)
 
     expect(err_message).to be_nil
     expect(ok).to eq(true)
@@ -46,7 +46,7 @@ describe 'ValidatorConfig' do
       invalid_config = valid_config
       invalid_config['openstack'].delete('auth_url')
 
-      ok, err_message = Validator::ValidatorConfig.validate(invalid_config)
+      ok, err_message = Validator::ConfigValidator.validate(invalid_config)
 
       expect(err_message).to match(/auth_url => Missing/)
       expect(ok).to eq(false)
@@ -58,7 +58,7 @@ describe 'ValidatorConfig' do
       invalid_config = valid_config
       invalid_config['openstack']['auth_url'] = 5
 
-      ok, err_message = Validator::ValidatorConfig.validate(invalid_config)
+      ok, err_message = Validator::ConfigValidator.validate(invalid_config)
 
       expect(err_message).to match(/auth_url => Expected instance of String/)
       expect(ok).to eq(false)
@@ -70,7 +70,7 @@ describe 'ValidatorConfig' do
       invalid_config = valid_config
       invalid_config['openstack']['stemcell_public_visibility'] = 'hello'
 
-      ok, err_message = Validator::ValidatorConfig.validate(invalid_config)
+      ok, err_message = Validator::ConfigValidator.validate(invalid_config)
 
       expect(err_message).to match(/stemcell_public_visibility => Expected instance of true or false/)
       expect(ok).to eq(false)
@@ -82,10 +82,53 @@ describe 'ValidatorConfig' do
       invalid_config = valid_config
       invalid_config['validator']['releases'][0]['name'] = 'wrong-name'
 
-      ok, err_message = Validator::ValidatorConfig.validate(invalid_config)
+      ok, err_message = Validator::ConfigValidator.validate(invalid_config)
 
       expect(err_message).to eq('{ validator => { releases => At index 0: { name => Expected bosh-openstack-cpi, given wrong-name } } }')
       expect(ok).to eq(false)
+    end
+  end
+
+  {
+    'openstack' => ['auth_url', 'username', 'password', 'domain', 'project'],
+    'validator' => ['network_id', 'floating_ip', 'static_ip', 'public_image_id']
+  }.each do |outer_key, inner_keys|
+    inner_keys.each do |inner_key|
+      context "when value '#{outer_key}.#{inner_key}' is '<replace-me>'" do
+        it 'returns an error' do
+          invalid_config = valid_config
+          invalid_config[outer_key][inner_key] = '<replace-me>'
+
+          ok, err_message = Validator::ConfigValidator.validate(invalid_config)
+
+          expect(ok).to eq(false)
+          expect(err_message).to eq("{ #{outer_key} => { #{inner_key} => Found placeholder '<replace-me>' } }")
+        end
+      end
+    end
+  end
+
+  context "when value 'cloud_config.vm_types[0].cloud_properties.instance_type' is '<replace-me>'" do
+    it 'returns an error' do
+      invalid_config = valid_config
+      invalid_config['cloud_config']['vm_types'][0]['cloud_properties']['instance_type'] = '<replace-me>'
+
+      ok, err_message = Validator::ConfigValidator.validate(invalid_config)
+
+      expect(ok).to eq(false)
+      expect(err_message).to eq("{ cloud_config => { vm_types => At index 0: { cloud_properties => { instance_type => Found placeholder '<replace-me>' } } } }")
+    end
+  end
+
+  context "when value 'extensions.paths[0]' is '<replace-me>'" do
+    it 'returns an error' do
+      invalid_config = valid_config
+      invalid_config['extensions'] = {'paths' => ['<replace-me>']}
+
+      ok, err_message = Validator::ConfigValidator.validate(invalid_config)
+
+      expect(ok).to eq(false)
+      expect(err_message).to eq("{ extensions => { paths => At index 0: Found placeholder '<replace-me>' } }")
     end
   end
 end

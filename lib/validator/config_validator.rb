@@ -1,14 +1,28 @@
 module Validator
-  class ValidatorConfig
+  class ConfigValidator
+
+    class ReplacedString < Membrane::Schemas::Base
+      REPLACE_ME = /<replace-me>/
+
+      def validate(object)
+        Membrane::Schemas::Class.new(String).validate(object)
+        fail!(object) if REPLACE_ME =~ object
+      end
+
+      def fail!(object)
+        emsg = "Found placeholder '#{object}'"
+        raise Membrane::SchemaValidationError.new(emsg)
+      end
+    end
 
     CONFIG_SCHEMA = Membrane::SchemaParser.parse do
       {
           'openstack' => {
-              'auth_url' => String,
-              'username' => String,
-              'password' => String,
-              'domain' => String,
-              'project' => String,
+              'auth_url' => ReplacedString.new,
+              'username' => ReplacedString.new,
+              'password' => ReplacedString.new,
+              'domain' => ReplacedString.new,
+              'project' => ReplacedString.new,
               optional('region') => String,
               optional('endpoint_type') => String,
               optional('state_timeout') => Numeric,
@@ -22,11 +36,11 @@ module Validator
               optional('human_readable_vm_names') => bool
           },
           'validator' => {
-              'network_id' => String,
-              'floating_ip' => String,
-              'static_ip' => String,
+              'network_id' => ReplacedString.new,
+              'floating_ip' => ReplacedString.new,
+              'static_ip' => ReplacedString.new,
               'private_key_path' => String,
-              'public_image_id' => String,
+              'public_image_id' => ReplacedString.new,
               'releases' => [{
                 'name' => 'bosh-openstack-cpi',
                 'url' => String,
@@ -37,12 +51,12 @@ module Validator
               'vm_types' => [{
                   'name' => String,
                   'cloud_properties' => {
-                      'instance_type' => String
+                      'instance_type' => ReplacedString.new
                   }
               }]
           },
           optional('extensions') => {
-              optional('paths') => [String],
+              optional('paths') => [ReplacedString.new],
               optional('config') => Hash
           }
       }

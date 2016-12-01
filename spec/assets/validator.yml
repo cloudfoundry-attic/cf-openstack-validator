@@ -1,11 +1,11 @@
 ---
 
 validator:
-  network_id: <replace-me>
-  floating_ip: <replace-me>
-  static_ip: <replace-me>
+  network_id: some_network_id
+  floating_ip: some_floating_ip
+  static_ip: some_static_ip
   private_key_path: cf-validator.rsa_id
-  public_image_id: <replace-me>
+  public_image_id: some_public_image_id
   releases:
   - name: bosh-openstack-cpi
     url: cpi-download-url
@@ -15,7 +15,7 @@ cloud_config:
   vm_types:
   - name: default
     cloud_properties:
-      instance_type: <replace-me>
+      instance_type: some_instance_type
 
 openstack:
   auth_url: "https://auth.url/v3"
