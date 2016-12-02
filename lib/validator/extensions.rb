@@ -3,8 +3,7 @@ module Validator
   class Extensions
     class << self
       def all
-        config_path = File.expand_path(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])
-        extensions_paths(config_path).map do |path|
+        extensions_paths.map do |path|
           Dir.glob(File.join(path, '*_spec.rb'))
         end.flatten
       end
@@ -25,11 +24,11 @@ module Validator
 
       private
 
-      def extensions_paths(config_path)
-        custom_paths = custom_extension_paths(config_path)
+      def extensions_paths
+        custom_paths = RSpec.configuration.validator_config.custom_extension_paths
 
         if custom_paths.empty?
-          path = default_extension_path(config_path)
+          path = default_extension_path
           return [path] if File.directory?(path)
         else
           return custom_paths
@@ -38,36 +37,8 @@ module Validator
         []
       end
 
-      def default_extension_path(config_path)
-        File.join(File.dirname(config_path), 'extensions')
-      end
-
-      def get_from_hash(hash, *keys, default)
-        unless keys.length == 0
-          result = keys.inject hash do |hash, key|
-            if hash && hash.is_a?(Hash)
-              hash[key]
-            end
-          end
-          result || default
-        end
-      end
-
-      def custom_extension_paths(config_path)
-        validator_config = YAML.load_file(config_path)
-
-        paths = get_from_hash(validator_config, 'extensions', 'paths', [])
-        paths.map do |path|
-          resolved_path = if Pathname.new(path).absolute?
-                            path
-                          else
-                            File.expand_path(path, File.dirname(config_path))
-                          end
-
-          raise StandardError, "'#{resolved_path}' is not a directory." unless File.directory?(resolved_path)
-
-          resolved_path
-        end
+      def default_extension_path
+        File.join(File.dirname(RSpec.configuration.validator_config.path), 'extensions')
       end
     end
   end

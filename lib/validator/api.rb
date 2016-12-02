@@ -3,6 +3,7 @@ require_relative 'api/cpi_helpers'
 require_relative 'api/resource_tracker'
 require_relative 'api/helpers'
 require_relative 'api/configuration'
+require_relative 'api/validator_error'
 
 module Validator
   module Api

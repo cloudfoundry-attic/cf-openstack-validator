@@ -314,7 +314,7 @@ EOF
         it 'should abort generation' do
           expect {
             subject.generate_cpi_config
-          }.to raise_error(ValidatorError, /`validator.yml` is not valid:/)
+          }.to raise_error(Validator::Api::ValidatorError, /`validator.yml` is not valid:/)
         end
       end
     end
@@ -609,7 +609,7 @@ EOF
           it 'raises error' do
             expect{
               subject.add_cpi_bin_env
-            }.to raise_error ValidatorError, "OPENSTACK_CPI_BIN points to a folder and not an executable. (#{context.openstack_cpi_bin_from_env})"
+            }.to raise_error Validator::Api::ValidatorError, "OPENSTACK_CPI_BIN points to a folder and not an executable. (#{context.openstack_cpi_bin_from_env})"
           end
         end
 
@@ -617,7 +617,7 @@ EOF
           it 'raises error' do
             expect{
               subject.add_cpi_bin_env
-            }.to raise_error ValidatorError, "CPI executable is not found at OPENSTACK_CPI_BIN=#{context.openstack_cpi_bin_from_env}"
+            }.to raise_error Validator::Api::ValidatorError, "CPI executable is not found at OPENSTACK_CPI_BIN=#{context.openstack_cpi_bin_from_env}"
           end
         end
       end
@@ -663,7 +663,7 @@ EOF
             it 'raises error' do
               expect {
                 subject.install_cpi_release_from_config
-              }.to raise_error(ValidatorError, "Configured SHA1 '#{expected_sha1}' does not match downloaded CPI SHA1 'invalid-sha1'")
+              }.to raise_error(Validator::Api::ValidatorError, "Configured SHA1 '#{expected_sha1}' does not match downloaded CPI SHA1 'invalid-sha1'")
             end
           end
 
@@ -696,7 +696,7 @@ EOF
             it 'raises error' do
               expect {
                 subject.install_cpi_release_from_config
-              }.to raise_error(ValidatorError, "Configured SHA1 '#{expected_sha1}' does not match downloaded CPI SHA1 'invalid-sha1'")
+              }.to raise_error(Validator::Api::ValidatorError, "Configured SHA1 '#{expected_sha1}' does not match downloaded CPI SHA1 'invalid-sha1'")
             end
           end
         end
@@ -725,7 +725,7 @@ EOF
           it 'raises error' do
             expect {
               subject.install_cpi_release_from_config
-            }.to raise_error(ValidatorError, "Configured SHA1 '#{expected_sha1}' does not match downloaded CPI SHA1 'invalid-sha1'")
+            }.to raise_error(Validator::Api::ValidatorError, "Configured SHA1 '#{expected_sha1}' does not match downloaded CPI SHA1 'invalid-sha1'")
           end
         end
       end

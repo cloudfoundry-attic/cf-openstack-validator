@@ -4,10 +4,19 @@ describe Validator::Api::Configuration do
 
   let(:tmpdir) { Dir.mktmpdir }
   let(:validator_config) { File.join(tmpdir, 'validator.yml') }
+  let(:validator_config_content) { nil }
 
   subject {
     Validator::Api::Configuration.new(validator_config)
   }
+
+  before(:each) do
+    if validator_config_content
+      File.write(validator_config, validator_config_content)
+    else
+      File.write(validator_config, "---\n{}")
+    end
+  end
 
   after(:each) do
     FileUtils.rm_rf(tmpdir)
@@ -28,14 +37,6 @@ extensions:
 EOT
     end
 
-    before(:each) do
-      if validator_config_content
-        File.write(validator_config, validator_config_content)
-      else
-        File.write(validator_config, "---\n{}")
-      end
-    end
-
     it 'returns the complete configuration' do
       expect(subject.all).to eq(YAML.load(validator_config_content))
     end
@@ -50,14 +51,6 @@ validator:
 EOT
     end
 
-    before(:each) do
-      if validator_config_content
-        File.write(validator_config, validator_config_content)
-      else
-        File.write(validator_config, "---\n{}")
-      end
-    end
-
     it 'returns the validator section' do
       expect(subject.validator).to eq({ 'another_key' => 'another_value' })
     end
@@ -66,14 +59,6 @@ EOT
   describe '#extensions' do
 
     let(:validator_config_content) { nil }
-
-    before(:each) do
-      if validator_config_content
-        File.write(validator_config, validator_config_content)
-      else
-        File.write(validator_config, "---\n{}")
-      end
-    end
 
     context 'when missing in validator.yml' do
       it 'returns an empty hash' do
@@ -105,6 +90,62 @@ extensions:
       subject.openstack
 
       expect(Validator::Converter).to have_received(:convert)
+    end
+  end
+
+  describe '#custom_extension_paths' do
+    context 'with absolute paths' do
+      let(:validator_config_content) do
+        <<-EOF
+extensions:
+  paths:
+    - /tmp
+        EOF
+      end
+
+      it 'returns same paths' do
+        expect(subject.custom_extension_paths).to eq(['/tmp'])
+      end
+    end
+
+    context 'with relative paths' do
+      let(:validator_config_content) do
+        <<-EOF
+extensions:
+  paths:
+    - some-directory
+        EOF
+      end
+
+      before do
+        FileUtils.mkdir_p(File.join(tmpdir, 'some-directory'))
+      end
+
+      it 'returns expanded paths' do
+        expect(subject.custom_extension_paths).to eq([File.join(tmpdir, 'some-directory')])
+      end
+    end
+
+    context 'with invalid paths' do
+      let(:validator_config_content) do
+        <<-EOF
+extensions:
+  paths:
+    - /non-existent-directory
+        EOF
+      end
+
+      it 'raises error' do
+        expect {
+          subject.custom_extension_paths
+        }.to raise_error Validator::Api::ValidatorError, /'\/non-existent-directory' is not a directory./
+      end
+    end
+
+    context 'with an empty configuration file' do
+      it 'should return an empty array' do
+        expect(subject.custom_extension_paths).to eq([])
+      end
     end
   end
 end

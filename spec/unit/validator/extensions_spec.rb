@@ -2,26 +2,30 @@ require_relative '../spec_helper'
 
 describe Validator::Extensions do
 
+  let(:validator_config_content) { nil }
+
   before(:each) do
     @tmpdir = Dir.mktmpdir
-    @validator_config = File.join(@tmpdir, 'validator.yml')
-    ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'] = @validator_config
+    @cf_openstack_validator = File.join(@tmpdir, 'cf-openstack-validator')
+    FileUtils.mkdir(@cf_openstack_validator)
+    @validator_config = File.join(@cf_openstack_validator, 'validator.yml')
+    if validator_config_content
+      File.write(@validator_config, validator_config_content)
+    else
+      File.write(@validator_config, "---\n{}")
+    end
+    allow(RSpec.configuration).to receive(:validator_config).and_return(Validator::Api::Configuration.new(@validator_config))
   end
 
   after(:each) do
-    ENV.delete('BOSH_OPENSTACK_VALIDATOR_CONFIG')
     FileUtils.rm_rf(@tmpdir)
   end
 
   describe '.all' do
-    before(:each) do
-      File.write(@validator_config, '---')
-    end
-
     context 'when extension folder is used' do
 
       before(:each) do
-        @extensionsdir = File.join(@tmpdir, 'extensions')
+        @extensionsdir = File.join(@cf_openstack_validator, 'extensions')
         FileUtils.mkdir(@extensionsdir)
       end
 
@@ -67,15 +71,6 @@ describe Validator::Extensions do
     context 'when there is a `extensions` section in the `validator.yml`' do
 
       context 'and an extension directory is specified in the config file' do
-
-        before(:each) do
-          cf_openstack_validator = File.join(@tmpdir, 'cf-openstack-validator')
-          FileUtils.mkdir(cf_openstack_validator)
-          validator_config = File.join(cf_openstack_validator, 'validator.yml')
-
-          File.write(validator_config, validator_config_content)
-          ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'] = validator_config
-        end
 
         context 'and the path is absolute' do
           let(:absolute_path_to_extensions) { Dir.mktmpdir }

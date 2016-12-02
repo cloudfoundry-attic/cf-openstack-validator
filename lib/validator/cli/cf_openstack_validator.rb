@@ -20,7 +20,7 @@ module Validator::Cli
         prepare_ruby_environment
         print_gem_environment
         execute_specs
-      rescue ValidatorError => e
+      rescue Validator::Api::ValidatorError => e
         $stderr.puts(e.message)
         Kernel.exit 1
       end
@@ -175,7 +175,7 @@ module Validator::Cli
     def generate_cpi_config
       ok, error_message = Validator::ConfigValidator.validate(@context.config.all)
       unless ok
-        raise ValidatorError, "`validator.yml` is not valid:\n#{error_message}"
+        raise Validator::Api::ValidatorError, "`validator.yml` is not valid:\n#{error_message}"
       end
       cpi_config_content = JSON.pretty_generate(Validator::Converter.to_cpi_json(@context.config.openstack))
       puts "CPI will use the following configuration: \n#{cpi_config_content}"
@@ -247,11 +247,11 @@ module Validator::Cli
 
     def add_cpi_bin_env
       unless File.exists?(@context.openstack_cpi_bin_from_env)
-        raise ValidatorError, "CPI executable is not found at OPENSTACK_CPI_BIN=#{@context.openstack_cpi_bin_from_env}"
+        raise Validator::Api::ValidatorError, "CPI executable is not found at OPENSTACK_CPI_BIN=#{@context.openstack_cpi_bin_from_env}"
       end
 
       if File.directory?(@context.openstack_cpi_bin_from_env)
-        raise ValidatorError, "OPENSTACK_CPI_BIN points to a folder and not an executable. (#{@context.openstack_cpi_bin_from_env})"
+        raise Validator::Api::ValidatorError, "OPENSTACK_CPI_BIN points to a folder and not an executable. (#{@context.openstack_cpi_bin_from_env})"
       end
 
       @context.cpi_bin_path = @context.openstack_cpi_bin_from_env
@@ -267,7 +267,7 @@ module Validator::Cli
     def validate_download(cpi_release_path)
       cpi_release_sha1 = file_sha1(cpi_release_path)
       if (cpi_release_sha1 != configured_cpi_release['sha1'])
-        raise ValidatorError, "Configured SHA1 '#{configured_cpi_release['sha1']}' does not match downloaded CPI SHA1 '#{cpi_release_sha1}'"
+        raise Validator::Api::ValidatorError, "Configured SHA1 '#{configured_cpi_release['sha1']}' does not match downloaded CPI SHA1 '#{cpi_release_sha1}'"
       end
     end
 

@@ -1,3 +1,3 @@
-module Validator::Cli
+module Validator::Api
   class ValidatorError < StandardError; end
 end
