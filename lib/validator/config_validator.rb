@@ -63,14 +63,11 @@ module Validator
     end
 
     def self.validate(config)
-
       begin
         CONFIG_SCHEMA.validate(config)
       rescue Membrane::SchemaValidationError => e
-        return false, e.message
+        raise Validator::Api::ValidatorError, "`validator.yml` is not valid:\n#{e.message}"
       end
-
-      true
     end
   end
 end

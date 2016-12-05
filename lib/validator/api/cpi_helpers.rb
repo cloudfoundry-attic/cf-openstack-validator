@@ -100,10 +100,10 @@ module Validator
         }
       end
 
-      def cpi(cpi_path = cpi_path, log_path = log_path)
-        Bosh::Clouds::Config.configure(OpenStruct.new(:logger => Logger.new(STDERR), :cpi_task_log => "#{log_path}/cpi.log"))
+      def cpi(cpi_path_arg = cpi_path, log_path_arg = log_path)
+        Bosh::Clouds::Config.configure(OpenStruct.new(:logger => Logger.new(STDERR), :cpi_task_log => "#{log_path_arg}/cpi.log"))
 
-        Bosh::Clouds::ExternalCpi.new(cpi_path, 'director-UUID')
+        Bosh::Clouds::ExternalCpi.new(cpi_path_arg, 'director-UUID')
       end
     end
   end

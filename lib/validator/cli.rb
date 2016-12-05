@@ -6,6 +6,7 @@ require 'membrane'
 require 'socket'
 require 'open-uri'
 require 'digest'
+require 'pathname'
 
 require_relative 'config_validator'
 require_relative 'converter'

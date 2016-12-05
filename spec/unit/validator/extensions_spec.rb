@@ -122,26 +122,7 @@ extensions:
             FileUtils.rmtree(File.join(@tmpdir, 'my-extensions'))
           end
         end
-
       end
-
-      context 'when the extension path is invalid' do
-        let(:validator_config_content) {
-          <<-EOF
-extensions:
-  paths: [./non-existent]
-          EOF
-        }
-
-        before(:each) do
-          File.write(@validator_config, validator_config_content)
-        end
-
-        it 'raises an StandardError' do
-          expect{ Validator::Extensions.all }.to raise_error(StandardError, /\/non-existent' is not a directory./)
-        end
-      end
-
     end
   end
 

@@ -30,15 +30,17 @@ module Validator
         return [] unless all
         paths = all.fetch('extensions', {}).fetch('paths', [])
         paths.map do |path|
-          resolved_path = if Pathname.new(path).absolute?
+          if Pathname.new(path).absolute?
             path
           else
             File.expand_path(path, File.dirname(@path))
           end
+        end
+      end
 
-          raise Validator::Api::ValidatorError, "'#{resolved_path}' is not a directory." unless File.directory?(resolved_path)
-
-          resolved_path
+      def validate_extension_paths
+        custom_extension_paths.each do |path|
+          raise Validator::Api::ValidatorError, "Extension path '#{path}' is not a directory." unless File.directory?(path)
         end
       end
     end

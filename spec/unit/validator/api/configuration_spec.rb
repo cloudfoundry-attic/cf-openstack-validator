@@ -126,6 +126,33 @@ extensions:
       end
     end
 
+    context 'with an empty configuration file' do
+      it 'should return an empty array' do
+        expect(subject.custom_extension_paths).to eq([])
+      end
+    end
+  end
+
+  describe '#validate_extension_paths' do
+    context 'with a valid path' do
+      let(:validator_config_content) do
+        <<-EOF
+extensions:
+  paths:
+    - existing-directory
+        EOF
+      end
+
+      before(:each) do
+        FileUtils.mkdir(File.join(tmpdir, 'existing-directory'))
+      end
+
+      it 'does not raise an error' do
+        expect {
+          subject.validate_extension_paths
+        }.to_not raise_error
+      end
+    end
     context 'with invalid paths' do
       let(:validator_config_content) do
         <<-EOF
@@ -137,14 +164,8 @@ extensions:
 
       it 'raises error' do
         expect {
-          subject.custom_extension_paths
+          subject.validate_extension_paths
         }.to raise_error Validator::Api::ValidatorError, /'\/non-existent-directory' is not a directory./
-      end
-    end
-
-    context 'with an empty configuration file' do
-      it 'should return an empty array' do
-        expect(subject.custom_extension_paths).to eq([])
       end
     end
   end

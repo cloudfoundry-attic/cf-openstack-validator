@@ -26,6 +26,7 @@ module Validator::Cli
         allow(subject).to receive(:print_working_dir)
         allow(subject).to receive(:check_installation)
         allow(subject).to receive(:prepare_ruby_environment)
+        allow(subject).to receive(:validate_config)
         allow(subject).to receive(:generate_cpi_config)
         allow(subject).to receive(:print_gem_environment)
         allow(subject).to receive(:execute_specs)
@@ -291,6 +292,38 @@ EOF
       end
     end
 
+    describe '#validate_config' do
+      let(:validator_config_path) { Tempfile.new('validator.yml').path }
+
+      after(:each) {File.delete(validator_config_path)}
+
+      let(:options) {{cpi_release: release_archive_path, config_path: validator_config_path}}
+
+      context 'when config is invalid' do
+        it 'should abort generation' do
+          expect {
+            subject.validate_config
+          }.to raise_error(Validator::Api::ValidatorError, /`validator.yml` is not valid:/)
+        end
+      end
+
+      context 'when extensions path does not exist' do
+        before(:each) do
+          File.write(validator_config_path,YAML.dump(read_valid_config.merge({
+            'extensions' => { 'paths' => ['non-existing-dir'] }
+          })))
+        end
+
+        it 'raises an error' do
+          expected_path = File.join(File.dirname(context.config_path), 'non-existing-dir')
+
+          expect {
+            subject.validate_config
+          }.to raise_error(Validator::Api::ValidatorError, "Extension path '#{expected_path}' is not a directory.")
+        end
+      end
+    end
+
     describe '#generate_cpi_config' do
       let(:validator_config_path) { expand_project_path(File.join('spec', 'assets', 'validator.yml')) }
 
@@ -304,18 +337,6 @@ EOF
 
         expect(File.exist?(File.join(working_dir, 'cpi.json'))).to eq(true)
         expect(Validator::Converter).to have_received(:to_cpi_json).with(Validator::Api::Configuration.new(validator_config_path).openstack)
-      end
-
-      context 'when config is invalid' do
-        let(:validator_config_path) { Tempfile.new('validator.yml').path }
-
-        after(:each) {File.delete(validator_config_path)}
-
-        it 'should abort generation' do
-          expect {
-            subject.generate_cpi_config
-          }.to raise_error(Validator::Api::ValidatorError, /`validator.yml` is not valid:/)
-        end
       end
     end
 

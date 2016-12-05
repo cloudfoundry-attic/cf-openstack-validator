@@ -14,6 +14,7 @@ module Validator::Cli
     def run
       begin
         print_working_dir
+        validate_config
         generate_cpi_config
         prepare_cpi_release
         extract_stemcell
@@ -172,11 +173,12 @@ module Validator::Cli
       end
     end
 
+    def validate_config
+      Validator::ConfigValidator.validate(@context.config.all)
+      @context.config.validate_extension_paths
+    end
+
     def generate_cpi_config
-      ok, error_message = Validator::ConfigValidator.validate(@context.config.all)
-      unless ok
-        raise Validator::Api::ValidatorError, "`validator.yml` is not valid:\n#{error_message}"
-      end
       cpi_config_content = JSON.pretty_generate(Validator::Converter.to_cpi_json(@context.config.openstack))
       puts "CPI will use the following configuration: \n#{cpi_config_content}"
       File.write(File.join(@context.working_dir, 'cpi.json'), cpi_config_content)
