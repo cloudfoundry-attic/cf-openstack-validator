@@ -4,26 +4,44 @@ module Validator
       class << self
 
         def compute
-          Fog::Compute::OpenStack.new(convert_to_fog_params(openstack_params))
+          handle_socket_error do
+            Fog::Compute::OpenStack.new(convert_to_fog_params(openstack_params))
+          end
         end
 
         def network
-          Fog::Network::OpenStack.new(convert_to_fog_params(openstack_params))
+          handle_socket_error do
+            Fog::Network::OpenStack.new(convert_to_fog_params(openstack_params))
+          end
         end
 
         def image
-          Fog::Image::OpenStack::V2.new(convert_to_fog_params(openstack_params))
-        rescue Fog::OpenStack::Errors::ServiceUnavailable
-          Fog::Image::OpenStack::V1.new(convert_to_fog_params(openstack_params))
+          handle_socket_error do
+            begin
+              Fog::Image::OpenStack::V2.new(convert_to_fog_params(openstack_params))
+            rescue Fog::OpenStack::Errors::ServiceUnavailable
+              Fog::Image::OpenStack::V1.new(convert_to_fog_params(openstack_params))
+            end
+          end
         end
 
         def volume
-          Fog::Volume::OpenStack::V2.new(convert_to_fog_params(openstack_params))
-        rescue Fog::OpenStack::Errors::ServiceUnavailable
-          Fog::Volume::OpenStack::V1.new(convert_to_fog_params(openstack_params))
+          handle_socket_error do
+            begin
+              Fog::Volume::OpenStack::V2.new(convert_to_fog_params(openstack_params))
+            rescue Fog::OpenStack::Errors::ServiceUnavailable
+              Fog::Volume::OpenStack::V1.new(convert_to_fog_params(openstack_params))
+            end
+          end
         end
 
         private
+
+        def handle_socket_error(&block)
+          yield
+        rescue Excon::Errors::SocketError => e
+          raise ValidatorError, "Could not connect to '#{openstack_params['auth_url']}'", e.backtrace
+        end
 
         def openstack_params
           Api.configuration.openstack
