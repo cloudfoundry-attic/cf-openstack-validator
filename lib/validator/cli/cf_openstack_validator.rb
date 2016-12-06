@@ -244,7 +244,8 @@ module Validator::Cli
 
     def download_cpi_release(download_url, cpi_release_path)
       temp_download_file = open(download_url)
-      File.rename(temp_download_file, cpi_release_path)
+      FileUtils.mv(temp_download_file, cpi_release_path)
+      #File.rename(temp_download_file, cpi_release_path)
     end
 
     def add_cpi_bin_env
