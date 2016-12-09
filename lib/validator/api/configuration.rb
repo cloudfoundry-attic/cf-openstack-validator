@@ -19,7 +19,7 @@ module Validator
       end
 
       def openstack
-        Converter.convert(all.fetch('openstack'))
+        Converter.convert_and_apply_defaults(all.fetch('openstack'))
       end
 
       def extensions

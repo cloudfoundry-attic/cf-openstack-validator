@@ -21,7 +21,7 @@ module Validator
         "cloud" => {
           "plugin" => "openstack",
           "properties" => {
-            "openstack" => openstack_defaults.merge(openstack_params),
+            "openstack" => openstack_params,
             "registry" => {
               "endpoint" => "http://localhost:#{registry_port}",
               "user" => "fake",
@@ -37,8 +37,6 @@ module Validator
 
       cpi_config(openstack_config, registry_port)
     end
-
-    private
 
     PARAM_CONVERTERS = {
         'auth_url' => ->(key, value) {
@@ -57,11 +55,10 @@ module Validator
               ['ssl_ca_file', ssl_ca_file_path]
             }
         }
-
     }
 
-    def self.convert(openstack_params)
-      apply_converters(openstack_params, PARAM_CONVERTERS)
+    def self.convert_and_apply_defaults(openstack_params)
+      apply_converters(openstack_defaults.merge(openstack_params), PARAM_CONVERTERS)
     end
 
     def self.apply_converters(hash, converters)
@@ -76,5 +73,7 @@ module Validator
         end
       end.compact.to_h
     end
+
+    private_class_method :apply_converters
   end
 end

@@ -2,8 +2,8 @@ module Validator::Cli
   class CfOpenstackValidator
 
     class << self
-      def create(options)
-        CfOpenstackValidator.new(options)
+      def create(context)
+        CfOpenstackValidator.new(context)
       end
     end
 

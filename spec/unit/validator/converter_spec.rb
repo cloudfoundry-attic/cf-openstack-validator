@@ -28,7 +28,7 @@ describe Validator::Converter do
     describe 'conversions' do
       context "when 'auth_url' does not end with '/auth/tokens'" do
         it "appends 'auth/tokens' to 'auth_url' parameter" do
-          rendered_cpi_config = Validator::Converter.convert(complete_config)
+          rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(complete_config)
 
           expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/v3/auth/tokens'
         end
@@ -38,14 +38,33 @@ describe Validator::Converter do
         let(:auth_url) { 'https://auth.url/v3/auth/tokens' }
 
         it "use 'auth_url' parameter as given" do
-          rendered_cpi_config = Validator::Converter.convert(complete_config)
+          rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(complete_config)
 
           expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/v3/auth/tokens'
         end
       end
 
+      describe 'default values' do
+        before do
+          allow(Validator::Converter).to receive(:openstack_defaults).and_return({'default_key' => 'default_value'})
+        end
+        context 'when value is not set and default value exists' do
+          it 'uses default value' do
+            expect(complete_config).to_not include(Validator::Converter.openstack_defaults)
+            expect(Validator::Converter.convert_and_apply_defaults(complete_config)).to include(Validator::Converter.openstack_defaults)
+          end
+        end
+
+        context 'when value is manually set for a key which has default value available' do
+          let(:complete_config_including_overridden_defaults) { complete_config.merge('default_key' => 'my-value') }
+          it 'uses the manually set value' do
+            expect(Validator::Converter.convert_and_apply_defaults(complete_config_including_overridden_defaults)).to include('default_key' => 'my-value')
+          end
+        end
+      end
+
       it "replaces 'password' key with 'api_key'" do
-        rendered_cpi_config = Validator::Converter.convert(complete_config)
+        rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(complete_config)
 
         expect(rendered_cpi_config['api_key']).to eq complete_config['password']
         expect(rendered_cpi_config['password']).to be_nil
@@ -74,7 +93,7 @@ describe Validator::Converter do
           }
 
           it "replaces 'ca_cert' with 'ssl_ca_file'" do
-            rendered_cpi_config = Validator::Converter.convert(config_with_ca_cert)
+            rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(config_with_ca_cert)
 
             expect(rendered_cpi_config['connection_options']['ssl_ca_file']).to eq("#{tmpdir}/cacert.pem")
             expect(rendered_cpi_config['connection_options']['ca_cert']).to be_nil
@@ -93,7 +112,7 @@ describe Validator::Converter do
             }
 
             it "removes 'ca_cert'" do
-              rendered_cpi_config = Validator::Converter.convert(config_with_nil_ca_cert)
+              rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(config_with_nil_ca_cert)
 
               expect(rendered_cpi_config['connection_options']['ssl_ca_file']).to be_nil
               expect(rendered_cpi_config['connection_options']['ca_cert']).to be_nil

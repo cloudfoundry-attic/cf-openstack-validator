@@ -135,6 +135,14 @@ module Validator::Api
           }.to raise_error(Validator::Api::ValidatorError, "Could not connect to 'http://some.url'")
         end
       end
+
+      context 'when correct openstack params are passed' do
+        let(:openstack_params){ { 'auth_url' => 'http://some.url' } }
+        it 'uses and converts those into FOG params' do
+          expect(Fog::Compute::OpenStack).to receive(:new).with(hash_including(:openstack_auth_url => 'http://some.url'))
+          FogOpenStack.compute
+        end
+      end
     end
 
     describe '.network' do

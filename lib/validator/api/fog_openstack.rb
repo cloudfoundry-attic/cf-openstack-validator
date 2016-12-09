@@ -56,7 +56,7 @@ module Validator
               :openstack_project_name => options['project'],
               :openstack_domain_name => options['domain'],
               :openstack_region => options['region'],
-              :openstack_endpoint_type => options['endpoint_type'] || 'publicURL',
+              :openstack_endpoint_type => options['endpoint_type'],
               :connection_options => options['connection_options']
           }
         end
