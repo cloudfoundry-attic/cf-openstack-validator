@@ -36,4 +36,4 @@ bundle exec validate -s ~/stemcell.tgz -c validator.yml
 CONFIG_DRIVE='disk' erb ci/assets/validator.yml.erb > validator.yml
 cat validator.yml
 
-bundle exec validate -r ~/cpi.tgz -s ~/stemcell.tgz -c validator.yml
+bundle exec validate -s ~/stemcell.tgz -c validator.yml
