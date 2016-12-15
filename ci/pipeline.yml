@@ -6,6 +6,7 @@ custom:
     suse-mitaka: ['suse-mitaka']
   timeouts:
     long: &timeouts-long 2h
+  build_logs_to_retain: &build_logs_to_retain 500
 
 groups:
 - name: {{pipeline_name}}
@@ -16,6 +17,7 @@ groups:
 
 jobs:
 - name: test
+  build_logs_to_retain: *build_logs_to_retain
   plan:
   - get: pipeline-time-trigger
     trigger: true
@@ -32,6 +34,7 @@ jobs:
 
 - name: validate
   serial: true
+  build_logs_to_retain: *build_logs_to_retain
   plan:
   - get: validator-src
     passed: [test]
@@ -64,6 +67,7 @@ jobs:
       CA_CERT:           {{ca_cert}}
 
 - name: release
+  build_logs_to_retain: *build_logs_to_retain
   plan:
   - aggregate:
     - {get: validator-src, passed: [validate], tags: *tags, timeout: *timeouts-long }
