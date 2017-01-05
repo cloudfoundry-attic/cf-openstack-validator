@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:14.04
 
 RUN locale-gen en_US.UTF-8
 RUN dpkg-reconfigure locales
@@ -6,8 +6,7 @@ ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 
 RUN apt-get update; apt-get -y upgrade; apt-get clean
-
-RUN apt-get install -y sudo curl wget make gcc zlib1g-dev libssl-dev ssh; apt-get clean
+RUN apt-get install -y curl wget make libssl-dev; apt-get clean
 
 RUN mkdir /tmp/ruby-install && \
     cd /tmp && \
