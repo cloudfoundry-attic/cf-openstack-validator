@@ -56,6 +56,36 @@ EOT
     end
   end
 
+  describe '#cloud_config' do
+    let(:validator_config_content) do
+      <<EOT
+---
+cloud_config:
+  another_key: another_value
+EOT
+    end
+
+    it 'returns the cloud_config section' do
+      expect(subject.cloud_config).to eq({ 'another_key' => 'another_value' })
+    end
+  end
+
+  describe '#default_vm_type_cloud_properties' do
+    let(:validator_config_content) do
+      <<EOT
+---
+cloud_config:
+  vm_types:
+  - cloud_properties:
+      another_key: another_value
+EOT
+    end
+
+    it 'returns the cloud_config section' do
+      expect(subject.default_vm_type_cloud_properties).to eq({ 'another_key' => 'another_value' })
+    end
+  end
+
   describe '#extensions' do
 
     let(:validator_config_content) { nil }
@@ -166,6 +196,37 @@ extensions:
         expect {
           subject.validate_extension_paths
         }.to raise_error Validator::Api::ValidatorError, /'\/non-existent-directory' is not a directory./
+      end
+    end
+  end
+
+  describe '#private_key_path' do
+    context 'given a relative path to the config file' do
+
+      let(:validator_config_content) do
+        <<-EOF
+---
+validator:
+  private_key_path: ./private/key/path
+        EOF
+      end
+
+      it 'specifies the private key path relative to the validator.yml' do
+        expect(subject.private_key_path).to eq(File.join(tmpdir, '/private/key/path'))
+      end
+    end
+
+    context 'given an absolute path' do
+      let(:validator_config_content) do
+        <<-EOF
+---
+validator:
+  private_key_path: /absolute/private/key/path
+        EOF
+      end
+
+      it 'specifies the private key path relative to the validator.yml' do
+        expect(subject.private_key_path).to eq('/absolute/private/key/path')
       end
     end
   end

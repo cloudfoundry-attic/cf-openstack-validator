@@ -22,26 +22,33 @@ module Validator
         Converter.convert_and_apply_defaults(all.fetch('openstack'))
       end
 
+      def cloud_config
+        all.fetch('cloud_config')
+      end
+
+      def default_vm_type_cloud_properties
+        cloud_config['vm_types'][0]['cloud_properties']
+      end
+
       def extensions
         all.fetch('extensions', {}).fetch('config', {})
       end
 
       def custom_extension_paths
-        return [] unless all
-        paths = all.fetch('extensions', {}).fetch('paths', [])
-        paths.map do |path|
-          if Pathname.new(path).absolute?
-            path
-          else
-            File.expand_path(path, File.dirname(@path))
-          end
-        end
+        all
+          .fetch('extensions', {})
+          .fetch('paths', [])
+          .map { |path| File.expand_path(path, File.dirname(@path)) }
       end
 
       def validate_extension_paths
         custom_extension_paths.each do |path|
           raise Validator::Api::ValidatorError, "Extension path '#{path}' is not a directory." unless File.directory?(path)
         end
+      end
+
+      def private_key_path
+        File.expand_path(validator['private_key_path'], File.dirname(@path))
       end
     end
   end

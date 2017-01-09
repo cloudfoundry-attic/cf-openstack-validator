@@ -11,9 +11,11 @@ end
 openstack_suite.context 'using the CPI', position: 2, order: :global do
 
   before(:all) {
+    @config = Validator::Api.configuration
+
     @stemcell_path     = stemcell_path
     @cpi_path          = cpi_path
-    @cloud_config      = cloud_config
+    @cloud_config      = @config.cloud_config
     @log_path          = log_path
 
     @cpi = cpi(@cpi_path, @log_path)
@@ -39,7 +41,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
         @cpi.create_vm(
             'agent-id',
             stemcell_id,
-            default_vm_type_cloud_properties,
+            @config.default_vm_type_cloud_properties,
             network_spec,
             [],
             {}
@@ -154,7 +156,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
         @cpi.create_vm(
             'agent-id',
             stemcell_cid,
-            default_vm_type_cloud_properties,
+            @config.default_vm_type_cloud_properties,
             network_spec_with_floating_ip,
             [],
             {}
@@ -165,7 +167,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     vm = @compute.servers.get(vm_cid)
     vm.wait_for { ready? }
 
-    _, err, status = execute_ssh_command_on_vm_with_retry(private_key_path, validator_options["floating_ip"], "echo hi")
+    _, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, @config.validator['floating_ip'], "echo hi")
 
     expect(status.exitstatus).to eq(0), "SSH connection to VM with floating IP didn't succeed.\nError was: #{err}"
   end
@@ -173,27 +175,27 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   it 'can access the internet' do
     @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
 
-    _, err, status = execute_ssh_command_on_vm(private_key_path,
-                                            validator_options["floating_ip"], "nslookup github.com")
+    _, err, status = execute_ssh_command_on_vm(@config.private_key_path,
+                                            @config.validator['floating_ip'], "nslookup github.com")
 
     if status.exitstatus > 0
       fail "DNS server might not be reachable from VM with floating IP.\nError is: #{err}"
     end
 
-   _, err, status = execute_ssh_command_on_vm(private_key_path,
-                                            validator_options["floating_ip"], "curl http://github.com")
+   _, err, status = execute_ssh_command_on_vm(@config.private_key_path,
+                                            @config.validator['floating_ip'], "curl http://github.com")
 
     expect(status.exitstatus).to eq(0),
                       "Failed to curl http://github.com from VM with floating IP.\n     #{parse_curl_error(err)}"
   end
 
   it 'can save and retrieve user-data from metadata service' do
-    Validator::Api::skip_test('`config_drive` is configured in validator.yml.') if Validator::Api.configuration.openstack['config_drive']
+    Validator::Api::skip_test('`config_drive` is configured in validator.yml.') if @config.openstack['config_drive']
 
     @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
 
-    response, err, status = execute_ssh_command_on_vm(private_key_path,
-                                               validator_options['floating_ip'], 'curl -m 10 http://169.254.169.254/latest/user-data')
+    response, err, status = execute_ssh_command_on_vm(@config.private_key_path,
+                                               @config.validator['floating_ip'], 'curl -m 10 http://169.254.169.254/latest/user-data')
 
     if status.exitstatus > 0
       error_message = 'Cannot access metadata service at 169.254.169.254.'
@@ -207,21 +209,21 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   end
 
   it 'can save and retrieve user-data from config_drive' do
-    Validator::Api::skip_test('`config_drive` is not configured in validator.yml.') unless Validator::Api.configuration.openstack['config_drive']
+    Validator::Api::skip_test('`config_drive` is not configured in validator.yml.') unless @config.openstack['config_drive']
 
     @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
     vcap_password = 'c1oudc0w'
     sudo_command = "echo #{vcap_password}| sudo -S"
     mount_path = "/tmp/#{SecureRandom.uuid}"
     config_drive_disk_path = '/dev/disk/by-label/config-2'
-    _, err, status = execute_ssh_command_on_vm(private_key_path, validator_options['floating_ip'], "#{sudo_command} mkdir #{mount_path} & #{sudo_command} mount #{config_drive_disk_path} #{mount_path}")
+    _, err, status = execute_ssh_command_on_vm(@config.private_key_path, @config.validator['floating_ip'], "#{sudo_command} mkdir #{mount_path} & #{sudo_command} mount #{config_drive_disk_path} #{mount_path}")
     if status.exitstatus > 0
       error_message = "Cannot mount config drive at '#{config_drive_disk_path}'"
       STDERR.puts(error_message + ' ' + err)
       fail error_message
     end
-    response, err, status = execute_ssh_command_on_vm(private_key_path, validator_options['floating_ip'], "#{sudo_command} cat #{mount_path}/ec2/latest/user-data")
-    execute_ssh_command_on_vm(private_key_path, validator_options['floating_ip'], "#{sudo_command} umount #{mount_path}")
+    response, err, status = execute_ssh_command_on_vm(@config.private_key_path, @config.validator['floating_ip'], "#{sudo_command} cat #{mount_path}/ec2/latest/user-data")
+    execute_ssh_command_on_vm(@config.private_key_path, @config.validator['floating_ip'], "#{sudo_command} umount #{mount_path}")
 
     if status.exitstatus > 0
       error_message = "Cannot access metadata at '#{mount_path}/ec2/latest/user-data'"
@@ -242,10 +244,10 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     create_ntpserver_command = "#{sudo} bash -c \"echo #{ntp.join(' ')} | tee /var/vcap/bosh/etc/ntpserver\""
     call_ntpdate_command = "#{sudo} /var/vcap/bosh/bin/ntpdate"
 
-    _, _, status = execute_ssh_command_on_vm(private_key_path, validator_options["floating_ip"], create_ntpserver_command)
+    _, _, status = execute_ssh_command_on_vm(@config.private_key_path, @config.validator['floating_ip'], create_ntpserver_command)
     expect(status.exitstatus).to eq(0)
 
-    _, _, status = execute_ssh_command_on_vm(private_key_path, validator_options["floating_ip"], call_ntpdate_command)
+    _, _, status = execute_ssh_command_on_vm(@config.private_key_path, @config.validator['floating_ip'], call_ntpdate_command)
     expect(status.exitstatus).to eq(0), "Failed to reach any of the following NTP servers: #{ntp.join(', ')}. If your OpenStack requires an internal time server, you need to configure it in the validator.yml."
   end
 
@@ -258,7 +260,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
         @cpi.create_vm(
             'agent-id',
             stemcell_cid,
-            default_vm_type_cloud_properties,
+            @config.default_vm_type_cloud_properties,
             network_spec,
             [],
             {}
@@ -270,7 +272,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     second_vm_ip = second_vm.addresses.values.first.first['addr']
     second_vm.wait_for { ready? }
 
-    _, err, status = execute_ssh_command_on_vm_with_retry(private_key_path, validator_options["floating_ip"], "nc -zv #{second_vm_ip} 22")
+    _, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, @config.validator['floating_ip'], "nc -zv #{second_vm_ip} 22")
 
     expect(status.exitstatus).to eq(0), "Failed to nc port 22 on second VM.\nError is: #{err}"
   end
@@ -283,7 +285,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
         @cpi.create_vm(
           'agent-id',
           stemcell_cid,
-          default_vm_type_cloud_properties,
+          @config.default_vm_type_cloud_properties,
           network_spec_with_static_ip,
           [],
           {}
@@ -298,7 +300,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM with floating IP to use')
     @resource_tracker.consumes(:vm_cid_static_ip, 'No VM with static IP to use')
 
-    _, err, status = execute_ssh_command_on_vm_with_retry(private_key_path, validator_options["floating_ip"], "nc -zv #{validator_options["static_ip"]} 22")
+    _, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, @config.validator['floating_ip'], "nc -zv #{@config.validator['static_ip']} 22")
 
     expect(status.exitstatus).to eq(0), "Failed to nc port 22 on VM with.\nError is: #{err}"
   end

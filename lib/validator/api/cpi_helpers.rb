@@ -67,7 +67,7 @@ module Validator
           'default' => {
             'type' => 'dynamic',
             'cloud_properties' => {
-              'net_id' => validator_options['network_id']
+              'net_id' => Validator::Api.configuration.validator['network_id']
             }
           }
         }
@@ -77,9 +77,9 @@ module Validator
         {
           'default' => {
             'type' => 'manual',
-            'ip' => validator_options['static_ip'],
+            'ip' => Validator::Api.configuration.validator['static_ip'],
             'cloud_properties' => {
-              'net_id' => validator_options['network_id']
+              'net_id' => Validator::Api.configuration.validator['network_id']
             }
           }
         }
@@ -90,12 +90,12 @@ module Validator
           'default' => {
             'type' => 'dynamic',
             'cloud_properties' => {
-              'net_id' => validator_options['network_id']
+              'net_id' => Validator::Api.configuration.validator['network_id']
             }
           },
           'vip' => {
             'type' => 'vip',
-            'ip' => validator_options['floating_ip'],
+            'ip' => Validator::Api.configuration.validator['floating_ip'],
           }
         }
       end

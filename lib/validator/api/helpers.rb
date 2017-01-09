@@ -12,25 +12,26 @@ module Validator
       end
 
       def server_params
-        image_id = validator_options['public_image_id']
-        flavor_name = default_vm_type_cloud_properties['instance_type']
+        config = Validator::Api.configuration
+        image_id = config.validator['public_image_id']
+        flavor_name = config.default_vm_type_cloud_properties['instance_type']
         flavor = Validator::Api::FogOpenStack.compute.flavors.find { |f| f.name == flavor_name }
         server_params = {
-          :name => 'validator-test-vm',
-          :image_ref => image_id,
-          :flavor_ref => flavor.id,
-          :config_drive => !!Validator::Api.configuration.openstack['config_drive'],
-          :nics =>[{'net_id' => validator_options['network_id']}]
+            :name => 'validator-test-vm',
+            :image_ref => image_id,
+            :flavor_ref => flavor.id,
+            :config_drive => !!config.openstack['config_drive'],
+            :nics =>[{'net_id' => config.validator['network_id']}]
         }
 
-        if Validator::Api.configuration.openstack['boot_from_volume']
+        if config.openstack['boot_from_volume']
           server_params[:block_device_mapping_v2] = [{
-            :uuid => image_id,
-            :source_type => 'image',
-            :destination_type => 'volume',
-            :volume_size => 3,
-            :boot_index => '0',
-            :delete_on_termination => '1'
+              :uuid => image_id,
+              :source_type => 'image',
+              :destination_type => 'volume',
+              :volume_size => 3,
+              :boot_index => '0',
+              :delete_on_termination => '1'
           }]
           server_params.delete(:image_ref)
         end
@@ -102,23 +103,6 @@ module Validator
         end
       end
 
-      def default_vm_type_cloud_properties
-        cloud_config['vm_types'][0]['cloud_properties']
-      end
-
-      def private_key_path
-        private_key_path = validator_options['private_key_path']
-        # TODO is that a relative path?
-        File.join(File.dirname(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG']), private_key_path)
-      end
-
-      def validator_options
-        @validator_options ||= YAML.load_file(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])['validator']
-      end
-
-      def cloud_config
-        @cloud_config ||= YAML.load_file(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])['cloud_config']
-      end
     end
   end
 end
