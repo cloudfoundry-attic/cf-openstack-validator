@@ -26,18 +26,20 @@ $ ssh-keygen -t rsa -b 4096 -N "" -f cf-validator.rsa_id
 
 ### Environment
 
-The validator runs on Mac and Linux.
-Please ensure that the following list is installed on the Linux system
-where the validator is executed:
+The validator runs on Mac and Linux. Please ensure that the following packages are installed on your system:
 
-* ruby 2.x
+**Linux Requirements**
+
+* ruby 2.1.x or newer
 * make
 * gcc
 * zlib1g-dev
 * libssl-dev
 * ssh
 
-To run on Mac the `Xcode` command line tools have to be installed.
+**Mac Requirements**
+
+* xcode command line tools
 
 ## Usage
 
