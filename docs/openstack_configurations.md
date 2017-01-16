@@ -21,3 +21,7 @@ By default, the validator uses an external ntp server from pool.ntp.org. If your
 ## Using config-drive instead of metadata service
 
 By default, the VMs created try to receive data from OpenStack's HTTP metadata service. If your OpenStack installation doesn't provide medata and userdata over HTTP, but requires you to a config-drive instead, you need to specify this in the property `openstack.config_drive: cdrom`
+
+## Using nova-networking
+
+By default, the OpenStack uses neutron for networking since version 28. If you require nova-networking, switch on `openstack.use_nova_networking: true` to turn on compatibility mode in the CPI. Be aware that future OpenStack versions will remove this API at some point. See [documentation on bosh.io](http://bosh.io/docs/openstack-nova-networking.html) for additional information.
