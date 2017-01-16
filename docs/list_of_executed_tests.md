@@ -4,6 +4,7 @@
 * Upload stemcell
 * Create VM
 * Find VM
+* Set VM metadata tags
 * Create disk
 * Find disk
 * Attach disk to VM
@@ -20,11 +21,14 @@
   * CPI requires API version 1 for glance and cinder
 * Security group settings
   * Check if security group rules allow necessary incoming/outgoing ports
-* Outbound internet access
-* Timeservers can be reached
+* Outbound internet access from a VM
+* Store and retrieve user-data
+  * from the HTTP metadata service
+  * from config-drive
 * Attach a floating IP
-* Set VM metadata tags
 * Access a VM over ssh from the outside
+* Timeservers can be reached
+* Static networking is possible
 * Access one VM from another VM
 * Create a large volume
 
