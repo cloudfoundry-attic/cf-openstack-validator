@@ -263,41 +263,12 @@ EOF
       end
     end
 
-    describe '#prepare_ruby_environment' do
-
-      let(:status) { OpenStruct.new(:exitstatus => 0) }
-
-      let(:context) { double('context', path_environment: '', gems_folder: '', bundle_command: '', working_dir: working_dir) }
-
-      let(:env) do
-        {
-            'BUNDLE_CACHE_PATH' => 'vendor/package',
-            'PATH' => context.path_environment,
-            'GEM_PATH' => context.gems_folder,
-            'GEM_HOME' => context.gems_folder
-        }
-      end
-
-      it 'should execute bundle install' do
-        allow(subject).to receive(:execute_command)
-
-        subject.prepare_ruby_environment
-
-        expect(subject).to have_received(:execute_command).with(
-            hash_including(
-                env: env,
-                command: "#{context.bundle_command} install --local"
-            )
-        )
-      end
-    end
-
     describe '#validate_config' do
-      let(:validator_config_path) { Tempfile.new('validator.yml').path }
+      let(:validator_config_file) { Tempfile.new('validator.yml') }
 
-      after(:each) {File.delete(validator_config_path)}
+      after(:each) { validator_config_file.delete }
 
-      let(:options) {{cpi_release: release_archive_path, config_path: validator_config_path}}
+      let(:options) {{cpi_release: release_archive_path, config_path: validator_config_file.path}}
 
       context 'when config is invalid' do
         it 'should abort generation' do
@@ -309,7 +280,7 @@ EOF
 
       context 'when extensions path does not exist' do
         before(:each) do
-          File.write(validator_config_path,YAML.dump(read_valid_config.merge({
+          File.write(validator_config_file.path,YAML.dump(read_valid_config.merge({
             'extensions' => { 'paths' => ['non-existing-dir'] }
           })))
         end
@@ -340,25 +311,19 @@ EOF
       end
     end
 
-    describe '#print_gem_environment' do
-      let(:context) { double('context', path_environment: 'path environment', gems_folder: 'gems_folder', bundle_command: 'command', working_dir: working_dir) }
+    describe '#with_environment' do
+      it 'does not modify the environment for the outer scope' do
+        old_env = ENV.to_hash
 
-      it 'should call command to print the gem environment and list of all gems' do
-        path_environment = context.path_environment
-        gems_folder = context.gems_folder
-        env = {
-            'PATH' => path_environment,
-            'GEM_PATH' => gems_folder,
-            'GEM_HOME' => gems_folder
+        subject.with_environment('TEST_ENV_KEY' => 'TEST_ENV_VALUE')
+
+        expect(ENV.to_hash).to eq(old_env)
+      end
+
+      it 'does modify the environment for the execution of the given block' do
+        subject.with_environment('TEST_ENV_KEY' => 'TEST_ENV_VALUE') {
+          expect(ENV['TEST_ENV_KEY']).to eq('TEST_ENV_VALUE')
         }
-        allow(subject).to receive(:execute_command)
-
-        subject.print_gem_environment
-
-        expect(subject).to have_received(:execute_command).with(hash_including(
-            env: env,
-            command: 'command exec gem environment && command list'
-        ))
       end
     end
 
@@ -371,9 +336,6 @@ EOF
       }
       let(:env) do
         {
-          'PATH' => context.path_environment,
-          'GEM_PATH' => context.gems_folder,
-          'GEM_HOME' => context.gems_folder,
           'BOSH_PACKAGES_DIR' => File.join(working_dir, 'packages'),
           'BOSH_OPENSTACK_CPI_LOG_PATH' => File.join(working_dir, 'logs'),
           'BOSH_OPENSTACK_STEMCELL_PATH' => File.join(working_dir, 'stemcell'),
@@ -381,57 +343,42 @@ EOF
           'BOSH_OPENSTACK_VALIDATOR_CONFIG' => 'validator_config_path',
           'BOSH_OPENSTACK_CPI_CONFIG' => File.join(working_dir, 'cpi.json'),
           'BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP' => context.skip_cleanup?.to_s,
-          'VERBOSE_FORMATTER' => context.verbose?.to_s,
-          'http_proxy' => ENV['http_proxy'],
-          'https_proxy' => ENV['https_proxy'],
-          'no_proxy' => ENV['no_proxy'],
-          'HOME' => ENV['HOME'],
-          'EXCON_DEBUG' => 'true'
+          'VERBOSE_FORMATTER' => context.verbose?.to_s
         }
       end
+      let(:spec_formatter_path) { File.join(context.validator_root_dir, 'lib', 'validator', 'formatter.rb') }
       let(:expected_command) {
-        [
-            "command exec rspec #{expand_project_path('src/specs')}",
-            "--order defined",
-            "--color --tty --require #{expand_project_path('lib/validator/formatter.rb')}",
-            "--format Validator::TestsuiteFormatter",
-            "2> #{File.join(working_dir, 'logs', 'testsuite.log')}"
-        ].join(" ")
+        args = [
+            '--order', 'defined', '--color', '--tty',
+            '--require', "#{spec_formatter_path}",
+            '--format', 'Validator::TestsuiteFormatter',
+        ]
+        args += Dir.glob('src/specs/*')
+        args
       }
 
-      it 'should execute specs' do
-        allow(Open3).to receive(:popen3)
+      before(:each) do
+        allow(subject).to receive(:with_environment).and_call_original
+      end
+
+      it 'should execute specs with rspec environment' do
+        allow(RSpec::Core::Runner).to receive(:run).and_return(0)
 
         subject.execute_specs
 
-        expect(Open3).to have_received(:popen3).with(env, expected_command, unsetenv_others: true)
-      end
-
-      it 'sets EXCON_DEBUG to log fog to STDERR' do
-        allow(Open3).to receive(:popen3)
-
-        subject.execute_specs
-
-        expect(Open3).to have_received(:popen3).with(hash_including('EXCON_DEBUG' => 'true'), any_args)
-      end
-
-      it 'should write the stdout to stdout' do
-        allow(Open3).to receive(:popen3).and_yield('', 'we write stdout to stdout', [''], OpenStruct.new(:value => 0))
-
-        expect{
-          subject.execute_specs
-        }.to output("we write stdout to stdout").to_stdout
+        expect(RSpec::Core::Runner).to have_received(:run).with(expected_command, anything, $stdout)
+        expect(subject).to have_received(:with_environment).with(env)
       end
 
       context 'when execution fails' do
         it 'raises an error' do
-          allow(Open3).to receive(:popen3).and_yield('', '', '', OpenStruct.new(:value => 1))
+          allow(RSpec::Core::Runner).to receive(:run).and_return(1)
 
           expect{
             subject.execute_specs
           }.to raise_error do |e|
             expect(e).to be_a(ErrorWithLogDetails)
-            expect(e.message).to include("exec rspec")
+            expect(e.message).to include("Running 'RSpec::Core::Runner.run' with arguments")
             expect(e.log_path).to eq(File.join(working_dir, 'logs', 'testsuite.log'))
           end
         end
@@ -456,11 +403,11 @@ EOF
           ].join(' ')
         }
         it 'should execute specs with fail fast option' do
-          allow(Open3).to receive(:popen3)
+          allow(RSpec::Core::Runner).to receive(:run).and_return(0)
 
           subject.execute_specs
 
-          expect(Open3).to have_received(:popen3).with(env, expected_command, unsetenv_others: true)
+          # expect(Open3).to have_received(:popen3).with(env, expected_command, unsetenv_others: true)
         end
       end
     end

@@ -54,6 +54,15 @@ module Validator
       }
 
       context 'when all resources can be cleaned up' do
+        let(:log_path) {Dir.mktmpdir}
+
+        before(:each) do
+          allow(Api::ResourceTracker).to receive(:log_path).and_return(log_path)
+        end
+
+        after do
+          FileUtils.rm_rf( log_path ) if File.exists?( log_path )
+        end
 
         Api::ResourceTracker.resource_types.each do |type|
           it "cleans produced resources for #{type}" do

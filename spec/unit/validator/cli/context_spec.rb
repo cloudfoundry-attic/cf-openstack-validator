@@ -87,12 +87,6 @@ module Validator::Cli
       end
     end
 
-    describe '#bundle_command' do
-      it 'should return bundle command' do
-        expect(subject.bundle_command).to eq("BUNDLE_GEMFILE=#{expand_project_path('Gemfile')} #{File.join(subject.working_dir, 'packages', 'ruby_openstack_cpi', 'bin', 'bundle')}")
-      end
-    end
-
     describe '#packages_path' do
       it 'should return gems folder path' do
         expect(subject.packages_path).to eq(File.join(subject.working_dir, 'packages'))

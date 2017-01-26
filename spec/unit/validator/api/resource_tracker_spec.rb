@@ -133,9 +133,15 @@ module Validator::Api
 
     describe '#cleanup' do
       let(:cpi) { instance_double(Bosh::Clouds::ExternalCpi, delete_vm: nil) }
+      let(:log_path) {Dir.mktmpdir}
       before do
         allow(resource).to receive(:destroy).and_return(true)
+        allow(Validator::Api::ResourceTracker).to receive(:log_path).and_return(log_path)
         allow(Bosh::Clouds::ExternalCpi).to receive(:new).and_return(cpi)
+      end
+
+      after do
+        FileUtils.rm_rf( log_path ) if File.exists?( log_path )
       end
 
       it 'destroys all resources' do

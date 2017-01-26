@@ -61,10 +61,6 @@ module Validator::Cli
       File.join(working_dir, 'packages')
     end
 
-    def bundle_command
-      "BUNDLE_GEMFILE=#{File.join(validator_root_dir, 'Gemfile')} #{File.join(working_dir, 'packages', 'ruby_openstack_cpi', 'bin', 'bundle')}"
-    end
-
     private
 
     def ensure_working_directory(directory)

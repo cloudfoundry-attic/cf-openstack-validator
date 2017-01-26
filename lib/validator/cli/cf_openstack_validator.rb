@@ -18,8 +18,6 @@ module Validator::Cli
         generate_cpi_config
         prepare_cpi_release
         extract_stemcell
-        prepare_ruby_environment
-        print_gem_environment
         execute_specs
       rescue Validator::Api::ValidatorError => e
         $stderr.puts(e.message)
@@ -115,21 +113,6 @@ module Validator::Cli
       ordered_packages + all_other_packages
     end
 
-    def prepare_ruby_environment
-      env = {
-          'BUNDLE_CACHE_PATH' => 'vendor/package',
-          'PATH' => @context.path_environment,
-          'GEM_PATH' => @context.gems_folder,
-          'GEM_HOME' => @context.gems_folder
-      }
-      log_path = File.join(log_directory, 'bundle_install.log')
-
-      execute_command(
-          env: env,
-          command: "#{@context.bundle_command} install --local",
-          log_path: log_path
-      )
-    end
 
     def compile_package(package_path)
       package_name = File.basename(package_path)
@@ -184,56 +167,50 @@ module Validator::Cli
       File.write(File.join(@context.working_dir, 'cpi.json'), cpi_config_content)
     end
 
-    def print_gem_environment
-      env = {
-          'PATH' => @context.path_environment,
-          'GEM_PATH' => @context.gems_folder,
-          'GEM_HOME' => @context.gems_folder
+    def with_environment(env)
+      old_env = env.map {|key, _| [key, ENV[key]]}.to_h
+      env.each {|key, value| ENV[key] = value}
+      begin
+        yield if block_given?
+      ensure
+        old_env.each {|key, value| ENV[key] = value}
+      end
+    end
+
+    def get_rpsec_env
+      {
+        'BOSH_PACKAGES_DIR' => File.join(@context.working_dir, 'packages'),
+        'BOSH_OPENSTACK_CPI_LOG_PATH' => File.join(@context.working_dir, 'logs'),
+        'BOSH_OPENSTACK_STEMCELL_PATH' => File.join(@context.working_dir, 'stemcell'),
+        'BOSH_OPENSTACK_CPI_PATH' => @context.cpi_bin_path,
+        'BOSH_OPENSTACK_VALIDATOR_CONFIG' => @context.config_path,
+        'BOSH_OPENSTACK_CPI_CONFIG' => File.join(@context.working_dir, 'cpi.json'),
+        'BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP' => @context.skip_cleanup?.to_s,
+        'VERBOSE_FORMATTER' => @context.verbose?.to_s,
       }
-      log_path = File.join(log_directory, 'gem_environment.log')
-      execute_command(
-          env: env,
-          command: "#{@context.bundle_command} exec gem environment && #{@context.bundle_command} list",
-          log_path: log_path
-      )
     end
 
     def execute_specs
-      env = {
-          'PATH' => @context.path_environment,
-          'GEM_PATH' => @context.gems_folder,
-          'GEM_HOME' => @context.gems_folder,
-          'BOSH_PACKAGES_DIR' => File.join(@context.working_dir, 'packages'),
-          'BOSH_OPENSTACK_CPI_LOG_PATH' => File.join(@context.working_dir, 'logs'),
-          'BOSH_OPENSTACK_STEMCELL_PATH' => File.join(@context.working_dir, 'stemcell'),
-          'BOSH_OPENSTACK_CPI_PATH' => @context.cpi_bin_path,
-          'BOSH_OPENSTACK_VALIDATOR_CONFIG' => @context.config_path,
-          'BOSH_OPENSTACK_CPI_CONFIG' => File.join(@context.working_dir, 'cpi.json'),
-          'BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP' => @context.skip_cleanup?.to_s,
-          'VERBOSE_FORMATTER' => @context.verbose?.to_s,
-          'http_proxy' => ENV['http_proxy'],
-          'https_proxy' => ENV['https_proxy'],
-          'no_proxy' => ENV['no_proxy'],
-          'HOME' => ENV['HOME']
-      }.merge(enable_fog_logging_to_stderr)
+      require 'rspec'
 
-      rspec_command = [
-          "#{@context.bundle_command} exec rspec #{File.join(@context.validator_root_dir, 'src', 'specs')}"
-      ]
-      log_path = File.join(log_directory, 'testsuite.log')
-      rspec_command += ["--tag #{@context.tag}"] if @context.tag
-      rspec_command += ['--fail-fast'] if @context.fail_fast?
-      rspec_command += [
-          '--order defined',
-          "--color --tty --require #{File.join(@context.validator_root_dir, 'lib', 'validator', 'formatter.rb')}",
-          '--format Validator::TestsuiteFormatter',
-          "2> #{log_path}"
-      ]
-      Open3.popen3(env, rspec_command.join(' '), :unsetenv_others => true) do |_, stdout_out, _, wait_thr|
-        stdout_out.each_char {|c| print c }
+      with_environment(get_rpsec_env) do
+        rspec_command = []
+        rspec_command += ['--tag', @context.tag] if @context.tag
+        rspec_command += ['--fail-fast'] if @context.fail_fast?
+        rspec_command += [
+          '--order', 'defined',
+          '--color',
+          '--tty',
+          '--require',  File.join(@context.validator_root_dir, 'lib', 'validator', 'formatter.rb'),
+          '--format', 'Validator::TestsuiteFormatter',
+        ]
+        rspec_command += Dir.glob('src/specs/*')
 
-        unless wait_thr.value == 0
-          raise ErrorWithLogDetails.new("Executing '#{rspec_command}' failed", log_path)
+        log_path = File.join(log_directory, 'testsuite.log')
+        File.open(log_path, 'w') do |log_file|
+          unless RSpec::Core::Runner.run(rspec_command, log_file, $stdout) == 0
+            raise ErrorWithLogDetails.new("Running 'RSpec::Core::Runner.run' with arguments '#{rspec_command}' failed", log_path)
+          end
         end
       end
     end
@@ -293,10 +270,6 @@ module Validator::Cli
 
     def cpi_bin_env?
       @context.openstack_cpi_bin_from_env != nil
-    end
-
-    def enable_fog_logging_to_stderr
-      { 'EXCON_DEBUG' => 'true' }
     end
 
     def is_dir_empty?

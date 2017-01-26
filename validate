@@ -1,1 +1,3 @@
-bin/cf-openstack-validator
+#!/bin/bash
+
+bundle exec bin/cf-openstack-validator $@
