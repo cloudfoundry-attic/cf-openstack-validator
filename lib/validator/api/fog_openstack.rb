@@ -48,6 +48,7 @@ module Validator
         end
 
         def convert_to_fog_params(options)
+          add_exconn_instrumentor(options)
           {
               :openstack_auth_url => options['auth_url'],
               :openstack_username => options['username'],
@@ -59,6 +60,12 @@ module Validator
               :openstack_endpoint_type => options['endpoint_type'],
               :connection_options => options['connection_options']
           }
+        end
+
+        def add_exconn_instrumentor(options)
+          if options['connection_options']
+            options['connection_options'].merge!({ 'instrumentor' => Validator::Instrumentor })
+          end
         end
       end
     end

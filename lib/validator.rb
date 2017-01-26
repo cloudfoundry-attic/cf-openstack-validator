@@ -15,6 +15,8 @@ require 'cloud'
 
 require_relative 'validator/converter'
 require_relative 'validator/formatter'
+require_relative 'validator/instrumentor'
+require_relative 'validator/redactor'
 require_relative 'validator/network_helper'
 require_relative 'validator/api'
 require_relative 'validator/options'
