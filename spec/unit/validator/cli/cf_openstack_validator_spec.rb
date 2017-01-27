@@ -391,23 +391,13 @@ EOF
             validator_root_dir: expand_project_path(''), tag: 'focus', fail_fast?: true,
             cpi_bin_path: File.join(working_dir, 'cpi'))
         }
-        let(:expected_command) {
-          [
-              "command exec rspec #{expand_project_path('src/specs')}",
-              '--tag focus',
-              '--fail-fast',
-              '--order defined',
-              "--color --tty --require #{expand_project_path('lib/validator/formatter.rb')}",
-              '--format Validator::TestsuiteFormatter',
-              "2> #{File.join(working_dir, 'logs', 'testsuite.log')}"
-          ].join(' ')
-        }
+
         it 'should execute specs with fail fast option' do
           allow(RSpec::Core::Runner).to receive(:run).and_return(0)
 
           subject.execute_specs
 
-          # expect(Open3).to have_received(:popen3).with(env, expected_command, unsetenv_others: true)
+          expect(RSpec::Core::Runner).to have_received(:run).with(array_including('--fail-fast'), anything, anything)
         end
       end
     end

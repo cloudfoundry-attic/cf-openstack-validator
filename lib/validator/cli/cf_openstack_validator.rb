@@ -177,7 +177,7 @@ module Validator::Cli
       end
     end
 
-    def get_rpsec_env
+    def get_rspec_env
       {
         'BOSH_PACKAGES_DIR' => File.join(@context.working_dir, 'packages'),
         'BOSH_OPENSTACK_CPI_LOG_PATH' => File.join(@context.working_dir, 'logs'),
@@ -193,7 +193,7 @@ module Validator::Cli
     def execute_specs
       require 'rspec'
 
-      with_environment(get_rpsec_env) do
+      with_environment(get_rspec_env) do
         rspec_command = []
         rspec_command += ['--tag', @context.tag] if @context.tag
         rspec_command += ['--fail-fast'] if @context.fail_fast?
@@ -222,7 +222,6 @@ module Validator::Cli
     def download_cpi_release(download_url, cpi_release_path)
       temp_download_file = open(download_url)
       FileUtils.mv(temp_download_file, cpi_release_path)
-      #File.rename(temp_download_file, cpi_release_path)
     end
 
     def add_cpi_bin_env
