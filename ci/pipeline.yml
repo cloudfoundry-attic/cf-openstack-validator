@@ -11,11 +11,33 @@ custom:
 groups:
 - name: {{pipeline_name}}
   jobs:
+  - cleanup
   - test
   - validate
   - release
 
 jobs:
+- name: cleanup
+  serial: true
+  serial_groups: [openstack-project]
+  build_logs_to_retain: *build_logs_to_retain
+  plan:
+    - aggregate:
+      - {trigger: true, get: validator-src,   tags: *tags, timeout: *timeouts-long}
+      - {trigger: true, get: pipeline-time-trigger,   tags: *tags, timeout: *timeouts-long}
+
+    - task: cleanup
+      tags: *tags
+      timeout: *timeouts-long
+      file: validator-src/ci/tasks/cleanup.yml
+      params:
+        BOSH_OPENSTACK_DOMAIN_NAME:          {{domain}}
+        BOSH_OPENSTACK_AUTH_URL:             {{auth_url}}
+        BOSH_OPENSTACK_USERNAME:             {{username}}
+        BOSH_OPENSTACK_API_KEY:              {{api_key}}
+        BOSH_OPENSTACK_PROJECT:              {{project}}
+        BOSH_OPENSTACK_CA_CERT:              {{ca_cert}}
+
 - name: test
   build_logs_to_retain: *build_logs_to_retain
   plan:
@@ -34,15 +56,16 @@ jobs:
 
 - name: validate
   serial: true
+  serial_groups: [openstack-project]
   build_logs_to_retain: *build_logs_to_retain
   plan:
   - get: validator-src
-    passed: [test]
+    passed: [cleanup, test]
     trigger: true
     tags: *tags
     timeout: *timeouts-long
   - get: pipeline-time-trigger
-    passed: [test]
+    passed: [cleanup, test]
     trigger: true
     tags: *tags
     timeout: *timeouts-long
