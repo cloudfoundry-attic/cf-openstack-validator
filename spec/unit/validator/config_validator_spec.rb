@@ -126,7 +126,7 @@ describe 'ValidatorConfig' do
     end
   end
 
-  context "when value 'cloud_config.cloud_config.vm_types.cloud_properties.root_disk.size' is a number" do
+  context "when value 'cloud_config.vm_types[0].cloud_properties.root_disk.size' is a number" do
     it 'does not return an error' do
       valid_config['cloud_config']['vm_types'][0]['cloud_properties']['root_disk'] = { 'size' => 42 }
 
@@ -136,7 +136,7 @@ describe 'ValidatorConfig' do
     end
   end
 
-  context "when value 'cloud_config.cloud_config.vm_types.cloud_properties.root_disk.size' is a string" do
+  context "when value 'cloud_config.vm_types[0].cloud_properties.root_disk.size' is a string" do
     it 'returns an error' do
       invalid_config = valid_config
       invalid_config['cloud_config']['vm_types'][0]['cloud_properties']['root_disk'] = { 'size' => 'some-string' }
