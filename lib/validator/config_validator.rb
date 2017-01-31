@@ -51,7 +51,11 @@ module Validator
               'vm_types' => [{
                   'name' => String,
                   'cloud_properties' => {
-                      'instance_type' => ReplacedString.new
+                      'instance_type' => ReplacedString.new,
+                      optional('availability_zone') => String,
+                      optional('root_disk') => {
+                          'size' => Numeric
+                      }
                   }
               }]
           },

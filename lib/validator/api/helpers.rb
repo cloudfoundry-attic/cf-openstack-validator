@@ -15,26 +15,38 @@ module Validator
         config = Validator::Api.configuration
         image_id = config.validator['public_image_id']
         flavor_name = config.default_vm_type_cloud_properties['instance_type']
+        az = config.default_vm_type_cloud_properties['availability_zone']
         flavor = Validator::Api::FogOpenStack.compute.flavors.find { |f| f.name == flavor_name }
         server_params = {
-            :name => 'validator-test-vm',
-            :image_ref => image_id,
-            :flavor_ref => flavor.id,
-            :config_drive => !!config.openstack['config_drive'],
-            :nics =>[{'net_id' => config.validator['network_id']}]
+            name: 'validator-test-vm',
+            flavor_ref: flavor.id,
+            config_drive: !!config.openstack['config_drive'],
+            nics:[{'net_id' => config.validator['network_id']}]
         }
 
-        if config.openstack['boot_from_volume']
-          server_params[:block_device_mapping_v2] = [{
-              :uuid => image_id,
-              :source_type => 'image',
-              :destination_type => 'volume',
-              :volume_size => 3,
-              :boot_index => '0',
-              :delete_on_termination => '1'
-          }]
-          server_params.delete(:image_ref)
+        if az
+          server_params.merge!({
+              availability_zone: az
+          })
         end
+
+        if config.openstack['boot_from_volume']
+          server_params.merge!({
+              block_device_mapping_v2: [{
+                  uuid: image_id,
+                  source_type: 'image',
+                  destination_type: 'volume',
+                  volume_size: 3,
+                  boot_index: '0',
+                  delete_on_termination: '1'
+              }]
+          })
+        else
+          server_params.merge!({
+              image_ref: image_id
+          })
+        end
+
         server_params
       end
 

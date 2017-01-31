@@ -30,6 +30,7 @@ cloud_config:
   - name: default # Don't change this name
     cloud_properties:
       instance_type: <replace-me> # String
+#      availability_zone: nova # String
 #      root_disk:
 #        size: 20 # Integer, size in GiB
 

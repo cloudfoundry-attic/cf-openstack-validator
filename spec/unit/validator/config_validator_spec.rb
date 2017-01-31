@@ -125,4 +125,25 @@ describe 'ValidatorConfig' do
       }.to raise_error(Validator::Api::ValidatorError, "#{error_msg_prefix}{ extensions => { paths => At index 0: Found placeholder '<replace-me>' } }")
     end
   end
+
+  context "when value 'cloud_config.cloud_config.vm_types.cloud_properties.root_disk.size' is a number" do
+    it 'does not return an error' do
+      valid_config['cloud_config']['vm_types'][0]['cloud_properties']['root_disk'] = { 'size' => 42 }
+
+      expect {
+        Validator::ConfigValidator.validate(valid_config)
+      }.to_not raise_error
+    end
+  end
+
+  context "when value 'cloud_config.cloud_config.vm_types.cloud_properties.root_disk.size' is a string" do
+    it 'returns an error' do
+      invalid_config = valid_config
+      invalid_config['cloud_config']['vm_types'][0]['cloud_properties']['root_disk'] = { 'size' => 'some-string' }
+
+      expect {
+        Validator::ConfigValidator.validate(invalid_config)
+      }.to raise_error(Validator::Api::ValidatorError, /size => Expected instance of Numeric, given an instance of String/)
+    end
+  end
 end
