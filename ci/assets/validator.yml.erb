@@ -34,6 +34,7 @@ cloud_config:
   - name: default
     cloud_properties:
       instance_type: <%=ENV['INSTANCE_TYPE']%>
+      <%="availability_zone: #{ENV['AVAILABILITY_ZONE']}" unless ENV['AVAILABILITY_ZONE'].empty?%>
 
 extensions:
   config:

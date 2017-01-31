@@ -25,6 +25,7 @@ params:
   INSTANCE_TYPE:     ""
   NTP_SERVER:        ""
   CA_CERT:           ""
+  AVAILABILITY_ZONE: ""
 
 run:
   path: validator-src/ci/tasks/validate.sh

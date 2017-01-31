@@ -15,6 +15,7 @@ set -e -x
 : ${INSTANCE_TYPE:?}
 : ${NTP_SERVER:?}
 : ${CA_CERT:-""}
+: ${AVAILABILITY_ZONE:-""}
 
 # Copy to user's home, because we don't have write permissions on the source directory
 cp -r validator-src ~

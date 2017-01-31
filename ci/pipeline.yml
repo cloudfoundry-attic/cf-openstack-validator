@@ -88,6 +88,7 @@ jobs:
       INSTANCE_TYPE:     {{instance_type}}
       NTP_SERVER:        {{ntp_server}}
       CA_CERT:           {{ca_cert}}
+      AVAILABILITY_ZONE: {{availability_zone}}
 
 - name: release
   build_logs_to_retain: *build_logs_to_retain
