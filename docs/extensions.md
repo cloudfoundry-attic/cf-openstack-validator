@@ -15,10 +15,9 @@ You can configure a directory from which extensions are read. Create a directory
 Add the path to your `validator.yml` under the `extensions` section. You can also configure multiple paths if you have multiple extensions:
 ```yml
 extensions:
-  paths: [/extension/path/relative/to/validator.yml, /absolute/extension/path]
+  paths: [extensions/, /home/my-user/validator-extensions/]
 ```
-
-If you don't specify a path the validator looks for extensions in the directory `extensions/` in the validator directory.
+Paths are resolved relative to the `validator.yml`. If you don't specify a path it defaults to `extensions/`.
 
 ### Write a Simple Test
 
