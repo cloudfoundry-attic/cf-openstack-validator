@@ -5,13 +5,13 @@ openstack:
   password: <replace-me> # String
   domain: <replace-me> # String
   project: <replace-me> # String
-#  default_key_name: cf-validator # String
-#  default_security_groups: [default] # List of String
-#  boot_from_volume: false # Boolean
-#  config_drive: ~ # One of cdrom, disk, or nil
-#  connection_options: # all connection options that are supported by Excon
-#    ssl_verify_peer: true # Boolean
-#    ca_cert: ~ # Multiline yaml String containing certificate chain
+  default_key_name: cf-validator # String
+  default_security_groups: [default] # List of String
+  boot_from_volume: false # Boolean
+  config_drive: ~ # One of cdrom, disk, or nil
+  connection_options: # all connection options that are supported by Excon
+    ssl_verify_peer: true # Boolean
+    ca_cert: ~ # Multiline yaml String containing certificate chain
 
 validator:
   network_id: <replace-me> # String UUID
@@ -19,21 +19,20 @@ validator:
   static_ip: <replace-me> # String IP. This IP is used to create a VM with a static IP.
   private_key_path: cf-validator.rsa_id # relative to validator.yml, no absolute path supported
   public_image_id: <replace-me> # String UUID
-#  ntp: [0.pool.ntp.org, 1.pool.ntp.org] # List of String
+  ntp: [0.pool.ntp.org, 1.pool.ntp.org] # List of String
   releases:
   - name: bosh-openstack-cpi
-    url: https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=28
-    sha1: beae72c7a105923ee74e7dfd6930e9aa75d86e05
+    url: https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=30
+    sha1: 2fff8e1c241a91267ddd099a553c1339d2709821
 
 cloud_config:
   vm_types: # See https://bosh.io/docs/cloud-config.html#vm-types
   - name: default # Don't change this name
     cloud_properties:
       instance_type: <replace-me> # String
-#      availability_zone: nova # String
-#      root_disk:
-#        size: 20 # Integer, size in GiB
+      # availability_zone: nova # String
+      # root_disk: {size: 20} # Integer, size in GiB. Used together with openstack.boot_from_volume.
 
-#extensions:
-#  paths: [<replace-me>] # paths pointing to a directory. Absolute or relative to this config file.
-#  config: # everything below 'config' is available in tests as `Validator::Api.configuration.extensions` inside your test code
+extensions:
+  paths: [./extensions/] # paths pointing to a directory. Absolute or relative to this config file.
+  # config: {} # everything below 'config' is available in tests as `Validator::Api.configuration.extensions` inside your test code

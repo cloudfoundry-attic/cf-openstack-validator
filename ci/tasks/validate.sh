@@ -25,7 +25,7 @@ pushd ~/validator-src
 echo "${PRIVATE_KEY}" > cf-validator.rsa_id
 chmod 400 cf-validator.rsa_id
 
-erb ci/assets/validator.yml.erb > validator.yml
+ci/assets/config_renderer/render validator.template.yml > validator.yml
 cat validator.yml
 
 cp extensions/dummy_extension_spec.sample.rb extensions/dummy_extension_spec.rb
@@ -34,7 +34,7 @@ bundle install --path .bundle
 
 ./validate -s ~/stemcell.tgz -c validator.yml
 
-CONFIG_DRIVE='disk' erb ci/assets/validator.yml.erb > validator.yml
+CONFIG_DRIVE='disk' ci/assets/config_renderer/render validator.template.yml > validator.yml
 cat validator.yml
 
 ./validate -s ~/stemcell.tgz -c validator.yml
