@@ -104,7 +104,7 @@ end
 
 def base_converter(context_name)
   -> (key, value, context) do
-    if !context[context_name]&.empty?
+    if !context[context_name].nil? && !context[context_name].empty?
       [key, yield(context)]
     else
       [key, value]

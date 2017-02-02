@@ -54,7 +54,6 @@ describe 'populate' do
       'DOMAIN' => 'DOMAIN',
       'PROJECT' => 'PROJECT',
       'DEFAULT_KEY_NAME' => 'DEFAULT_KEY_NAME',
-      'DEFAULT_SECURITY_GROUPS' => 'DEFAULT_SECURITY_GROUP',
       'BOOT_FROM_VOLUME' => 'true',
       'CONFIG_DRIVE' => 'CONFIG_DRIVE',
       'NETWORK_ID' => 'NETWORK_ID',
@@ -80,7 +79,7 @@ describe 'populate' do
             'domain' => 'DOMAIN',
             'project' => 'PROJECT',
             'default_key_name' => 'DEFAULT_KEY_NAME',
-            'default_security_groups' => ['DEFAULT_SECURITY_GROUP'],
+            'default_security_groups' => ['default'],
             'boot_from_volume' => true,
             'config_drive' => 'CONFIG_DRIVE',
             'connection_options' => {
