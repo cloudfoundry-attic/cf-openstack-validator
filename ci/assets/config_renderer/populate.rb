@@ -15,9 +15,7 @@ def validator_config_converters
           'default_security_groups' => to_array('DEFAULT_SECURITY_GROUPS'),
           'boot_from_volume' => to_bool('BOOT_FROM_VOLUME'),
           'config_drive' => to_string('CONFIG_DRIVE'),
-          'connection_options' => {
-              'ca_cert' => to_string('CA_CERT')
-          }
+          'connection_options' => noop
       },
       'validator' => {
           'network_id' => to_string('NETWORK_ID'),
@@ -48,6 +46,10 @@ def merge_optionals(config, context)
 
   unless context['AVAILABILITY_ZONE']&.empty?
     config['cloud_config']['vm_types'][0]['cloud_properties']['availability_zone'] = context['AVAILABILITY_ZONE']
+  end
+
+  unless context['CA_CERT']&.empty?
+    config['openstack']['connection_options']['ca_cert'] = context['CA_CERT']
   end
 
   config
@@ -102,7 +104,7 @@ end
 
 def base_converter(context_name)
   -> (key, value, context) do
-    if context[context_name]
+    if !context[context_name]&.empty?
       [key, yield(context)]
     else
       [key, value]

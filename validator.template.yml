@@ -11,7 +11,7 @@ openstack:
   config_drive: ~ # One of cdrom, disk, or nil
   connection_options: # all connection options that are supported by Excon
     ssl_verify_peer: true # Boolean
-    ca_cert: ~ # Multiline yaml String containing certificate chain
+    # ca_cert: <replace-me> # Multiline yaml String containing certificate chain
 
 validator:
   network_id: <replace-me> # String UUID
@@ -30,7 +30,7 @@ cloud_config:
   - name: default # Don't change this name
     cloud_properties:
       instance_type: <replace-me> # String
-      # availability_zone: nova # String
+      # availability_zone: <replace-me> # String
       # root_disk: {size: 20} # Integer, size in GiB. Used together with openstack.boot_from_volume.
 
 extensions:
