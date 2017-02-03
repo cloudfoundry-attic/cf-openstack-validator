@@ -1,7 +1,7 @@
 .idea
 *.rsa_id*
 cpi.json
-/validator.yml
-target/
+/*.yml
+!/validator.template.yml
 vendor/cache/
 extensions/dummy_extension_spec.rb

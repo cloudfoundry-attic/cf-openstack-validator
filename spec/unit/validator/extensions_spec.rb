@@ -2,18 +2,12 @@ require_relative '../spec_helper'
 
 describe Validator::Extensions do
 
-  let(:validator_config_content) { nil }
-
-  before(:each) do
+   before(:each) do
     @tmpdir = Dir.mktmpdir
     @cf_openstack_validator = File.join(@tmpdir, 'cf-openstack-validator')
     FileUtils.mkdir(@cf_openstack_validator)
     @validator_config = File.join(@cf_openstack_validator, 'validator.yml')
-    if validator_config_content
-      File.write(@validator_config, validator_config_content)
-    else
-      File.write(@validator_config, "---\n{}")
-    end
+
     allow(RSpec.configuration).to receive(:validator_config).and_return(Validator::Api::Configuration.new(@validator_config))
   end
 
@@ -22,82 +16,100 @@ describe Validator::Extensions do
   end
 
   describe '.all' do
-    context 'when extension folder is used' do
 
-      before(:each) do
-        @extensionsdir = File.join(@cf_openstack_validator, 'extensions')
-        FileUtils.mkdir(@extensionsdir)
+    let(:absolute_path_to_extensions) { Dir.mktmpdir }
+    let(:validator_config_content) do
+      <<-EOF
+extensions:
+  paths: [#{absolute_path_to_extensions}]
+      EOF
+    end
+
+    before(:each) do
+      File.write(@validator_config, validator_config_content)
+    end
+
+    after(:each) do
+      FileUtils.rmtree(absolute_path_to_extensions)
+    end
+
+    context 'when there is no `extensions` section in the `validator.yml`' do
+
+      let(:validator_config_content) { "---\n{}" }
+
+      it 'returns no specs' do
+        expect(Validator::Extensions.all.size).to eq(0)
       end
+    end
 
-      context 'and contains no _spec.rb files' do
+    context 'when there is an `extensions` section in the `validator.yml`' do
+
+      context 'when no path is given' do
+        let(:validator_config_content) do
+          <<-EOF
+extensions:
+  paths: []
+          EOF
+        end
+
         it 'returns no specs' do
           expect(Validator::Extensions.all.size).to eq(0)
         end
       end
 
-      context 'and contains multiple _spec.rb files' do
-        before do
-          FileUtils.touch(File.join(@extensionsdir, 'test1_spec.rb'))
-          FileUtils.touch(File.join(@extensionsdir, 'test2_spec.rb'))
-        end
+      context 'when a path is given' do
 
-        it 'returns all specs' do
-          specs = Validator::Extensions.all
-          expect(specs.size).to eq(2)
-          expect(specs).to eq(["#{@extensionsdir}/test1_spec.rb", "#{@extensionsdir}/test2_spec.rb"])
-        end
+        context 'and is absolute' do
 
-        context 'and also contains non-spec files' do
-          before do
-            FileUtils.touch(File.join(@extensionsdir, 'some-file'))
-          end
-
-          it 'returns only the spec files' do
-            specs = Validator::Extensions.all
-            expect(specs.size).to equal(2)
-            expect(specs).to eq(["#{@extensionsdir}/test1_spec.rb", "#{@extensionsdir}/test2_spec.rb"])
-          end
-        end
-      end
-    end
-
-    context 'when default extension folder does not exist' do
-      it 'returns no specs' do
-        specs = Validator::Extensions.all
-        expect(specs.size).to eq(0)
-      end
-    end
-
-    context 'when there is a `extensions` section in the `validator.yml`' do
-
-      context 'and an extension directory is specified in the config file' do
-
-        context 'and the path is absolute' do
           let(:absolute_path_to_extensions) { Dir.mktmpdir }
           let(:validator_config_content) do
             <<-EOF
-extensions:
-  paths: [#{absolute_path_to_extensions}]
+  extensions:
+    paths: [#{absolute_path_to_extensions}]
             EOF
           end
 
-          before(:each) do
-            @non_default_spec = File.join(absolute_path_to_extensions, 'my_spec.rb')
-            FileUtils.touch(@non_default_spec)
+
+          context 'and contains no _spec.rb files' do
+            it 'returns no specs' do
+              expect(Validator::Extensions.all.size).to eq(0)
+            end
           end
 
-          it 'returns all specs' do
-            specs = Validator::Extensions.all
-            expect(specs.size).to eq(1)
-            expect(specs).to eq([@non_default_spec])
+          context 'and contains multiple _spec.rb files' do
+            before do
+              FileUtils.touch(File.join(absolute_path_to_extensions, 'test1_spec.rb'))
+              FileUtils.touch(File.join(absolute_path_to_extensions, 'test2_spec.rb'))
+            end
+
+            it 'returns all specs' do
+              specs = Validator::Extensions.all
+              expect(specs.size).to eq(2)
+              expect(specs).to eq(["#{absolute_path_to_extensions}/test1_spec.rb", "#{absolute_path_to_extensions}/test2_spec.rb"])
+            end
+
+            context 'and also contains non-spec files' do
+              before do
+                FileUtils.touch(File.join(absolute_path_to_extensions, 'some-file'))
+              end
+
+              it 'returns only the spec files' do
+                specs = Validator::Extensions.all
+                expect(specs.size).to equal(2)
+                expect(specs).to eq(["#{absolute_path_to_extensions}/test1_spec.rb", "#{absolute_path_to_extensions}/test2_spec.rb"])
+              end
+            end
           end
 
-          after(:each) do
-            FileUtils.rmtree(absolute_path_to_extensions)
+          context 'and folder does not exist' do
+            it 'returns no specs' do
+              specs = Validator::Extensions.all
+              expect(specs.size).to eq(0)
+            end
           end
         end
 
-        context 'and the path is relative to the config file' do
+        context 'and is relative' do
           let(:validator_config_content) do
             <<-EOF
 extensions:
@@ -124,7 +136,10 @@ extensions:
         end
       end
     end
+
   end
+
+
 
   describe '.eval' do
     before do

@@ -239,7 +239,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   it 'allows a VM to reach the configured NTP server' do
     @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
 
-    ntp = YAML.load_file(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])['validator']['ntp'] || ['0.pool.ntp.org', '1.pool.ntp.org']
+    ntp = YAML.load_file(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])['validator']['ntp']
     sudo = " echo 'c1oudc0w' | sudo -S"
     create_ntpserver_command = "#{sudo} bash -c \"echo #{ntp.join(' ')} | tee /var/vcap/bosh/etc/ntpserver\""
     call_ntpdate_command = "#{sudo} /var/vcap/bosh/bin/ntpdate"
