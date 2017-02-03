@@ -79,7 +79,7 @@ describe 'populate' do
             'domain' => 'DOMAIN',
             'project' => 'PROJECT',
             'default_key_name' => 'DEFAULT_KEY_NAME',
-            'default_security_groups' => ['default'],
+            'default_security_groups' => ['validator'],
             'boot_from_volume' => true,
             'config_drive' => 'CONFIG_DRIVE',
             'connection_options' => {

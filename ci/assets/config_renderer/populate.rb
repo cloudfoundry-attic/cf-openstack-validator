@@ -23,10 +23,6 @@ def populate(config, context)
     config['openstack']['default_key_name'] = context['DEFAULT_KEY_NAME']
   end
 
-  if check(context['DEFAULT_SECURITY_GROUPS'])
-    config['openstack']['default_security_groups'] = to_array(context['DEFAULT_SECURITY_GROUPS'])
-  end
-
   if check(context['BOOT_FROM_VOLUME'])
     config['openstack']['boot_from_volume'] = to_bool(context['BOOT_FROM_VOLUME'])
   end
@@ -66,6 +62,8 @@ def populate(config, context)
   if check(context['CA_CERT'])
     config['openstack']['connection_options']['ca_cert'] = context['CA_CERT']
   end
+
+  config['openstack']['default_security_groups'] = to_array('validator')
 
   config['extensions']['config'] = {
       'custom-config-key' => 'custom-config-value'
