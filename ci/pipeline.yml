@@ -133,17 +133,20 @@ jobs:
 resources:
 - name: validator-src
   type: git
+  tags: *tags
   source:
     uri: https://github.com/cloudfoundry-incubator/cf-openstack-validator
     branch: master
 - name: gh-release
   type: github-release
+  tags: *tags
   source:
     user: cloudfoundry-incubator
     repository: cf-openstack-validator
     access_token: {{github_release_access_token}}
 - name: release-semver
   type: semver
+  tags: *tags
   source:
     initial_version: 1.0.0
     driver: git
@@ -153,5 +156,6 @@ resources:
     private_key: {{validator_github_private_key}}
 - name: pipeline-time-trigger
   type: time
+  tags: *tags
   source:
     interval: 1h
