@@ -11,20 +11,21 @@ module Validator
 
       class Base
         extend Validator::Api::CpiHelpers
-        attr_accessor :wait_for
 
-        def initialize(wait_for: Proc.new { status == 'ACTIVE' })
+        def initialize(wait_for: Proc.new { true })
           @wait_for = wait_for
         end
 
-        def get(type, id)
-          FogOpenStack.send(service(type)).send(type).get(id)
+        def get_ready(type, id)
+          resource = FogOpenStack.send(service(type)).send(type).get(id)
+          resource.wait_for(&@wait_for) if resource
+          resource
         rescue Fog::Errors::NotFound
           nil
         end
 
         def destroy(type, id)
-          get(type, id).destroy
+          get_ready(type, id).destroy
         end
 
         def service(resource_type)
@@ -38,9 +39,9 @@ module Validator
 
       class Images < Base
 
-        def get(type, id)
+        def get_ready(type, id)
           if id =~ / light$/
-            OpenStruct.new(:name => "light_stemcell_#{@id}", :wait_for => true)
+            OpenStruct.new(:name => "light_stemcell_#{@id}")
           else
             super(type, id)
           end
@@ -68,7 +69,10 @@ module Validator
         images: Images.new(wait_for: Proc.new { status == 'active' } ),
         servers: Servers.new(wait_for: Proc.new { ready? }),
         volumes: Base.new(wait_for: Proc.new { ready? }),
-        snapshots: Base.new(wait_for: Proc.new { status == 'available' })
+        snapshots: Base.new(wait_for: Proc.new { status == 'available' }),
+        networks: Base.new(wait_for: Proc.new { status == 'ACTIVE' }),
+        ports: Base.new(wait_for: Proc.new { status == 'ACTIVE' }),
+        routers: Base.new(wait_for: Proc.new { status == 'ACTIVE' })
       }
 
       ##
@@ -114,9 +118,7 @@ module Validator
           resource_id = yield
           resource_handler = RESOURCE_HANDLER.fetch(type, Base.new)
 
-          resource = resource_handler.get(type, resource_id)
-
-          resource.wait_for(&resource_handler.wait_for)
+          resource = resource_handler.get_ready(type, resource_id)
 
           @resources << {
               type: type,
@@ -158,7 +160,7 @@ module Validator
 
       def resources
         @resources.reject do |resource|
-          nil == RESOURCE_HANDLER.fetch(resource[:type], Base.new).get(resource[:type], resource[:id])
+          nil == RESOURCE_HANDLER.fetch(resource[:type], Base.new).get_ready(resource[:type], resource[:id])
         end
       end
 
