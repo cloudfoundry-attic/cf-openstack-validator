@@ -14,7 +14,7 @@ provider "openstack" {
 
 resource "openstack_compute_keypair_v2" "openstack_default_key_name" {
   region     = "${var.region_name}"
-  name       = "${var.tenant_name}"
+  name       = "${var.tenant_name}-validator"
   public_key = "${var.openstack_default_key_public_key}"
 }
 

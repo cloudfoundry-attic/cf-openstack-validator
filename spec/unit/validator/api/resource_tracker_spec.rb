@@ -35,6 +35,24 @@ module Validator::Api
         expect(subject.count).to eq(1)
       end
 
+      context "when ':images' resource" do
+        context 'when light stemcell' do
+          it 'does not get the resource from OpenStack' do
+
+            subject.produce(:images) { 'id light' }
+
+            expect(resources).to_not have_received(:get)
+          end
+        end
+
+        it 'stores the resource id' do
+          subject.produce(:images, provide_as: :light_stemcell) { 'id light' }
+
+          expect(subject.consumes(:light_stemcell)).to eq('id light')
+        end
+
+      end
+
       [:servers, :volumes].each do |type|
         context "when #{type} resource" do
           it 'calls wait_for using "ready?"' do
@@ -44,16 +62,6 @@ module Validator::Api
             subject.produce(type) { 'id' }
 
             expect(resource).to have_received(:ready?)
-          end
-        end
-      end
-
-      (ResourceTracker::RESOURCE_SERVICES.values.flatten - ResourceTracker::TYPE_DEFINITIONS.keys).each do |type|
-        context "when #{type} resource" do
-          it 'does not call wait_for' do
-            subject.produce(type) { 'id' }
-
-            expect(resource).to_not have_received(:wait_for)
           end
         end
       end
@@ -132,11 +140,13 @@ module Validator::Api
     end
 
     describe '#cleanup' do
-      let(:cpi) { instance_double(Bosh::Clouds::ExternalCpi, delete_vm: nil) }
-      let(:log_path) {Dir.mktmpdir}
+      let(:cpi) { instance_double(Bosh::Clouds::ExternalCpi, delete_vm: nil, delete_stemcell: nil) }
+      let(:log_path) { Dir.mktmpdir }
+
       before do
+        allow(Logger).to receive(:new).and_return(nil)
         allow(resource).to receive(:destroy).and_return(true)
-        allow(Validator::Api::ResourceTracker).to receive(:log_path).and_return(log_path)
+
         allow(Bosh::Clouds::ExternalCpi).to receive(:new).and_return(cpi)
       end
 
@@ -151,8 +161,9 @@ module Validator::Api
 
         subject.cleanup
 
-        expect(resource).to have_received(:destroy).exactly(2).times
+        expect(resource).to have_received(:destroy).exactly(1).times
         expect(cpi).to have_received(:delete_vm).with('server_id')
+        expect(cpi).to have_received(:delete_stemcell).with('image_id')
       end
 
       it 'reports true' do
@@ -166,6 +177,20 @@ module Validator::Api
       context 'when a resource cannot be destroyed' do
         before do
           allow(resource).to receive(:destroy).and_return(false)
+        end
+
+        it 'return false' do
+          subject.produce(:volumes) { 'volume_id' }
+
+          success = subject.cleanup
+
+          expect(success).to eq(false)
+        end
+      end
+
+      context 'when an image cannot be destroyed' do
+        before do
+          allow(cpi).to receive(:delete_stemcell).and_raise(Bosh::Clouds::CloudError)
         end
 
         it 'return false' do
