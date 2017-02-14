@@ -57,6 +57,7 @@ module Validator
         let(:log_path) {Dir.mktmpdir}
 
         before(:each) do
+          allow(Logger).to receive(:new).and_return(nil)
           allow(Api::ResourceTracker).to receive(:log_path).and_return(log_path)
         end
 
@@ -66,7 +67,7 @@ module Validator
 
         Api::ResourceTracker.resource_types.each do |type|
           it "cleans produced resources for #{type}" do
-            cpi = instance_double(Bosh::Clouds::ExternalCpi, delete_vm: nil)
+            cpi = instance_double(Bosh::Clouds::ExternalCpi, delete_vm: nil, delete_stemcell: nil)
             allow(Bosh::Clouds::ExternalCpi).to receive(:new).and_return(cpi)
             allow(compute).to receive(type).and_return(resources)
             allow(network).to receive(type).and_return(resources)
