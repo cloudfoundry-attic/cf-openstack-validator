@@ -56,7 +56,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     vm_cid = @resource_tracker.consumes(:vm_cid, 'No VM to check')
 
     has_vm = with_cpi('VM cid could not be found.') {
-      @cpi.has_vm?(vm_cid)
+      @cpi.has_vm(vm_cid)
     }
 
     expect(has_vm).to be true
@@ -87,7 +87,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     disk_cid = @resource_tracker.consumes(:disk_cid, 'No disk to check')
 
     has_disk = with_cpi('Disk cid could not be found.') {
-      @cpi.has_disk?(disk_cid)
+      @cpi.has_disk(disk_cid)
     }
 
     expect(has_disk).to be true
