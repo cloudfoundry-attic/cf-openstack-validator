@@ -1,0 +1,28 @@
+---
+
+validator:
+  network_id: some_network_id
+  floating_ip: some_floating_ip
+  static_ip: some_static_ip
+  private_key_path: cf-validator.rsa_id
+  public_image_id: some_public_image_id
+  releases:
+  - name: bosh-openstack-cpi
+    url: cpi-download-url
+    sha1: cpi-sha1
+
+cloud_config:
+  vm_types:
+  - name: default
+    cloud_properties:
+      instance_type: some_instance_type
+
+openstack:
+  auth_url: "https://auth.url/identity/v2.0"
+  username: "username"
+  password: "password"
+  tenant: "tenant"
+  project: "project"
+  connection_options:
+    ssl_ca_file: "./cacert.pem"
+  boot_from_volume: false

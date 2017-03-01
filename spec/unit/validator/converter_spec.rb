@@ -2,10 +2,21 @@ require_relative '../spec_helper'
 
 describe Validator::Converter do
 
-  describe 'end to end' do
+  describe 'end to end keystone v3 config' do
     let(:config) { Validator::Api::Configuration.new("#{File.dirname(__FILE__)}/../../assets/validator.yml") }
     it 'produces the expected result for the given input' do
       expected_cpi_config =  YAML.load_file("#{File.dirname(__FILE__)}/../../assets/expected_cpi.json")
+
+      allow(Validator::NetworkHelper).to receive(:next_free_ephemeral_port).and_return(11111)
+
+      expect(Validator::Converter.to_cpi_json(config.openstack)).to eq(expected_cpi_config)
+    end
+  end
+
+  describe 'end to end keystone v2 config' do
+    let(:config) { Validator::Api::Configuration.new("#{File.dirname(__FILE__)}/../../assets/validator_keystone_v2.yml") }
+    it 'produces the expected result for the given input' do
+      expected_cpi_config =  YAML.load_file("#{File.dirname(__FILE__)}/../../assets/expected_cpi_keystone_v2.json")
 
       allow(Validator::NetworkHelper).to receive(:next_free_ephemeral_port).and_return(11111)
 
@@ -41,6 +52,40 @@ describe Validator::Converter do
           rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(complete_config)
 
           expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/v3/auth/tokens'
+        end
+      end
+
+      context "when keystone v2 is being used" do
+        let(:auth_url) { 'https://auth.url/identity/v2.0/tokens' }
+        let(:complete_config) do
+          {
+              'auth_url' => auth_url,
+              'username' => 'username',
+              'password' => 'password',
+              'tenant' => 'tenant'
+          }
+        end
+
+        it "uses 'auth_url' parameter as given" do
+          rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(complete_config)
+
+          expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/identity/v2.0/tokens'
+        end
+
+        it "emits 'tenant' and not 'domain' or 'project'" do
+          rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(complete_config)
+
+          expect(rendered_cpi_config).to_not have_key 'domain'
+          expect(rendered_cpi_config).to_not have_key 'project'
+          expect(rendered_cpi_config.fetch('tenant')).to eq 'tenant'
+        end
+
+        context 'but the URL does not end in /tokens' do
+          it "appends 'auth/tokens' to 'auth_url' parameter" do
+            rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(complete_config)
+
+            expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/identity/v2.0/tokens'
+          end
         end
       end
 

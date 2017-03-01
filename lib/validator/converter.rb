@@ -38,13 +38,34 @@ module Validator
       cpi_config(openstack_config, registry_port)
     end
 
-    PARAM_CONVERTERS = {
+    def self.base_converters
+      {
+        'password' => ->(_, value) { ['api_key', value] },
+        'connection_options' => {
+            'ca_cert' => ->(_, value) {
+              return nil if value.to_s == ''
+              ssl_ca_file_path = File.join(Dir.mktmpdir, 'cacert.pem')
+              File.write(ssl_ca_file_path, value)
+              ['ssl_ca_file', ssl_ca_file_path]
+            }
+        }
+      }
+    end
+
+    def self.keystone_v2_converters
+      {
         'auth_url' => ->(key, value) {
-          if value.end_with?('/auth/tokens')
+          if value.end_with?('/tokens')
             [key, value]
           else
-            [key, "#{value}/auth/tokens"]
+            [key, "#{value}/tokens"]
           end
+        },
+        'domain' => ->(key, value) {
+          nil
+        },
+        'project' => ->(key, value) {
+          nil
         },
         'password' => ->(_, value) { ['api_key', value] },
         'connection_options' => {
@@ -55,10 +76,29 @@ module Validator
               ['ssl_ca_file', ssl_ca_file_path]
             }
         }
-    }
+      }.merge(base_converters)
+    end
+
+    def self.keystone_v3_converters
+      {
+        'auth_url' => ->(key, value) {
+          if value.end_with?('/auth/tokens')
+            [key, value]
+          else
+            [key, "#{value}/auth/tokens"]
+          end
+        }
+      }.merge(base_converters)
+    end
 
     def self.convert_and_apply_defaults(openstack_params)
-      apply_converters(openstack_defaults.merge(openstack_params), PARAM_CONVERTERS)
+      converters = keystone_v3_converters
+
+      if openstack_params.fetch('auth_url').include?('v2')
+        converters = keystone_v2_converters
+      end
+
+      apply_converters(openstack_defaults.merge(openstack_params), converters)
     end
 
     def self.apply_converters(hash, converters)

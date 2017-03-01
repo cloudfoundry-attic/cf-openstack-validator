@@ -11,7 +11,8 @@ describe 'ValidatorConfig' do
         'username'=> '',
         'password'=> '',
         'domain'=> '',
-        'project'=> ''
+        'project'=> '',
+        'tenant'=>''
       },
       'validator'=> {
         'network_id' => '',

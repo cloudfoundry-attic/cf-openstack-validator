@@ -1,0 +1,31 @@
+{
+  "cloud": {
+    "plugin": "openstack",
+    "properties": {
+      "openstack": {
+        "auth_url": "https://auth.url/identity/v2.0/tokens",
+        "username": "username",
+        "api_key": "password",
+        "tenant": "tenant",
+        "default_key_name": "cf-validator",
+        "default_security_groups": ["default"],
+        "wait_resource_poll_interval": 5,
+        "ignore_server_availability_zone": false,
+        "endpoint_type": "publicURL",
+        "state_timeout": 300,
+        "stemcell_public_visibility": false,
+        "connection_options": {
+          "ssl_ca_file": "./cacert.pem"
+        },
+        "boot_from_volume": false,
+        "use_dhcp": true,
+        "human_readable_vm_names": true
+      },
+      "registry": {
+        "endpoint": "http://localhost:11111",
+        "user": "fake",
+        "password": "fake"
+      }
+    }
+  }
+}

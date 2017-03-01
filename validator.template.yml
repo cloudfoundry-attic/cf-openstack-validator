@@ -1,10 +1,11 @@
 ---
 openstack:
-  auth_url: <replace-me> # Keystone V3 URL
+  auth_url: <replace-me> # Keystone V2/V3 URL - see domain, project, tenant below
   username: <replace-me> # String
   password: <replace-me> # String
-  domain: <replace-me> # String
-  project: <replace-me> # String
+  domain: <replace-me> # String - required if using Keystone V3
+  project: <replace-me> # String - required if using Keystone V3
+  # tenant: <replace-me> # String - required if using Keystone V2
   default_key_name: cf-validator # String
   default_security_groups: [default] # List of String
   boot_from_volume: false # Boolean
