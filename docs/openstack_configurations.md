@@ -34,3 +34,11 @@ By default, the OpenStack uses neutron for networking since version 28. If you r
 ## Using a non-default region
 
 By default, OpenStack uses one default region. If you are using a different one, you can add it in the property `openstack.region`.
+
+## Ignoring server availability zones
+
+BOSH will attempt to create volumes in a Cinder availability zone with the same name as the availability zone of the server that the volume is being created for. If your Cinder and Nova availability zones do not have symmetrical names, this will lead to volume creation failures.
+
+The OpenStack Validator will fail the `Your OpenStack using the CPI can create a disk in same AZ as VM` spec with an error message similar to `OpenStack API Bad Request (Invalid input received: Availability zone 'nova-zone' is invalid)`.
+
+BOSH can be told to ignore server availability zones by setting the `ignore_server_availability_zone` CPI property to `false`; the OpenStack Validator will pass this setting through if configured in `validator.yml` as `openstack.ignore_server_availability_zone: false`.
