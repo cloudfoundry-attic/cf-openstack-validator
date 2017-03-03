@@ -140,14 +140,14 @@ module Validator::Api
     end
 
     describe '#cleanup' do
-      let(:cpi) { instance_double(Bosh::Clouds::ExternalCpi, delete_vm: nil, delete_stemcell: nil) }
+      let(:cpi) { instance_double(Validator::ExternalCpi, delete_vm: nil, delete_stemcell: nil) }
       let(:log_path) { Dir.mktmpdir }
 
       before do
         allow(Logger).to receive(:new).and_return(nil)
         allow(resource).to receive(:destroy).and_return(true)
 
-        allow(Bosh::Clouds::ExternalCpi).to receive(:new).and_return(cpi)
+        allow(Validator::ExternalCpi).to receive(:new).and_return(cpi)
       end
 
       after do
@@ -188,33 +188,39 @@ module Validator::Api
         end
       end
 
-      context 'when an image cannot be destroyed' do
-        before do
-          allow(cpi).to receive(:delete_stemcell).and_raise(Bosh::Clouds::CloudError)
+      [
+          Validator::ExternalCpi::CpiError,
+          Validator::ExternalCpi::InvalidResponse,
+          Validator::ExternalCpi::NonExecutable
+      ].each do |error|
+        context "when an image cannot be destroyed with #{error}" do
+          before do
+            allow(cpi).to receive(:delete_stemcell).and_raise(error)
+          end
+
+          it 'return false' do
+            subject.produce(:images) { 'image_id' }
+
+            success = subject.cleanup
+
+            expect(success).to eq(false)
+          end
         end
 
-        it 'return false' do
-          subject.produce(:images) { 'image_id' }
+        context "when a server cannot be destroyed #{error}" do
+          before do
+            cpi = instance_double(Validator::ExternalCpi)
+            allow(cpi).to receive(:delete_vm).and_raise(error)
+            allow(Validator::ExternalCpi).to receive(:new).and_return(cpi)
+          end
 
-          success = subject.cleanup
+          it 'return false' do
+            subject.produce(:servers) { 'server_id' }
 
-          expect(success).to eq(false)
-        end
-      end
+            success = subject.cleanup
 
-      context 'when a server cannot be destroyed' do
-        before do
-          cpi = instance_double(Bosh::Clouds::ExternalCpi)
-          allow(cpi).to receive(:delete_vm).and_raise(Bosh::Clouds::CloudError)
-          allow(Bosh::Clouds::ExternalCpi).to receive(:new).and_return(cpi)
-        end
-
-        it 'return false' do
-          subject.produce(:servers) { 'server_id' }
-
-          success = subject.cleanup
-
-          expect(success).to eq(false)
+            expect(success).to eq(false)
+          end
         end
       end
     end

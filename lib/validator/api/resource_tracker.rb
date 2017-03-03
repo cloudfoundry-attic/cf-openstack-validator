@@ -50,7 +50,7 @@ module Validator
         def destroy(_, stemcell_cid)
           Base.cpi.delete_stemcell(stemcell_cid)
           true
-        rescue Bosh::Clouds::CloudError => e
+        rescue Validator::ExternalCpi::CpiError => e
           false
         end
 
@@ -60,7 +60,7 @@ module Validator
         def destroy(_, vm_cid)
           Base.cpi.delete_vm(vm_cid)
           true
-        rescue Bosh::Clouds::CloudError => e
+        rescue Validator::ExternalCpi::CpiError => e
           false
         end
       end
