@@ -102,7 +102,7 @@ module Validator
 
       def cpi(cpi_path_arg = cpi_path, log_path_arg = log_path)
         logger = Logger.new("#{log_path_arg}/testsuite.log")
-        Validator::ExternalCpi.new(cpi_path_arg, logger, "#{log_path_arg}/cpi.log")
+        Validator::ExternalCpi.new(cpi_path_arg, logger, "#{log_path_arg}/cpi.log", "#{log_path_arg}/stats.log")
       end
     end
   end

@@ -21,10 +21,11 @@ module Validator
       }
     end
 
-    def initialize(cpi_path, logger, cpi_task_log_path)
+    def initialize(cpi_path, logger, cpi_task_log_path, stats_log_path)
       @cpi_path = cpi_path
       @logger = logger
       @cpi_task_log_path = cpi_task_log_path
+      @stats_log_path = stats_log_path
     end
 
     def current_vm_id(*arguments); invoke_cpi_method(__method__.to_s, *arguments); end
@@ -50,17 +51,17 @@ module Validator
     def invoke_cpi_method(method_name, *arguments)
       context = {
         'director_uuid' => 'validator',
-        'request_id' => "#{Random.rand(100000..999999)}"
+        'request_id' => "#{generate_request_id}"
       }
 
-      request = request_json(method_name, arguments, context)
-      redacted_request = request_json(method_name, redact_arguments(method_name, arguments), redact_context(context))
+      request_json = JSON.dump(request(method_name, arguments, context))
+      redacted_request = request(method_name, redact_arguments(method_name, arguments), redact_context(context))
 
       env = {'PATH' => '/usr/sbin:/usr/bin:/sbin:/bin', 'TMPDIR' => ENV['TMPDIR']}
       cpi_exec_path = checked_cpi_exec_path
 
-      @logger.debug("External CPI sending request: #{redacted_request} with command: #{cpi_exec_path}")
-      cpi_response, stderr, exit_status = Open3.capture3(env, cpi_exec_path, stdin_data: request, unsetenv_others: true)
+      @logger.debug("External CPI sending request: #{JSON.dump(redacted_request)} with command: #{cpi_exec_path}")
+      cpi_response, stderr, exit_status = Open3.capture3(env, cpi_exec_path, stdin_data: request_json, unsetenv_others: true)
       @logger.debug("External CPI got response: #{cpi_response}, err: #{stderr}, exit_status: #{exit_status}")
 
       parsed_response = parsed_response(cpi_response)
@@ -68,6 +69,8 @@ module Validator
 
       save_cpi_log(parsed_response['log'])
       save_cpi_log(stderr)
+
+      save_stats_log(redacted_request, parsed_response['stats'])
 
       if parsed_response['error']
         handle_error(parsed_response['error'], method_name)
@@ -109,12 +112,12 @@ module Validator
       Hash[hash.map { |k,v| [k, keys.include?(k) ? v.dup : '<redacted>'] }]
     end
 
-    def request_json(method_name, arguments, context)
-      JSON.dump({
+    def request(method_name, arguments, context)
+      {
         'method' => method_name,
         'arguments' => arguments,
         'context' => context
-      })
+      }
     end
 
     def handle_error(error_response, method_name)
@@ -130,6 +133,17 @@ module Validator
       end
     end
 
+    def save_stats_log(request, stats)
+      File.open(@stats_log_path, 'a') do |f|
+        f.puts(JSON.dump({
+            'request' => request,
+            'response' => {
+                'stats' => stats
+            }
+        }))
+      end
+    end
+
     def parsed_response(input)
       begin
         JSON.load(input)
@@ -142,6 +156,10 @@ module Validator
       RESPONSE_SCHEMA.validate(response)
     rescue Membrane::SchemaValidationError => e
       raise InvalidResponse, "Invalid CPI response - SchemaValidationError: #{e.message}"
+    end
+
+    def generate_request_id
+      Random.rand(100000..999999)
     end
   end
 end

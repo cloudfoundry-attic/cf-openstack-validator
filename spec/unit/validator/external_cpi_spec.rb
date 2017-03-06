@@ -7,6 +7,7 @@ describe Validator::ExternalCpi do
   let(:cpi_task_log_path) { File.join(tmpdir, 'task.log') }
   let(:logger) { Logger.new(log_file) }
   let(:cpi_path) { '/path/to/cpi' }
+  let(:stats_log_path) { File.join(tmpdir, 'stats.log') }
   let(:response) {
     {
       'result' => '',
@@ -20,7 +21,7 @@ describe Validator::ExternalCpi do
   }
 
   subject {
-    Validator::ExternalCpi.new(cpi_path, logger, cpi_task_log_path)
+    Validator::ExternalCpi.new(cpi_path, logger, cpi_task_log_path, stats_log_path)
   }
 
   before(:each) {
@@ -75,12 +76,125 @@ describe Validator::ExternalCpi do
       }.to_json
     }
 
-    it 'sets a director_uuid in the context' do
+    before do
       allow(File).to receive(:executable?).with(cpi_path).and_return(cpi_path)
+    end
 
+    it 'sets a director_uuid in the context' do
       subject.current_vm_id
 
       expect(Open3).to have_received(:capture3).with(anything, anything, contains_director_uuid('validator'))
+    end
+
+    context 'logging stats' do
+      before do
+        allow(subject).to receive(:generate_request_id).and_return('777777')
+      end
+
+      context 'when the cpi return stats' do
+        let(:response) {
+          {
+              'result' => '',
+              'error' => nil,
+              'log' => '',
+              'stats' => {
+                  'time' => {
+                      'start' => '2016-12-12 00:00:00 UTC',
+                      'duration' => 90.12
+                  }
+              }
+          }.to_json
+        }
+
+        it 'logs the data to the given path' do
+          subject.current_vm_id('1', '2', '3', '4')
+
+          expect(JSON.load(File.read(stats_log_path))).to eq({
+              'request' => {
+                  'method' => 'current_vm_id',
+                  'arguments' => ['1', '2', '3', '4'],
+                  'context' => {
+                      'director_uuid' => 'validator',
+                      'request_id' => '777777'
+                  }
+              },
+              'response' => {
+                  'stats' => {
+                      'time' => {
+                          'start' => '2016-12-12 00:00:00 UTC',
+                          'duration' => 90.12
+                      }
+                  }
+              }
+          })
+        end
+
+        it 'appends additional calls to the file' do
+          subject.current_vm_id('1', '2', '3', '4')
+          subject.current_vm_id('6', '7', '8', '9')
+
+          calls = File.read(stats_log_path).split("\n")
+
+          expect(JSON.load(calls[0])).to eq({
+              'request' => {
+                  'method' => 'current_vm_id',
+                  'arguments' => ['1', '2', '3', '4'],
+                  'context' => {
+                      'director_uuid' => 'validator',
+                      'request_id' => '777777'
+                  }
+              },
+              'response' => {
+                  'stats' => {
+                      'time' => {
+                          'start' => '2016-12-12 00:00:00 UTC',
+                          'duration' => 90.12
+                      }
+                  }
+              }
+          })
+
+          expect(JSON.load(calls[1])).to eq({
+              'request' => {
+                  'method' => 'current_vm_id',
+                  'arguments' => ['6', '7', '8', '9'],
+                  'context' => {
+                      'director_uuid' => 'validator',
+                      'request_id' => '777777'
+                  }
+              },
+              'response' => {
+                  'stats' => {
+                      'time' => {
+                          'start' => '2016-12-12 00:00:00 UTC',
+                          'duration' => 90.12
+                      }
+                  }
+              }
+          })
+        end
+
+      end
+
+      context 'when cpi does NOT return stats' do
+        it 'logs with stats as null' do
+          subject.current_vm_id
+
+          expect(JSON.load(File.read(stats_log_path))).to eq({
+              'request' => {
+                  'method' => 'current_vm_id',
+                  'arguments' => [],
+                  'context' => {
+                      'director_uuid' => 'validator',
+                      'request_id' => '777777'
+                  }
+              },
+              'response' => {
+                  'stats' => nil
+              }
+          })
+        end
+      end
     end
   end
 end

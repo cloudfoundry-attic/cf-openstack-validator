@@ -14,6 +14,7 @@ module Validator::Cli
     def run
       begin
         print_working_dir
+        cleanup_logs
         validate_config
         generate_cpi_config
         prepare_cpi_release
@@ -217,6 +218,13 @@ module Validator::Cli
 
     def print_working_dir
       puts "Using '#{@context.working_dir}' as working directory"
+    end
+
+    def cleanup_logs
+      logfile_path = File.join(log_directory, 'stats.log')
+      if File.exists?(logfile_path)
+        FileUtils.remove(logfile_path)
+      end
     end
 
     def download_cpi_release(download_url, cpi_release_path)

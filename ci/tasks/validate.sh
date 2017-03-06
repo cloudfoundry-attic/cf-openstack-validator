@@ -34,7 +34,13 @@ bundle install --path .bundle
 
 ./validate -s ~/stemcell.tgz -c validator.yml
 
+echo 'Stats:'
+cat ~/.cf-openstack-validator/logs/stats.log
+
 CONFIG_DRIVE='disk' ci/assets/config_renderer/render validator.template.yml > validator.yml
 cat validator.yml
 
 ./validate -s ~/stemcell.tgz -c validator.yml
+
+echo 'Stats:'
+cat ~/.cf-openstack-validator/logs/stats.log

@@ -24,6 +24,7 @@ module Validator::Cli
     describe '#run' do
       before(:each) do
         allow(subject).to receive(:print_working_dir)
+        allow(subject).to receive(:cleanup_logs)
         allow(subject).to receive(:check_installation)
         allow(subject).to receive(:prepare_ruby_environment)
         allow(subject).to receive(:validate_config)
@@ -687,6 +688,32 @@ EOF
           end
         end
       end
+    end
+
+    describe '#cleanup_logs' do
+      let(:log_path) { File.join(working_dir, 'logs') }
+
+      context 'when stats.log already exists' do
+
+        before do
+          FileUtils.mkdir_p(log_path)
+          File.write(File.join(log_path, 'stats.log'), 'extreme performance')
+        end
+
+        it 'deletes <logpath>/stats.log' do
+          subject.cleanup_logs
+          expect(File.exists?(File.join(log_path, 'stats.log'))).to be(false)
+        end
+
+      end
+
+      context 'when stats.log does not exist' do
+        it 'does not' do
+          subject.cleanup_logs
+          expect(File.exists?(File.join(log_path, 'stats.log'))).to be(false)
+        end
+      end
+
     end
   end
 end
