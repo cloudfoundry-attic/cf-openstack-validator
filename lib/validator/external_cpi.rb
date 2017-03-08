@@ -61,7 +61,10 @@ module Validator
       cpi_exec_path = checked_cpi_exec_path
 
       @logger.debug("External CPI sending request: #{JSON.dump(redacted_request)} with command: #{cpi_exec_path}")
-      cpi_response, stderr, exit_status = Open3.capture3(env, cpi_exec_path, stdin_data: request_json, unsetenv_others: true)
+      cpi_response, stderr, exit_status = nil, nil, nil
+      measure = Benchmark.measure {
+        cpi_response, stderr, exit_status = Open3.capture3(env, cpi_exec_path, stdin_data: request_json, unsetenv_others: true)
+      }
       @logger.debug("External CPI got response: #{cpi_response}, err: #{stderr}, exit_status: #{exit_status}")
 
       parsed_response = parsed_response(cpi_response)
@@ -70,7 +73,7 @@ module Validator
       save_cpi_log(parsed_response['log'])
       save_cpi_log(stderr)
 
-      save_stats_log(redacted_request, parsed_response['stats'])
+      save_stats_log(redacted_request, measure)
 
       if parsed_response['error']
         handle_error(parsed_response['error'], method_name)
@@ -133,13 +136,11 @@ module Validator
       end
     end
 
-    def save_stats_log(request, stats)
+    def save_stats_log(request, measure)
       File.open(@stats_log_path, 'a') do |f|
         f.puts(JSON.dump({
             'request' => request,
-            'response' => {
-                'stats' => stats
-            }
+            'duration' => measure.real
         }))
       end
     end

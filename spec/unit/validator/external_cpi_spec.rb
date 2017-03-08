@@ -87,113 +87,70 @@ describe Validator::ExternalCpi do
     end
 
     context 'logging stats' do
-      before do
+      let(:start_time) { Time.new(2016,12,12,1,0,0).utc }
+      let(:end_time) { Time.new(2016,12,12,1,1,30).utc }
+      let(:duration) { (end_time - start_time) }
+      let(:response) {
+        {
+            'result' => '',
+            'error' => nil,
+            'log' => ''
+        }.to_json
+      }
+
+      before(:each) do
         allow(subject).to receive(:generate_request_id).and_return('777777')
+        allow(Benchmark).to receive(:measure) do |&block|
+          block.call
+          instance_double(Benchmark::Tms, real: duration)
+        end
       end
 
-      context 'when the cpi return stats' do
-        let(:response) {
-          {
-              'result' => '',
-              'error' => nil,
-              'log' => '',
-              'stats' => {
-                  'time' => {
-                      'start' => '2016-12-12 00:00:00 UTC',
-                      'duration' => 90.12
-                  }
-              }
-          }.to_json
-        }
+      it 'logs the data to the given path' do
+        subject.current_vm_id('1', '2', '3', '4')
 
-        it 'logs the data to the given path' do
-          subject.current_vm_id('1', '2', '3', '4')
-
-          expect(JSON.load(File.read(stats_log_path))).to eq({
-              'request' => {
-                  'method' => 'current_vm_id',
-                  'arguments' => ['1', '2', '3', '4'],
-                  'context' => {
-                      'director_uuid' => 'validator',
-                      'request_id' => '777777'
-                  }
-              },
-              'response' => {
-                  'stats' => {
-                      'time' => {
-                          'start' => '2016-12-12 00:00:00 UTC',
-                          'duration' => 90.12
-                      }
-                  }
-              }
-          })
-        end
-
-        it 'appends additional calls to the file' do
-          subject.current_vm_id('1', '2', '3', '4')
-          subject.current_vm_id('6', '7', '8', '9')
-
-          calls = File.read(stats_log_path).split("\n")
-
-          expect(JSON.load(calls[0])).to eq({
-              'request' => {
-                  'method' => 'current_vm_id',
-                  'arguments' => ['1', '2', '3', '4'],
-                  'context' => {
-                      'director_uuid' => 'validator',
-                      'request_id' => '777777'
-                  }
-              },
-              'response' => {
-                  'stats' => {
-                      'time' => {
-                          'start' => '2016-12-12 00:00:00 UTC',
-                          'duration' => 90.12
-                      }
-                  }
-              }
-          })
-
-          expect(JSON.load(calls[1])).to eq({
-              'request' => {
-                  'method' => 'current_vm_id',
-                  'arguments' => ['6', '7', '8', '9'],
-                  'context' => {
-                      'director_uuid' => 'validator',
-                      'request_id' => '777777'
-                  }
-              },
-              'response' => {
-                  'stats' => {
-                      'time' => {
-                          'start' => '2016-12-12 00:00:00 UTC',
-                          'duration' => 90.12
-                      }
-                  }
-              }
-          })
-        end
-
+        expect(JSON.load(File.read(stats_log_path))).to eq({
+            'request' => {
+                'method' => 'current_vm_id',
+                'arguments' => ['1', '2', '3', '4'],
+                'context' => {
+                    'director_uuid' => 'validator',
+                    'request_id' => '777777'
+                }
+            },
+            'duration' => 90
+        })
       end
 
-      context 'when cpi does NOT return stats' do
-        it 'logs with stats as null' do
-          subject.current_vm_id
+      it 'appends additional calls to the file' do
+        subject.current_vm_id('1', '2', '3', '4')
+        subject.current_vm_id('6', '7', '8', '9')
 
-          expect(JSON.load(File.read(stats_log_path))).to eq({
-              'request' => {
-                  'method' => 'current_vm_id',
-                  'arguments' => [],
-                  'context' => {
-                      'director_uuid' => 'validator',
-                      'request_id' => '777777'
-                  }
-              },
-              'response' => {
-                  'stats' => nil
-              }
-          })
-        end
+        calls = File.read(stats_log_path).split("\n")
+
+        expect(JSON.load(calls[0])).to eq({
+            'request' => {
+                'method' => 'current_vm_id',
+                'arguments' => ['1', '2', '3', '4'],
+                'context' => {
+                    'director_uuid' => 'validator',
+                    'request_id' => '777777'
+                }
+            },
+            'duration' => 90
+        })
+
+        expect(JSON.load(calls[1])).to eq({
+            'request' => {
+                'method' => 'current_vm_id',
+                'arguments' => ['6', '7', '8', '9'],
+                'context' => {
+                    'director_uuid' => 'validator',
+                    'request_id' => '777777'
+                }
+            },
+            'duration' => 90
+        })
       end
     end
   end

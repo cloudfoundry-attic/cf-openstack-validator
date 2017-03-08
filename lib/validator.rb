@@ -10,6 +10,7 @@ require 'tmpdir'
 require 'pathname'
 require 'socket'
 require 'logger'
+require 'benchmark'
 
 require_relative 'validator/converter'
 require_relative 'validator/formatter'
