@@ -10,6 +10,7 @@ Is your OpenStack installation ready to run BOSH and install Cloud Foundry? Run 
 ### OpenStack
 
 * Keystone v3
+* Cinder v2
 * Create an OpenStack project/tenant
 * Create a network
   * Connect the network with a router to your external network
@@ -20,7 +21,7 @@ Is your OpenStack installation ready to run BOSH and install Cloud Foundry? Run 
 $ ssh-keygen -t rsa -b 4096 -N "" -f cf-validator.rsa_id
 ```
   * Upload the generated public key to OpenStack as `cf-validator`
-  
+
 * A public image available in glance
   * If your OpenStack installation doesn't yet provide any image, you can upload a [CirrOS test image](http://docs.openstack.org/image-guide/obtain-images.html#cirros-test)
 
@@ -63,7 +64,7 @@ $ ./validate --stemcell bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent
 
 ## Configure CPI used by validator
 
-Validator downloads CPI release from the URL specified in the validator configuration. You can override this by specifying the `--cpi-release` command line option with the path to a CPI release tarball. 
+Validator downloads CPI release from the URL specified in the validator configuration. You can override this by specifying the `--cpi-release` command line option with the path to a CPI release tarball.
 
 If you already have a CPI compiled, you can specify the path to the executable in the environment variable `OPENSTACK_CPI_BIN`. This is used when no CPI release is specified on the command line. It overrides the setting in the validator configuration file.
 
