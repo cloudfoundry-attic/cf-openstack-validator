@@ -34,5 +34,5 @@ cloud_config:
       # root_disk: {size: 20} # Integer, size in GiB. Used together with openstack.boot_from_volume.
 
 extensions:
-  paths: [./extensions/] # paths pointing to a directory. Absolute or relative to this config file.
+  paths: [] # paths pointing to a directory. Absolute or relative to this config file.
   # config: {} # everything below 'config' is available in tests as `Validator::Api.configuration.extensions` inside your test code

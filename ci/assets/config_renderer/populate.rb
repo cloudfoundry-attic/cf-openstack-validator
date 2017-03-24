@@ -63,11 +63,17 @@ def populate(config, context)
     config['openstack']['connection_options']['ca_cert'] = context['CA_CERT']
   end
 
+  if context['OBJECT_STORAGE'] == 'true'
+    config['extensions']['paths'].unshift('./extensions/object_storage/')
+  end
+
   config['openstack']['default_security_groups'] = to_array('validator')
 
   config['extensions']['config'] = {
       'custom-config-key' => 'custom-config-value'
   }
+
+  config['extensions']['paths'].unshift('./sample_extensions/')
 
   config
 end

@@ -16,6 +16,7 @@ set -e -x
 : ${NTP_SERVER:?}
 : ${CA_CERT:-""}
 : ${AVAILABILITY_ZONE:-""}
+: ${OBJECT_STORAGE:?}
 
 # Copy to user's home, because we don't have write permissions on the source directory
 cp -r validator-src ~
@@ -27,8 +28,6 @@ chmod 400 cf-validator.rsa_id
 
 ci/assets/config_renderer/render validator.template.yml > validator.yml
 cat validator.yml
-
-cp extensions/dummy_extension_spec.sample.rb extensions/dummy_extension_spec.rb
 
 bundle install --path .bundle
 
