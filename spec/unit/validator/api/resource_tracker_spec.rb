@@ -7,6 +7,7 @@ module Validator::Api
     let(:network) { double('network', networks: resources, routers: resources, subnets: resources, floating_ips: resources, security_groups: resources, security_group_rules: resources, ports: resources) }
     let(:image) { double('image', images: resources) }
     let(:volume) { double('volume', volumes: resources, snapshots: resources) }
+    let(:storage) { double('storage', directories: resources, files: resources) }
     let(:resources) { double('resources', get: resource) }
     let(:resource) { double('resource', name: 'my-resource', wait_for: nil) }
 
@@ -15,6 +16,7 @@ module Validator::Api
       allow(FogOpenStack).to receive(:network).and_return(network)
       allow(FogOpenStack).to receive(:image).and_return(image)
       allow(FogOpenStack).to receive(:volume).and_return(volume)
+      allow(FogOpenStack).to receive(:storage).and_return(storage)
     end
 
     describe '.create' do
@@ -33,6 +35,29 @@ module Validator::Api
 
         expect(resource_id).to eq('id')
         expect(subject.count).to eq(1)
+      end
+
+      context "when ':directories' resource" do
+        let(:resource) { double('directory_resource', key: 'my-resource', files: double('files', get: double('file', key: 'my-file')),  wait_for: nil) }
+
+        it 'stores the resource id' do
+          subject.produce(:directories, provide_as: :root) { 'directory_id' }
+
+          expect(subject.consumes(:root)).to eq('directory_id')
+        end
+      end
+
+      context "when ':files' resource" do
+        let(:storage) { double('storage', directories: resources, files: file_resources) }
+        let(:file_resources) { double('file_resources', get: file_resource) }
+        let(:file_resource) { double('file_resource', key: 'my-resource', wait_for: nil) }
+        let(:resource) { double('directory_resource', key: 'my-resource', files: double('files', get: double('file', key: 'my-file')),  wait_for: nil) }
+
+        it 'stores the resource id' do
+          subject.produce(:files, provide_as: :blob) { ['directory_id', 'file_id'] }
+
+          expect(subject.consumes(:blob)).to eq(['directory_id', 'file_id'])
+        end
       end
 
       context "when ':images' resource" do
@@ -174,6 +199,42 @@ module Validator::Api
         expect(success).to eq(true)
       end
 
+      context 'when object store' do
+        let(:storage) { double('storage', directories: resources, files: file_resources) }
+        let(:file_resources) { double('file_resources', get: file_resource) }
+        let(:file_resource) { double('file_resource', key: 'my-file', wait_for: nil) }
+        let(:resource) { double('directory_resource', key: 'my-resource', files: file_resources, wait_for: nil) }
+
+        before do
+          allow(file_resource).to receive(:destroy).and_return(true)
+          allow(file_resources).to receive(:each).and_yield(file_resource).and_yield(file_resource)
+        end
+
+        context 'when a directory contains files' do
+          it 'deletes all files and the directory' do
+            subject.produce(:directories) { 'directory_id' }
+            subject.produce(:files) { ['directory_id', 'file_1_id'] }
+            subject.produce(:files) { ['directory_id', 'file_2_id'] }
+
+            subject.cleanup
+
+            expect(resource).to have_received(:destroy).exactly(1).times
+            expect(file_resource).to have_received(:destroy).at_least(2).times
+          end
+        end
+
+        context 'when file object' do
+          it 'deletes the file' do
+            subject.produce(:files) { ['directory_id', 'file_id'] }
+
+            subject.cleanup
+
+            expect(resource).to_not have_received(:destroy)
+            expect(file_resource).to have_received(:destroy).exactly(1).times
+          end
+        end
+      end
+
       context 'when a resource cannot be destroyed' do
         before do
           allow(resource).to receive(:destroy).and_return(false)
@@ -233,37 +294,42 @@ module Validator::Api
 
     describe '#resources' do
 
-      it 'returns all resources existing in openstack' do
-        ResourceTracker::RESOURCE_SERVICES.each do |service, types|
+      def mock_all_service_types(general_resource_mock, storage_resource_mock)
+        # We don't have access to some Base instances here therefore we need to mock the class.
+        # Mocking the same method of subclasses and their parent class at the same time is only working if the parent class is mocked last.
+        # So it is order dependent therefor we did not do it.
+        allow_any_instance_of(Validator::Api::ResourceTracker::Base).to receive(:get_ready).and_return(general_resource_mock)
+        ResourceTracker::RESOURCE_SERVICES.each do |_, types|
           types.each do |type|
-            allow(FogOpenStack).to receive_message_chain(service, type).and_return(double('resource_collection', get: double('resource', name: "#{type}-name", wait_for: nil)))
+            if type == :files || type == :directories
+              allow(ResourceTracker::RESOURCE_HANDLER.fetch(type)).to receive(:get_ready).and_return(storage_resource_mock)
+            elsif ResourceTracker::RESOURCE_HANDLER.key?(type)
+              allow(ResourceTracker::RESOURCE_HANDLER.fetch(type)).to receive(:get_ready).and_return(general_resource_mock)
+            end
+          end
+        end
+      end
 
+      before(:each) do
+        mock_all_service_types(double('resource', name: 'some-name', wait_for: nil), double('resource', key: 'some-name', wait_for: nil))
+        ResourceTracker::RESOURCE_SERVICES.each do |_, types|
+          types.each do |type|
             subject.produce(type) { "#{type}-id" }
           end
         end
 
+        expect(subject.resources.length).to eq(15)
+      end
+
+      it 'returns all resources existing in openstack' do
         expect(subject.resources.length).to eq((ResourceTracker::RESOURCE_SERVICES.to_a.flatten - ResourceTracker::RESOURCE_SERVICES.keys).length)
       end
 
-      context 'when resources do not exist in openstack anymore' do
-        before(:each) do
-          ResourceTracker::RESOURCE_SERVICES.each do |service, types|
-            types.each do |type|
-              allow(FogOpenStack).to receive_message_chain(service, type).and_return(
-                double('resource_collection', get: double('resource', name: "#{type}-name", wait_for: nil)),
-                double('resource_collection', get: nil)
-              )
+      it 'when resources do not exist in openstack anymore it does not include them' do
+        mock_all_service_types(nil, nil)
 
-              subject.produce(type) { "#{type}-id" }
-            end
-          end
-        end
-
-        it 'does not include them' do
-          expect(subject.resources.length).to eq(0)
-        end
+        expect(subject.resources.length).to eq(0)
       end
-
     end
 
   end

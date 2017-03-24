@@ -35,6 +35,12 @@ module Validator
           end
         end
 
+        def storage
+          handle_socket_error do
+              Fog::Storage::OpenStack.new(convert_to_fog_params(openstack_params))
+          end
+        end
+
         private
 
         def handle_socket_error(&block)

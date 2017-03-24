@@ -7,7 +7,7 @@ module Validator
     let(:network) { double('network', networks: networks) }
     let(:image) { double('image', images: images) }
     let(:volume) { double('volume', volumes: volumes) }
-
+    let(:storage) { double('storage') }
 
     let(:server_entries){ [] }
     let(:servers) {
@@ -30,12 +30,12 @@ module Validator
       OpenStackResourceCollection.new(key_pair_entries)
     }
 
-
     before (:each) do
       allow(Api::FogOpenStack).to receive(:compute).and_return(compute)
       allow(Api::FogOpenStack).to receive(:network).and_return(network)
       allow(Api::FogOpenStack).to receive(:image).and_return(image)
       allow(Api::FogOpenStack).to receive(:volume).and_return(volume)
+      allow(Api::FogOpenStack).to receive(:storage).and_return(storage)
     end
 
     describe '.create' do
@@ -73,13 +73,21 @@ module Validator
             allow(network).to receive(type).and_return(resources)
             allow(image).to receive(type).and_return(resources)
             allow(volume).to receive(type).and_return(resources)
+            allow(storage).to receive(type).and_return(resources)
 
-            subject.new_tracker.produce(type, provide_as: :resource_id1) {
-              '1234-1234-1234-1234'
-            }
-            subject.new_tracker.produce(type, provide_as: :resource_id2) {
-              '1111-1111-1234-1234'
-            }
+            if type == :files
+              allow(storage).to receive(:directories).and_return(resources)
+              subject.new_tracker.produce(type, provide_as: :resource_id1) {
+                ['1234-1234-1234-1234', '1111-1111-1234-1234']
+              }
+            else
+              subject.new_tracker.produce(type, provide_as: :resource_id1) {
+                '1234-1234-1234-1234'
+              }
+              subject.new_tracker.produce(type, provide_as: :resource_id2) {
+                '1111-1111-1234-1234'
+              }
+            end
 
             subject.cleanup
 
@@ -215,6 +223,14 @@ EOF
 
     def name
       @name
+    end
+
+    def key
+      @name
+    end
+
+    def files
+      @owner
     end
 
     def destroy

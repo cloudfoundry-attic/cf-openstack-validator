@@ -6,7 +6,8 @@ module Validator
           compute: [:flavors, :key_pairs, :servers],
           network: [:networks, :ports, :subnets, :floating_ips, :routers, :security_groups, :security_group_rules],
           image:   [:images],
-          volume:  [:volumes, :snapshots]
+          volume:  [:volumes, :snapshots],
+          storage: [:files, :directories]
       }
 
       class Base
@@ -14,6 +15,10 @@ module Validator
 
         def initialize(wait_for: Proc.new { true })
           @wait_for = wait_for
+        end
+
+        def name(resource)
+          resource.name
         end
 
         def get_ready(type, id)
@@ -25,7 +30,10 @@ module Validator
         end
 
         def destroy(type, id)
-          get_ready(type, id).destroy
+          resource = get_ready(type, id)
+          if resource
+            resource.destroy
+          end
         end
 
         def service(resource_type)
@@ -65,6 +73,33 @@ module Validator
         end
       end
 
+      class Directories < Base
+        def name(resource)
+          resource.key
+        end
+
+        def destroy(type, id)
+          directory = FogOpenStack.storage.directories.get(id)
+          if directory
+            directory.files.each {|file| file.destroy}
+            directory.destroy
+          end
+        end
+      end
+
+      class Files < Base
+        def name(resource)
+          resource.key
+        end
+
+        def get_ready(type, id)
+          directory_id = id[0]
+          file_id = id[1]
+          directory = super(:directories, directory_id)
+          directory.files.get(file_id) if directory
+        end
+      end
+
       RESOURCE_HANDLER = {
         images: Images.new(wait_for: Proc.new { status == 'active' } ),
         servers: Servers.new(wait_for: Proc.new { ready? }),
@@ -72,7 +107,9 @@ module Validator
         snapshots: Base.new(wait_for: Proc.new { status == 'available' }),
         networks: Base.new(wait_for: Proc.new { status == 'ACTIVE' }),
         ports: Base.new(wait_for: Proc.new { status == 'ACTIVE' }),
-        routers: Base.new(wait_for: Proc.new { status == 'ACTIVE' })
+        routers: Base.new(wait_for: Proc.new { status == 'ACTIVE' }),
+        directories: Directories.new,
+        files: Files.new
       }
 
       ##
@@ -124,7 +161,7 @@ module Validator
               type: type,
               id: resource_id,
               provide_as: provide_as,
-              name: resource.name,
+              name: resource_handler.name(resource),
               test_description: RSpec.current_example.full_description
           }
           resource_id

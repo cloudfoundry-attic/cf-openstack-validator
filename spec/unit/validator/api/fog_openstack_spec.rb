@@ -160,5 +160,29 @@ module Validator::Api
         end
       end
     end
+
+    describe '.storage' do
+      context 'when a socket error occurs' do
+        let(:openstack_params){ { 'auth_url' => 'http://some.url' } }
+
+        before(:each) do
+          allow(Fog::Storage::OpenStack).to receive(:new).and_raise(Excon::Errors::SocketError)
+        end
+
+        it 'wraps the error' do
+          expect {
+            FogOpenStack.storage
+          }.to raise_error(Validator::Api::ValidatorError, "Could not connect to 'http://some.url'")
+        end
+      end
+
+      context 'when correct openstack params are passed' do
+        let(:openstack_params){ { 'auth_url' => 'http://some.url' } }
+        it 'uses and converts those into FOG params' do
+          expect(Fog::Storage::OpenStack).to receive(:new).with(hash_including(:openstack_auth_url => 'http://some.url'))
+          FogOpenStack.storage
+        end
+      end
+    end
   end
 end
