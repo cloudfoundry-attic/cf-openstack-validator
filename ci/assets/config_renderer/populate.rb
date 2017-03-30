@@ -65,21 +65,16 @@ def populate(config, context)
 
   if context['OBJECT_STORAGE'] == 'true' && check(context['OBJECT_STORAGE_TEMP_URL_KEY'])
     config['extensions']['paths'].unshift('./extensions/object_storage/')
-    storage_config = {
-        'object_storage' => {
-            'openstack' => {
-                'openstack_temp_url_key' => context['OBJECT_STORAGE_TEMP_URL_KEY']
-            }
-        }
-    }
-    config['extensions']['config'] = storage_config
+    config['extensions']['config']['object_storage'] = {
+          'openstack' => {
+              'openstack_temp_url_key' => context['OBJECT_STORAGE_TEMP_URL_KEY']
+          }
+      }
   end
 
   config['openstack']['default_security_groups'] = to_array('validator')
 
-  config['extensions']['config'] = {
-      'custom-config-key' => 'custom-config-value'
-  }
+  config['extensions']['config']['custom-config-key'] = 'custom-config-value'
 
   config['extensions']['paths'].unshift('./sample_extensions/')
 
