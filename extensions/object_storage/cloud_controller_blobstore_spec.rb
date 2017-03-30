@@ -1,10 +1,11 @@
 require 'fileutils'
 
-describe 'Cloud Controller using Swift as blobstore' do
+fdescribe 'Cloud Controller using Swift as blobstore' do
   let(:storage) {
     storage_config = {:openstack_temp_url_key => Validator::Api.configuration.extensions['object_storage']['openstack']['openstack_temp_url_key']}
     Validator::Api::FogOpenStack.storage(storage_config)
   }
+  let(:ssl_ca_file) { Validator::Api.configuration.openstack['connection_options']['ssl_ca_file'] }
 
   before(:all) do
     @resource_tracker = Validator::Api::ResourceTracker.create
@@ -49,7 +50,9 @@ describe 'Cloud Controller using Swift as blobstore' do
 
     expect(url).to_not be_nil
 
-    response = Excon.get(url, ssl_verify_peer: false)
+    options = {}
+    options[:ssl_ca_file] = ssl_ca_file if ssl_ca_file
+    response = Excon.get(url, options)
     error_message = <<EOT
 Unable to access the tempurl:
 #{url}
