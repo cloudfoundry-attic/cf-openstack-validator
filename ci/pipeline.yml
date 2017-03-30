@@ -76,22 +76,23 @@ jobs:
     timeout: *timeouts-long
     file: validator-src/ci/tasks/validate.yml
     params:
-      USERNAME:          {{username}}
-      AUTH_URL:          {{auth_url}}
-      API_KEY:           {{api_key}}
-      DOMAIN:            {{domain}}
-      PROJECT:           {{project}}
-      DEFAULT_KEY_NAME:  {{default_key_name}}
-      NETWORK_ID:        {{network_id}}
-      FLOATING_IP:       {{floating_ip}}
-      STATIC_IP:         {{static_ip}}
-      PUBLIC_IMAGE_ID:   {{public_image_id}}
-      PRIVATE_KEY:       {{private_key}}
-      INSTANCE_TYPE:     {{instance_type}}
-      NTP_SERVER:        {{ntp_server}}
-      CA_CERT:           {{ca_cert}}
-      AVAILABILITY_ZONE: {{availability_zone}}
-      OBJECT_STORAGE:    {{object_storage}}
+      USERNAME:                       {{username}}
+      AUTH_URL:                       {{auth_url}}
+      API_KEY:                        {{api_key}}
+      DOMAIN:                         {{domain}}
+      PROJECT:                        {{project}}
+      DEFAULT_KEY_NAME:               {{default_key_name}}
+      NETWORK_ID:                     {{network_id}}
+      FLOATING_IP:                    {{floating_ip}}
+      STATIC_IP:                      {{static_ip}}
+      PUBLIC_IMAGE_ID:                {{public_image_id}}
+      PRIVATE_KEY:                    {{private_key}}
+      INSTANCE_TYPE:                  {{instance_type}}
+      NTP_SERVER:                     {{ntp_server}}
+      CA_CERT:                        {{ca_cert}}
+      AVAILABILITY_ZONE:              {{availability_zone}}
+      OBJECT_STORAGE:                 {{object_storage}}
+      OBJECT_STORAGE_TEMP_URL_KEY:    {{object_storage_temp_url_key}}
 
 - name: release
   build_logs_to_retain: *build_logs_to_retain

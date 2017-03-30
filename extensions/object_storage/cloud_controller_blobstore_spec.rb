@@ -1,7 +1,10 @@
 require 'fileutils'
 
 describe 'Cloud Controller using Swift as blobstore' do
-  let(:storage) { Validator::Api::FogOpenStack.storage }
+  let(:storage) {
+    storage_config = {:openstack_temp_url_key => Validator::Api.configuration.extensions['object_storage']['openstack']['openstack_temp_url_key']}
+    Validator::Api::FogOpenStack.storage(storage_config)
+  }
 
   before(:all) do
     @resource_tracker = Validator::Api::ResourceTracker.create
@@ -35,6 +38,30 @@ describe 'Cloud Controller using Swift as blobstore' do
         [directory.key, file.key]
       end
     }.not_to raise_error
+  end
+
+  it 'can create a temporary url' do
+    _, file_key = @resource_tracker.consumes(:simple_blob)
+    root_dir = test_directory
+    file = root_dir.files.get(file_key)
+
+    url = file.url(Time.now.utc + 360000)
+
+    expect(url).to_not be_nil
+
+    response = Excon.get(url, ssl_verify_peer: false)
+    error_message = <<EOT
+Unable to access the tempurl:
+#{url}
+
+#{response.status_line}
+Possible reasons:
+  - Your openstack_temp_url_key has not been set or is set incorrectly.
+  - Swift's proxy server configuration does not include the `tempurl` value in its `pipeline` setting.\n
+EOT
+    expect(response.status).to be_between(200, 299), error_message
+
+    expect(response.body).to eq('Hello World')
   end
 
   it 'can list directory contents with each' do
@@ -90,7 +117,7 @@ describe 'Cloud Controller using Swift as blobstore' do
   end
 
   it 'can delete blobs' do
-    _, file_key = @resource_tracker.consumes(:simple_blob)
+    _, file_key = @resource_tracker.consumes(:copied_simple_blob)
     files = test_directory.files
     test_blob = files.get(file_key)
     expect(test_blob).to_not be_nil

@@ -35,9 +35,12 @@ module Validator
           end
         end
 
-        def storage
+        def storage(storage_params = {})
+          fog_params = convert_to_fog_params(openstack_params)
+          fog_params.merge!(storage_params)
+
           handle_socket_error do
-              Fog::Storage::OpenStack.new(convert_to_fog_params(openstack_params))
+            Fog::Storage::OpenStack.new(fog_params)
           end
         end
 
