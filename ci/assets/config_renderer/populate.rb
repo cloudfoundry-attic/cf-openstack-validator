@@ -67,8 +67,9 @@ def populate(config, context)
     config['extensions']['paths'].unshift('./extensions/object_storage/')
     storage_config = {
         'object_storage' => {
-            'openstack' =>
+            'openstack' => {
                 'openstack_temp_url_key' => context['OBJECT_STORAGE_TEMP_URL_KEY']
+            }
         }
     }
     config['extensions']['config'] = storage_config
