@@ -41,7 +41,7 @@ fdescribe 'Cloud Controller using Swift as blobstore' do
     }.not_to raise_error
   end
 
-  it 'can create a temporary url' do
+  xit 'can create a temporary url' do
     _, file_key = @resource_tracker.consumes(:simple_blob)
     root_dir = test_directory
     file = root_dir.files.get(file_key)
