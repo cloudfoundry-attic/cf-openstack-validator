@@ -1,6 +1,6 @@
 require 'fileutils'
 
-fdescribe 'Cloud Controller using Swift as blobstore' do
+describe 'Cloud Controller using Swift as blobstore' do
   let(:storage) {
     storage_config = {:openstack_temp_url_key => Validator::Api.configuration.extensions['object_storage']['openstack']['openstack_temp_url_key']}
     Validator::Api::FogOpenStack.storage(storage_config)
@@ -41,7 +41,7 @@ fdescribe 'Cloud Controller using Swift as blobstore' do
     }.not_to raise_error
   end
 
-  xit 'can create a temporary url' do
+  it 'can create a temporary url' do
     _, file_key = @resource_tracker.consumes(:simple_blob)
     root_dir = test_directory
     file = root_dir.files.get(file_key)
