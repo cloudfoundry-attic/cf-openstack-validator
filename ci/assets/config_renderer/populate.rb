@@ -84,7 +84,7 @@ def populate(working_directory, config, context)
     file.write(context['EXPECTED_FLAVORS'])
   end
   config['extensions']['config']['flavors'] = {
-    'expected_flavors' => 'flavors.yml'
+    'expected_flavors' => File.join(working_directory, 'flavors.yml')
   }
 
   config

@@ -132,7 +132,7 @@ describe 'populate' do
             'config' => {
                 'custom-config-key' => 'custom-config-value',
                 'flavors' => {
-                  'expected_flavors' => 'flavors.yml'
+                  'expected_flavors' => File.join(@tmpdir, 'flavors.yml')
                 }
             }
         }
