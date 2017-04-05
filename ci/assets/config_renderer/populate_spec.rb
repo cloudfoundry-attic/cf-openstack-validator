@@ -55,6 +55,7 @@ describe 'populate' do
       'API_KEY' => 'API_KEY',
       'DOMAIN' => 'DOMAIN',
       'PROJECT' => 'PROJECT',
+      'PROJECT_ID' => 'PROJECT_ID',
       'DEFAULT_KEY_NAME' => 'DEFAULT_KEY_NAME',
       'BOOT_FROM_VOLUME' => 'true',
       'CONFIG_DRIVE' => 'CONFIG_DRIVE',
@@ -140,7 +141,7 @@ describe 'populate' do
                   'expected_flavors' => File.join(@tmpdir, 'flavors.yml')
                 },
                 'quotas' => {
-                  'project_id' => 'project-id',
+                  'project_id' => 'PROJECT_ID',
                   'expected_quotas' => File.join(@tmpdir, 'quotas.yml')
                 }
             }

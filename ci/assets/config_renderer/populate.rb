@@ -93,7 +93,7 @@ def populate(working_directory, config, context)
     file.write(context['EXPECTED_QUOTAS'])
   end
   config['extensions']['config']['quotas'] = {
-    'project_id' => context['PROJECT_ID']
+    'project_id' => context['PROJECT_ID'],
     'expected_quotas' => File.join(working_directory, 'quotas.yml')
   }
 
