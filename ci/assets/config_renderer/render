@@ -1,13 +1,8 @@
 #!/usr/bin/env ruby
 require 'yaml'
 require_relative 'populate'
-require 'tmpdir'
+require 'fileutils'
 
-working_dir = Dir.mktmpdir
-begin
-  validator_config = YAML.load_file(ARGV.shift)
-  populated_validator_config = populate(working_dir, validator_config, ENV)
-  YAML.dump(populated_validator_config, STDOUT)
-ensure
-  FileUtils.rm_rf(working_dir)
-end
+validator_config = YAML.load_file(ARGV.shift)
+populated_validator_config = populate(FileUtils.pwd, validator_config, ENV)
+YAML.dump(populated_validator_config, STDOUT)
