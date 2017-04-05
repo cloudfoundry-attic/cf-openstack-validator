@@ -1,4 +1,4 @@
-def populate(config, context)
+def populate(working_directory, config, context)
   if check(context['AUTH_URL'])
     config['openstack']['auth_url'] = context['AUTH_URL']
   end
@@ -77,6 +77,15 @@ def populate(config, context)
   config['extensions']['config']['custom-config-key'] = 'custom-config-value'
 
   config['extensions']['paths'].unshift('./sample_extensions/')
+
+  config['extensions']['paths'].unshift('./extensions/flavors')
+
+  File.open(File.join(working_directory, 'flavors.yml'), 'w+') do |file|
+    file.write(context['EXPECTED_FLAVORS'])
+  end
+  config['extensions']['config']['flavors'] = {
+    'expected_flavors' => 'flavors.yml'
+  }
 
   config
 end

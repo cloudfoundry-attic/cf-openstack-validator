@@ -27,6 +27,7 @@ params:
   CA_CERT:           ""
   AVAILABILITY_ZONE: ""
   OBJECT_STORAGE:    ""
+  EXPECTED_FLAVORS:  ""
 
 run:
   path: validator-src/ci/tasks/validate.sh

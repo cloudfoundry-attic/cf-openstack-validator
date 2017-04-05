@@ -93,6 +93,7 @@ jobs:
       AVAILABILITY_ZONE:              {{availability_zone}}
       OBJECT_STORAGE:                 {{object_storage}}
       OBJECT_STORAGE_TEMP_URL_KEY:    {{object_storage_temp_url_key}}
+      EXPECTED_FLAVORS:               {{expected_flavors}}
 
 - name: release
   build_logs_to_retain: *build_logs_to_retain

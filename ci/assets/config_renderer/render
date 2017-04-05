@@ -2,6 +2,11 @@
 require 'yaml'
 require_relative 'populate'
 
-validator_config = YAML.load_file(ARGV.shift)
-populated_validator_config = populate(validator_config, ENV)
-YAML.dump(populated_validator_config, STDOUT)
+working_dir = Dir.mktmpdir
+begin
+  validator_config = YAML.load_file(ARGV.shift)
+  populated_validator_config = populate(working_dir, validator_config, ENV)
+  YAML.dump(populated_validator_config, STDOUT)
+ensure
+  FileUtils.rm_rf(working_dir)
+end

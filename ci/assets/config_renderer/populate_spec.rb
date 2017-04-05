@@ -1,4 +1,5 @@
 require_relative 'populate'
+require 'yaml'
 
 describe 'populate' do
 
@@ -41,7 +42,8 @@ describe 'populate' do
             }]
         },
         'extensions' => {
-            'paths' => ['./extensions/']
+            'paths' => [],
+            'config' => {}
         }
     }
   }
@@ -64,12 +66,28 @@ describe 'populate' do
       'INSTANCE_TYPE' => 'INSTANCE_TYPE',
       'NTP_SERVER' => 'NTP_SERVER1,NTP_SERVER2, NTP_SERVER3',
       'CA_CERT' => 'CA_CERT',
-      'AVAILABILITY_ZONE' => 'AVAILABILITY_ZONE'
+      'AVAILABILITY_ZONE' => 'AVAILABILITY_ZONE',
+      'EXPECTED_FLAVORS' => YAML.dump([
+        {
+          'name' => 'm1.medium',
+          'vcpus' => 2,
+          'ram' => 4096,
+          'disk' => 40
+        }
+      ])
     }
   }
 
+  before(:each) do
+    @tmpdir = Dir.mktmpdir
+  end
+
+  after(:each) do
+    FileUtils.rm_rf(@tmpdir)
+  end
+
   it 'returns' do
-    populated_config = populate(template, context)
+    populated_config = populate(@tmpdir, template, context)
 
     expect(populated_config).to eq({
         'openstack' => {
@@ -110,11 +128,15 @@ describe 'populate' do
             }]
         },
         'extensions' => {
-            'paths' => ['./extensions/'],
+            'paths' => ['./extensions/flavors', './sample_extensions/'],
             'config' => {
-                'custom-config-key' => 'custom-config-value'
+                'custom-config-key' => 'custom-config-value',
+                'flavors' => {
+                  'expected_flavors' => 'flavors.yml'
+                }
             }
         }
     })
+    expect(File.read(File.join(@tmpdir, 'flavors.yml'))).to eq(context['EXPECTED_FLAVORS'])
   end
 end
