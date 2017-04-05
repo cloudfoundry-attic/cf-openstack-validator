@@ -1,4 +1,4 @@
-fdescribe 'Quotas' do
+describe 'Quotas' do
 
   config = Validator::Api.configuration.extensions
   quotas = YAML.load_file( config['quotas']['expected_quotas'])
