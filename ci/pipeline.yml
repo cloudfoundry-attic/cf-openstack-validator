@@ -81,6 +81,7 @@ jobs:
       API_KEY:                        {{api_key}}
       DOMAIN:                         {{domain}}
       PROJECT:                        {{project}}
+      PROJECT_ID:                     {{project_id}}
       DEFAULT_KEY_NAME:               {{default_key_name}}
       NETWORK_ID:                     {{network_id}}
       FLOATING_IP:                    {{floating_ip}}
@@ -94,6 +95,7 @@ jobs:
       OBJECT_STORAGE:                 {{object_storage}}
       OBJECT_STORAGE_TEMP_URL_KEY:    {{object_storage_temp_url_key}}
       EXPECTED_FLAVORS:               {{expected_flavors}}
+      EXPECTED_QUOTAS:                {{expected_quotas}}
 
 - name: release
   build_logs_to_retain: *build_logs_to_retain

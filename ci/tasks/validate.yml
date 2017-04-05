@@ -16,6 +16,7 @@ params:
   API_KEY:           ""
   DOMAIN:            ""
   PROJECT:           ""
+  PROJECT_ID:        ""
   DEFAULT_KEY_NAME:  ""
   NETWORK_ID:        ""
   FLOATING_IP:       ""
@@ -28,6 +29,7 @@ params:
   AVAILABILITY_ZONE: ""
   OBJECT_STORAGE:    ""
   EXPECTED_FLAVORS:  ""
+  EXPECTED_QUOTAS:   ""
 
 run:
   path: validator-src/ci/tasks/validate.sh

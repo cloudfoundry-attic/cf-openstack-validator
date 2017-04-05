@@ -87,6 +87,16 @@ def populate(working_directory, config, context)
     'expected_flavors' => File.join(working_directory, 'flavors.yml')
   }
 
+  config['extensions']['paths'].unshift('./extensions/quotas')
+
+  File.open(File.join(working_directory, 'quotas.yml'), 'w+') do |file|
+    file.write(context['EXPECTED_QUOTAS'])
+  end
+  config['extensions']['config']['quotas'] = {
+    'project_id' => context['PROJECT_ID']
+    'expected_quotas' => File.join(working_directory, 'quotas.yml')
+  }
+
   config
 end
 

@@ -74,7 +74,12 @@ describe 'populate' do
           'ram' => 4096,
           'disk' => 40
         }
-      ])
+      ]),
+      'EXPECTED_QUOTAS' => YAML.dump({
+        'compute' => {
+          'ram' => 20
+        }
+      })
     }
   }
 
@@ -128,15 +133,20 @@ describe 'populate' do
             }]
         },
         'extensions' => {
-            'paths' => ['./extensions/flavors', './sample_extensions/'],
+            'paths' => ['./extensions/quotas', './extensions/flavors', './sample_extensions/'],
             'config' => {
                 'custom-config-key' => 'custom-config-value',
                 'flavors' => {
                   'expected_flavors' => File.join(@tmpdir, 'flavors.yml')
+                },
+                'quotas' => {
+                  'project_id' => 'project-id',
+                  'expected_quotas' => File.join(@tmpdir, 'quotas.yml')
                 }
             }
         }
     })
     expect(File.read(File.join(@tmpdir, 'flavors.yml'))).to eq(context['EXPECTED_FLAVORS'])
+    expect(File.read(File.join(@tmpdir, 'quotas.yml'))).to eq(context['EXPECTED_QUOTAS'])
   end
 end

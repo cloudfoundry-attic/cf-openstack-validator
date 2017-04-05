@@ -6,6 +6,7 @@ set -e -x
 : ${API_KEY:?}
 : ${DOMAIN:?}
 : ${PROJECT:?}
+: ${PROJECT_ID:?}
 : ${DEFAULT_KEY_NAME:?}
 : ${NETWORK_ID:?}
 : ${FLOATING_IP:?}
@@ -17,6 +18,8 @@ set -e -x
 : ${CA_CERT:-""}
 : ${AVAILABILITY_ZONE:-""}
 : ${OBJECT_STORAGE:?}
+: ${EXPECTED_FLAVORS:?}
+: ${EXPECTED_QUOTAS:?}
 
 # Copy to user's home, because we don't have write permissions on the source directory
 cp -r validator-src ~
