@@ -37,6 +37,7 @@ describe 'Flavors' do
         expect(os_flavor.vcpus == flavor['vcpus'] &&
                os_flavor.ram == flavor['ram'] &&
                os_flavor.disk == flavor['disk'] &&
+               os_flavor.ephemeral == flavor['ephemeral'] &&
                check_flavor_properties(flavor.fetch('metadata',{}), os_flavor.metadata)
               ).to eq(true), fail_message
       end
@@ -52,7 +53,8 @@ describe 'Flavors' do
       def flavor_to_s(flavor, get_value)
         result = "  vcpus: #{get_value.call(flavor, 'vcpus')}\n" + 
                  "  ram: #{get_value.call(flavor, 'ram')} Mb\n" +
-                 "  disk: #{get_value.call(flavor, 'disk')} Gb"
+                 "  disk: #{get_value.call(flavor, 'disk')} Gb\n" +
+                 "  ephemeral: #{get_value.call(flavor, 'ephemeral')} Gb"
         if expected_flavor_properties != []
           result += "\n  Properties:"
             expected_flavor_properties.each do |property|
