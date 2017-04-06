@@ -96,6 +96,7 @@ jobs:
       OBJECT_STORAGE_TEMP_URL_KEY:    {{object_storage_temp_url_key}}
       EXPECTED_FLAVORS:               {{expected_flavors}}
       EXPECTED_QUOTAS:                {{expected_quotas}}
+      EXPECTED_ENDPOINTS:             {{expected_endpoints}}
 
 - name: release
   build_logs_to_retain: *build_logs_to_retain

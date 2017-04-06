@@ -20,6 +20,7 @@ set -e -x
 : ${OBJECT_STORAGE:?}
 : ${EXPECTED_FLAVORS:?}
 : ${EXPECTED_QUOTAS:?}
+: ${EXPECTED_ENDPOINTS:?}
 
 # Copy to user's home, because we don't have write permissions on the source directory
 cp -r validator-src ~

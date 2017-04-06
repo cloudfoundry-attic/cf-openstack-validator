@@ -80,21 +80,24 @@ def populate(working_directory, config, context)
 
   config['extensions']['paths'].unshift('./extensions/flavors')
 
-  File.open(File.join(working_directory, 'flavors.yml'), 'w+') do |file|
-    file.write(context['EXPECTED_FLAVORS'])
-  end
+  File.write(File.join(working_directory, 'flavors.yml'), context['EXPECTED_FLAVORS'])
   config['extensions']['config']['flavors'] = {
     'expected_flavors' => File.join(working_directory, 'flavors.yml')
   }
 
   config['extensions']['paths'].unshift('./extensions/quotas')
 
-  File.open(File.join(working_directory, 'quotas.yml'), 'w+') do |file|
-    file.write(context['EXPECTED_QUOTAS'])
-  end
+  File.write(File.join(working_directory, 'quotas.yml'), context['EXPECTED_QUOTAS'])
   config['extensions']['config']['quotas'] = {
     'project_id' => context['PROJECT_ID'],
     'expected_quotas' => File.join(working_directory, 'quotas.yml')
+  }
+
+  config['extensions']['paths'].unshift('./extensions/external_endpoints')
+
+  File.write(File.join(working_directory, 'endpoints.yml'), context['EXPECTED_ENDPOINTS'])
+  config['extensions']['config']['external_endpoints'] = {
+    'expected_endpoints' => File.join(working_directory, 'endpoints.yml')
   }
 
   config

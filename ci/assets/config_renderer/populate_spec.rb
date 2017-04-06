@@ -80,7 +80,13 @@ describe 'populate' do
         'compute' => {
           'ram' => 20
         }
-      })
+      }),
+      'EXPECTED_ENDPOINTS' => YAML.dump([
+        {
+          'host' => 'host',
+          'port' => 20
+        }
+      ])
     }
   }
 
@@ -134,7 +140,7 @@ describe 'populate' do
             }]
         },
         'extensions' => {
-            'paths' => ['./extensions/quotas', './extensions/flavors', './sample_extensions/'],
+            'paths' => ['./extensions/external_endpoints', './extensions/quotas', './extensions/flavors', './sample_extensions/'],
             'config' => {
                 'custom-config-key' => 'custom-config-value',
                 'flavors' => {
@@ -143,11 +149,15 @@ describe 'populate' do
                 'quotas' => {
                   'project_id' => 'PROJECT_ID',
                   'expected_quotas' => File.join(@tmpdir, 'quotas.yml')
+                },
+                'external_endpoints' => {
+                  'expected_endpoints' => File.join(@tmpdir, 'endpoints.yml')
                 }
             }
         }
     })
     expect(File.read(File.join(@tmpdir, 'flavors.yml'))).to eq(context['EXPECTED_FLAVORS'])
     expect(File.read(File.join(@tmpdir, 'quotas.yml'))).to eq(context['EXPECTED_QUOTAS'])
+    expect(File.read(File.join(@tmpdir, 'endpoints.yml'))).to eq(context['EXPECTED_ENDPOINTS'])
   end
 end
