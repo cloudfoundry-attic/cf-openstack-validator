@@ -74,7 +74,8 @@ Unable to access the tempurl:
 
 #{response.status_line}
 Possible reasons:
-  - Your openstack_temp_url_key has not been set or is set incorrectly.
+  - You didn't set an X-Account-Meta-Temp-URL-Key for your Swift account
+  - The configured openstack_temp_url_key doesn't match the X-Account-Meta-Temp-URL-Key
   - Swift's proxy server configuration does not include the `tempurl` value in its `pipeline` setting.\n
 EOT
     expect(response.status).to be_between(200, 299), error_message
