@@ -5,7 +5,11 @@ describe 'Cloud Controller using Swift as blobstore' do
     storage_config = {:openstack_temp_url_key => Validator::Api.configuration.extensions['object_storage']['openstack']['openstack_temp_url_key']}
     Validator::Api::FogOpenStack.storage(storage_config)
   }
-  let(:ssl_ca_file) { Validator::Api.configuration.openstack['connection_options']['ssl_ca_file'] }
+  let(:ssl_ca_file) {
+    if Validator::Api.configuration.openstack['connection_options'].fetch('ssl_verify_peer', 'true') == 'true'
+      Validator::Api.configuration.openstack['connection_options']['ssl_ca_file']
+    end
+  }
 
   before(:all) do
     @resource_tracker = Validator::Api::ResourceTracker.create
