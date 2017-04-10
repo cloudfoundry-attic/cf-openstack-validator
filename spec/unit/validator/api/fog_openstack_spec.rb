@@ -184,5 +184,48 @@ module Validator::Api
         end
       end
     end
+
+    describe '.with_openstack' do
+      it 'calls the given block' do
+        expect(FogOpenStack.with_openstack('some message') { 'Yeah!' }).to eq('Yeah!')
+      end
+
+      context 'when block raises an error' do
+        let(:logger) { instance_double(Logger) }
+
+        before do
+          allow_any_instance_of(Validator::Api::Logging).to receive(:log_path).and_return('some_file_path')
+          allow(Logger).to receive(:new).and_return(logger)
+          allow(logger).to receive(:error)
+        end
+
+        it 're-raises error with the given error message and hint to log file' do
+          expect{
+            FogOpenStack.with_openstack('some user-defined message') { raise 'original error message' }
+          }.to raise_error("some user-defined message: More details can be found in 'some_file_path'")
+        end
+
+        it 'logs the original error message' do
+          expect{
+            FogOpenStack.with_openstack('some user-defined message') { raise 'original error message' }
+          }.to raise_error(/some user-defined message/)
+
+          expect(logger).to have_received(:error).with('original error message')
+        end
+
+        context "when error type is 'Excon::Errors::Forbidden'" do
+          let(:configuration) { instance_double(Validator::Api::Configuration, openstack: { 'username' => 'some-user' }) }
+
+          before(:each) do
+            allow(Validator::Api).to receive(:configuration).and_return(configuration)
+          end
+          it 're-raises error with helping message' do
+            expect{
+              FogOpenStack.with_openstack('some user-defined message') { raise Excon::Errors::Forbidden.new 'original error message' }
+            }.to raise_error("some user-defined message: The user 'some-user' does not have required permissions.")
+          end
+        end
+      end
+    end
   end
 end

@@ -1,3 +1,4 @@
+require_relative 'api/logging'
 require_relative 'api/fog_openstack'
 require_relative 'api/cpi_helpers'
 require_relative 'api/resource_tracker'

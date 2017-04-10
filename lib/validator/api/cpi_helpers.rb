@@ -1,16 +1,14 @@
 module Validator
   module Api
     module CpiHelpers
+      include Logging
+
       def stemcell_path
         ENV['BOSH_OPENSTACK_STEMCELL_PATH']
       end
 
       def cpi_path
         ENV['BOSH_OPENSTACK_CPI_PATH']
-      end
-
-      def log_path
-        ENV['BOSH_OPENSTACK_CPI_LOG_PATH']
       end
 
       def execute_ssh_command_on_vm_with_retry(private_key_path, ip, command, time_in_seconds = 60, frequency = 3)

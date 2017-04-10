@@ -2,6 +2,7 @@ module Validator
   module Api
     class FogOpenStack
       class << self
+        include Validator::Api::Logging
 
         def compute
           handle_socket_error do
@@ -42,6 +43,18 @@ module Validator
           handle_socket_error do
             Fog::Storage::OpenStack.new(fog_params)
           end
+        end
+
+        def with_openstack(error_message)
+          yield if block_given?
+        rescue => e
+          logger = Logger.new(File.join(log_path, 'testsuite.log'))
+          logger.error(e.message)
+          message = "More details can be found in '#{log_path}'"
+          if e.class == Excon::Errors::Forbidden
+            message = "The user '#{Validator::Api.configuration.openstack['username']}' does not have required permissions."
+          end
+          fail("#{error_message}: #{message}")
         end
 
         private
