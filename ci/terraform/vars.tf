@@ -70,5 +70,5 @@ output "openstack_default_key_name" {
 }
 
 output "security group" {
-  value = "${openstack_compute_secgroup_v2.validator_secgroup.name}"
+  value = "${openstack_networking_secgroup_v2.validator_secgroup.name}"
 }

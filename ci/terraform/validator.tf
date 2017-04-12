@@ -63,39 +63,35 @@ resource "openstack_compute_floatingip_v2" "validator_floating_ip" {
   pool   = "${var.ext_net_name}"
 }
 
-resource "openstack_compute_secgroup_v2" "validator_secgroup" {
+resource "openstack_networking_secgroup_v2" "validator_secgroup" {
   region      = "${var.region_name}"
   name        = "validator"
   description = "validator security group"
-
-  # Allow anything from own sec group (Any was not possible)
-
-  rule {
-    ip_protocol = "tcp"
-    from_port   = "1"
-    to_port     = "65535"
-    self        = true
-  }
-
-  rule {
-    ip_protocol = "udp"
-    from_port   = "1"
-    to_port     = "65535"
-    self        = true
-  }
-
-  rule {
-    ip_protocol = "icmp"
-    from_port   = "-1"
-    to_port     = "-1"
-    self        = true
-  }
-
-  rule {
-    ip_protocol = "tcp"
-    from_port   = "22"
-    to_port     = "22"
-    cidr        = "0.0.0.0/0"
-  }
-
 }
+
+resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_1" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  remote_group_id = "${openstack_networking_secgroup_v2.validator_secgroup.id}"
+  security_group_id = "${openstack_networking_secgroup_v2.validator_secgroup.id}"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_2" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "icmp"
+  remote_group_id = "${openstack_networking_secgroup_v2.validator_secgroup.id}"
+  security_group_id = "${openstack_networking_secgroup_v2.validator_secgroup.id}"
+}
+
+resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_3" {
+  direction = "ingress"
+  ethertype = "IPv4"
+  protocol = "tcp"
+  port_range_min = 22
+  port_range_max = 22
+  remote_ip_prefix = "0.0.0.0/0"
+  security_group_id = "${openstack_networking_secgroup_v2.validator_secgroup.id}"
+}
+
