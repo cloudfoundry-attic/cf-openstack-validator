@@ -48,7 +48,7 @@ The validator runs on Mac and Linux. Please ensure that the following packages a
 * Copy the generated private key into the `cf-openstack-validator` folder.
 * Copy [validator.template.yml](validator.template.yml) to `validator.yml` and replace occurrences of `<replace-me>` with appropriate values (see prerequisites)
   * If using Keystone v3, ensure there are values for `domain` and `project`
-  * If using Keystone v2, remove `domain` and `project`, and ensure there is a value for `tenant`
+  * If using Keystone v2, remove `domain` and `project`, and ensure there is a value for `tenant`. Also use the Keystone v2 URL as `auth_url`.
 ```bash
 $ cp validator.template.yml validator.yml
 ```

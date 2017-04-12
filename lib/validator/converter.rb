@@ -66,15 +66,6 @@ module Validator
         },
         'project' => ->(key, value) {
           nil
-        },
-        'password' => ->(_, value) { ['api_key', value] },
-        'connection_options' => {
-            'ca_cert' => ->(_, value) {
-              return nil if value.to_s == ''
-              ssl_ca_file_path = File.join(Dir.mktmpdir, 'cacert.pem')
-              File.write(ssl_ca_file_path, value)
-              ['ssl_ca_file', ssl_ca_file_path]
-            }
         }
       }.merge(base_converters)
     end
@@ -87,17 +78,15 @@ module Validator
           else
             [key, "#{value}/auth/tokens"]
           end
-        }
+        },
+        'tenant' => ->(key, value) {
+          nil
+        },
       }.merge(base_converters)
     end
 
     def self.convert_and_apply_defaults(openstack_params)
-      converters = keystone_v3_converters
-
-      if openstack_params.fetch('auth_url').include?('v2')
-        converters = keystone_v2_converters
-      end
-
+      converters = is_v3(openstack_params.fetch('auth_url')) ? keystone_v3_converters : keystone_v2_converters
       apply_converters(openstack_defaults.merge(openstack_params), converters)
     end
 
@@ -112,6 +101,10 @@ module Validator
           converter.call(key, value)
         end
       end.compact.to_h
+    end
+
+    def self.is_v3(auth_url)
+      auth_url.match(/\/v3(?=\/|$)/)
     end
 
     private_class_method :apply_converters
