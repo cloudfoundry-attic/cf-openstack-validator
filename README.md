@@ -9,7 +9,7 @@ Is your OpenStack installation ready to run BOSH and install Cloud Foundry? Run 
 
 ### OpenStack
 
-* Keystone v3
+* Keystone v2/v3
 * Create an OpenStack project/tenant
 * Create a network
   * Connect the network with a router to your external network
@@ -20,7 +20,7 @@ Is your OpenStack installation ready to run BOSH and install Cloud Foundry? Run 
 $ ssh-keygen -t rsa -b 4096 -N "" -f cf-validator.rsa_id
 ```
   * Upload the generated public key to OpenStack as `cf-validator`
-  
+
 * A public image available in glance
   * If your OpenStack installation doesn't yet provide any image, you can upload a [CirrOS test image](http://docs.openstack.org/image-guide/obtain-images.html#cirros-test)
 
@@ -47,6 +47,8 @@ The validator runs on Mac and Linux. Please ensure that the following packages a
 * `cd cf-openstack-validator`
 * Copy the generated private key into the `cf-openstack-validator` folder.
 * Copy [validator.template.yml](validator.template.yml) to `validator.yml` and replace occurrences of `<replace-me>` with appropriate values (see prerequisites)
+  * If using Keystone v3, ensure there are values for `domain` and `project`
+  * If using Keystone v2, remove `domain` and `project`, and ensure there is a value for `tenant`. Also use the Keystone v2 URL as `auth_url`.
 ```bash
 $ cp validator.template.yml validator.yml
 ```
@@ -63,7 +65,7 @@ $ ./validate --stemcell bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent
 
 ## Configure CPI used by validator
 
-Validator downloads CPI release from the URL specified in the validator configuration. You can override this by specifying the `--cpi-release` command line option with the path to a CPI release tarball. 
+Validator downloads CPI release from the URL specified in the validator configuration. You can override this by specifying the `--cpi-release` command line option with the path to a CPI release tarball.
 
 If you already have a CPI compiled, you can specify the path to the executable in the environment variable `OPENSTACK_CPI_BIN`. This is used when no CPI release is specified on the command line. It overrides the setting in the validator configuration file.
 
