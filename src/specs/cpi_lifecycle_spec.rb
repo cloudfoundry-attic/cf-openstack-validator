@@ -175,14 +175,14 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   it 'can access the internet' do
     @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
 
-    _, err, status = execute_ssh_command_on_vm(@config.private_key_path,
+    _, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path,
                                             @config.validator['floating_ip'], "nslookup github.com")
 
     if status.exitstatus > 0
       fail "DNS server might not be reachable from VM with floating IP.\nError is: #{err}"
     end
 
-   _, err, status = execute_ssh_command_on_vm(@config.private_key_path,
+   _, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path,
                                             @config.validator['floating_ip'], "curl http://github.com")
 
     expect(status.exitstatus).to eq(0),
@@ -194,7 +194,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
     @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
 
-    response, err, status = execute_ssh_command_on_vm(@config.private_key_path,
+    response, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path,
                                                @config.validator['floating_ip'], 'curl -m 10 http://169.254.169.254/latest/user-data')
 
     if status.exitstatus > 0
@@ -216,14 +216,14 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     sudo_command = "echo #{vcap_password}| sudo -S"
     mount_path = "/tmp/#{SecureRandom.uuid}"
     config_drive_disk_path = '/dev/disk/by-label/config-2'
-    _, err, status = execute_ssh_command_on_vm(@config.private_key_path, @config.validator['floating_ip'], "#{sudo_command} mkdir #{mount_path} & #{sudo_command} mount #{config_drive_disk_path} #{mount_path}")
+    _, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, @config.validator['floating_ip'], "#{sudo_command} mkdir #{mount_path} & #{sudo_command} mount #{config_drive_disk_path} #{mount_path}")
     if status.exitstatus > 0
       error_message = "Cannot mount config drive at '#{config_drive_disk_path}'"
       STDERR.puts(error_message + ' ' + err)
       fail error_message
     end
-    response, err, status = execute_ssh_command_on_vm(@config.private_key_path, @config.validator['floating_ip'], "#{sudo_command} cat #{mount_path}/ec2/latest/user-data")
-    execute_ssh_command_on_vm(@config.private_key_path, @config.validator['floating_ip'], "#{sudo_command} umount #{mount_path}")
+    response, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, @config.validator['floating_ip'], "#{sudo_command} cat #{mount_path}/ec2/latest/user-data")
+    execute_ssh_command_on_vm_with_retry(@config.private_key_path, @config.validator['floating_ip'], "#{sudo_command} umount #{mount_path}")
 
     if status.exitstatus > 0
       error_message = "Cannot access metadata at '#{mount_path}/ec2/latest/user-data'"
@@ -244,10 +244,10 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     create_ntpserver_command = "#{sudo} bash -c \"echo #{ntp.join(' ')} | tee /var/vcap/bosh/etc/ntpserver\""
     call_ntpdate_command = "#{sudo} /var/vcap/bosh/bin/ntpdate"
 
-    _, _, status = execute_ssh_command_on_vm(@config.private_key_path, @config.validator['floating_ip'], create_ntpserver_command)
+    _, _, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, @config.validator['floating_ip'], create_ntpserver_command)
     expect(status.exitstatus).to eq(0)
 
-    _, _, status = execute_ssh_command_on_vm(@config.private_key_path, @config.validator['floating_ip'], call_ntpdate_command)
+    _, _, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, @config.validator['floating_ip'], call_ntpdate_command)
     expect(status.exitstatus).to eq(0), "Failed to reach any of the following NTP servers: #{ntp.join(', ')}. If your OpenStack requires an internal time server, you need to configure it in the validator.yml."
   end
 
