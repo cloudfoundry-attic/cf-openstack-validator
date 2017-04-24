@@ -45,6 +45,16 @@ module Validator
         end
       end
 
+      class Volumes < Base
+        def name(resource)
+          if resource.respond_to?(:name)
+            resource.name
+          else
+            resource.display_name
+          end
+        end
+      end
+
       class Images < Base
 
         def get_ready(type, id)
@@ -103,7 +113,7 @@ module Validator
       RESOURCE_HANDLER = {
         images: Images.new(wait_for: Proc.new { status == 'active' } ),
         servers: Servers.new(wait_for: Proc.new { ready? }),
-        volumes: Base.new(wait_for: Proc.new { ready? }),
+        volumes: Volumes.new(wait_for: Proc.new { ready? }),
         snapshots: Base.new(wait_for: Proc.new { status == 'available' }),
         networks: Base.new(wait_for: Proc.new { status == 'ACTIVE' }),
         ports: Base.new(wait_for: Proc.new { status == 'ACTIVE' }),

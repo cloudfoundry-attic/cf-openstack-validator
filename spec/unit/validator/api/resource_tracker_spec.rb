@@ -1,4 +1,6 @@
 require_relative '../../spec_helper'
+require 'fog/volume/openstack/v1/models/volume'
+require 'fog/volume/openstack/v2/models/volume'
 
 module Validator::Api
   describe ResourceTracker do
@@ -76,6 +78,37 @@ module Validator::Api
           expect(subject.consumes(:light_stemcell)).to eq('id light')
         end
 
+      end
+
+      context "when ':volumes' resource" do
+        before(:each) do
+          allow(resource).to receive(:ready?)
+          allow(resource).to receive(:wait_for) { |&block| resource.instance_eval(&block) }
+        end
+
+        context 'when cinder v1' do
+          let(:resource) { instance_double(Fog::Volume::OpenStack::V1::Volume, display_name: 'my-volume') }
+
+          it "stores the resource 'display_name'" do
+            subject.produce(:volumes, provide_as: :my_volume) { 'volume-id' }
+
+            volume = subject.resources.find {|resource| resource.fetch(:id) == 'volume-id'}
+            expect(volume).to_not be_nil
+            expect(volume[:name]).to eq('my-volume')
+          end
+        end
+
+        context 'when cinder v2' do
+          let(:resource) { instance_double(Fog::Volume::OpenStack::V2::Volume, name: 'my-volume') }
+
+          it "stores the resource 'name'" do
+            subject.produce(:volumes, provide_as: :my_volume) { 'volume-id' }
+
+            volume = subject.resources.find {|resource| resource.fetch(:id) == 'volume-id'}
+            expect(volume).to_not be_nil
+            expect(volume[:name]).to eq('my-volume')
+          end
+        end
       end
 
       [:servers, :volumes].each do |type|
