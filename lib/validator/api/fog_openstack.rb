@@ -30,7 +30,7 @@ module Validator
           handle_socket_error do
             begin
               Fog::Volume::OpenStack::V2.new(convert_to_fog_params(openstack_params))
-            rescue Fog::OpenStack::Errors::ServiceUnavailable
+            rescue Fog::OpenStack::Errors::ServiceUnavailable, Fog::Errors::NotFound
               Fog::Volume::OpenStack::V1.new(convert_to_fog_params(openstack_params))
             end
           end
