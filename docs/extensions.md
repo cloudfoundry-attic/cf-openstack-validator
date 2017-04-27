@@ -10,14 +10,14 @@ This is a step-by-step guide to implement an extension.
 
 ### Create Extensions File
 
-You can configure a directory from which extensions are read. Create a directory `validator_extensions` in your home directory and add a `my_extension_spec.rb` file. Extensions are in fact [RSpec](http://rspec.info/) tests. That's why they have to be called `*._spec.rb`. An [example extension](/extensions/dummy_extension_spec.sample.rb) comes with the validator.
+You can configure a directory from which extensions are read. Create a directory `validator_extensions` for example in your home directory and add a `my_extension_spec.rb` file. Extensions are in fact [RSpec](http://rspec.info/) tests. That's why they have to be called `*._spec.rb`. An [example extension](/extensions/dummy_extension_spec.sample.rb) comes with the validator.
 
 Add the path to your `validator.yml` under the `extensions` section. You can also configure multiple paths if you have multiple extensions:
-```yml
+```yaml
 extensions:
   paths: [extensions/, /home/my-user/validator-extensions/]
 ```
-Paths are resolved relative to the `validator.yml`. If you don't specify a path it defaults to `extensions/`.
+Paths are resolved relative to the `validator.yml`.
 
 ### Write a Simple Test
 
@@ -77,7 +77,7 @@ end
 
 If our test would fail, it would leak resources: Nobody is cleaning up the security group we created. To ensure that resources are cleaned up, even when the test is not completely executed, the validator provides a resource tracking API.
 
-The resource tracking API supports automatic cleanup of OpenStack resources. For debugging cleanup can be skipped by setting the cli option `--skip-cleanup`.
+The resource tracking API supports automatic cleanup of OpenStack resources. For debugging, cleanup can be skipped by setting the cli option `--skip-cleanup`.
 
 To use the resource tracking add a statement as follows:
 
@@ -138,10 +138,12 @@ end
 ### Passing Parameters to your Extension
 
 If your extension needs any configuration you can add it to the `validator.yml`. Let's read the port for the security group rule from the configuration:
-```yml
+```yaml
 extensions:
+  paths: ['path_to/my_extension/']
   config:
-    port: 22
+    my_extension:
+     port: 22
 ```
 
 The complete hash at `config` can be retrieved from your test by calling `Validator::Api.configuration.extensions`.
@@ -156,6 +158,7 @@ fdescribe 'My extension' do
   end
 
   let(:config) { Validator::Api.configuration.extensions }
+  
   it 'can create a security group allowing SSH' do
     ssh_security_group = nil
     ssh_security_group_id = @resource_tracker.produce(:security_groups, provide_as: :my_security_group_id) do
@@ -164,10 +167,10 @@ fdescribe 'My extension' do
     end
 
     ssh_security_group.security_group_rules.create({
-      from_port: config['port'],
+      from_port: config['my_extension']['port'],
       ip_protocol: 'tcp',
       ip_range: { 'cidr' => '0.0.0.0/0' },
-      to_port: config['port'],
+      to_port: config['my_extension']['port'],
       parent_group_id: ssh_security_group_id
     })
 
@@ -177,11 +180,66 @@ fdescribe 'My extension' do
 end
 ```
 
+If you need multiple parameters, we recommend to store all of them in one extension-specific configuration file next to your spec files.
+Then you just hand in the path to your config file as config parameter into `validator.yml`.
+
+```yaml
+security_group_name: 'allow-ssh'
+protocol: 'tcp'
+port: 22
+```
+
+```yaml
+extensions:
+  paths: ['path_to/my_extension/']
+  config:
+    my_extension:
+     path: 'path_to/my_extension_config.yml'
+```
+
+Access your own config parameters by loading the file in your spec:
+
+```ruby
+fdescribe 'My extension' do
+
+  before(:all) do
+    @resource_tracker = Validator::Api::ResourceTracker.create
+    @compute = Validator::Api::FogOpenStack.compute
+  end
+
+  let(:config) { Validator::Api.configuration.extensions }
+  let(:my_config) { YAML.load_file(config['my_extension']['path']) }
+  
+  it 'can create a security group allowing SSH' do
+    ssh_security_group = nil
+    ssh_security_group_id = @resource_tracker.produce(:security_groups, provide_as: :my_security_group_id) do
+      ssh_security_group = @compute.security_groups.create({ 'name' => my_config['security_group_name'], 'description' => '' })
+      ssh_security_group.id
+    end
+
+    ssh_security_group.security_group_rules.create({
+      from_port: my_config['port'],
+      ip_protocol: my_config['protocol'],
+      ip_range: { 'cidr' => '0.0.0.0/0' },
+      to_port: my_config['port'],
+      parent_group_id: ssh_security_group_id
+    })
+
+    expect(@compute.security_groups.get(ssh_security_group_id)).to_not be_nil
+  end
+
+end
+```
+
+
 ### Finishing Up
 
 That's it, you have implemented your first validator extension. As a last step don't forget to remove all `f` prefixes in front
 of `describe`, `context` or `it` steps, so that the whole test suite is executed.
 
+If you publish your extension, make sure to include a README that describes all available configuration options.
+For an example, have a look at [Flavors Extension](../extensions/flavors/).
+ 
 ## Extension API Details
 
 ### Interact with OpenStack

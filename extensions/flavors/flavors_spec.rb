@@ -6,7 +6,7 @@ describe 'Flavors' do
  
   config = Validator::Api.configuration.extensions
   
-  flavors = YAML.load_file( config['flavors']['expected_flavors'])
+  flavors = YAML.load_file(config['flavors']['expected_flavors'])
 
   let(:expected_flavor_properties) do
     flavors.map {|flavor| flavor.fetch('metadata', {}).keys}.flatten.uniq
