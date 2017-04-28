@@ -53,6 +53,9 @@ The validator runs on Mac and Linux. Please ensure that the following packages a
 $ cp validator.template.yml validator.yml
 ```
 * Download a stemcell from [OpenStack stemcells bosh.io](http://bosh.io/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent)
+```
+$ curl -L -J -O https://bosh.io/d/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent
+```
 * Install dependencies
 ```bash
 $ sudo gem install bundler
