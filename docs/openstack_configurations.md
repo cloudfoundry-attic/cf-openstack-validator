@@ -10,9 +10,14 @@ You can add your certificate chain in the property `openstack.connection_options
 
 By default, hypervisor-local storage is used for a VMs boot disk. If your OpenStack setup requires you to use disks from block storage instead, you can set `openstack.boot_from_volume: true`.
 
+## Using custom ephemeral disk size
+
+By default, the root disk size and ephemeral disk size of the OpenStack flavor determine the ephemeral disk size available on a BOSH stemcell. If you want to specify your disk size independent of the flavor's disk sizes, you need to enable `openstack.boot_from_volume: true` as described above and configure a different root disk size in `cloud_config.vm_types.['default'].cloud_properties.root_disk.size`. We recommend a minimum size of 10GB.
+You can calculate the available ephemeral disk size as `root_disk.size - 3GB - flavor_RAM`.
+
 ## Using flavors with 0 root disk size
 
-By default, the size of the boot disk is determined by the root disk size of the flavor you are using. If you're using flavors with a root disk size of 0, you need to specify the desired root disk size in `cloud_config.vm_types.['default'].cloud_properties.root_disk`. We recommend a minimum size of 10GB.
+See above.
 
 ## Using internal ntp servers
 
