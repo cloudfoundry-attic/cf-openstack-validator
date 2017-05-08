@@ -2,8 +2,6 @@ module Validator
   module Api
     class FogOpenStack
       class << self
-        include Validator::Api::Logging
-
         def compute
           handle_socket_error do
             Fog::Compute::OpenStack.new(convert_to_fog_params(openstack_params))
@@ -48,6 +46,7 @@ module Validator
         def with_openstack(error_message)
           yield if block_given?
         rescue => e
+          log_path = RSpec.configuration.options.log_path
           logger = Logger.new(File.join(log_path, 'testsuite.log'))
           logger.error(e.message)
           message = "More details can be found in '#{log_path}'"

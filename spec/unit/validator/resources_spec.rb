@@ -36,6 +36,7 @@ module Validator
       allow(Api::FogOpenStack).to receive(:image).and_return(image)
       allow(Api::FogOpenStack).to receive(:volume).and_return(volume)
       allow(Api::FogOpenStack).to receive(:storage).and_return(storage)
+      allow(RSpec::configuration).to receive(:options).and_return(double('options', cpi_bin_path: nil, log_path: nil))
     end
 
     describe '.create' do

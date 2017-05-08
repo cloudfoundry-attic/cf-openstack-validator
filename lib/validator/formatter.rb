@@ -1,6 +1,5 @@
 require 'rspec/core'
 require 'pathname'
-require_relative 'options'
 
 module Validator
   class TestsuiteFormatter < RSpec::Core::Formatters::DocumentationFormatter
@@ -9,7 +8,7 @@ module Validator
 
     def initialize(output)
       super
-      @env = Options.new(ENV)
+      @options = RSpec::configuration.options
     end
 
     def example_started(notification)
@@ -48,14 +47,14 @@ module Validator
       output.puts "Resources: #{RSpec.configuration.validator_resources.summary}"
 
       if summary.failure_count > 0
-        output.puts "\nYou can find more information in the logs at #{File.join(Pathname.new(ENV['BOSH_OPENSTACK_CPI_LOG_PATH']).cleanpath, 'testsuite.log')}"
+        output.puts "\nYou can find more information in the logs at #{File.join(Pathname.new(@options.log_path).cleanpath, 'testsuite.log')}"
       end
     end
 
     private
 
     def formatted_failure(failure, failure_number, colorizer = ::RSpec::Core::Formatters::ConsoleCodes)
-      if @env.verbose_output?
+      if @options.verbose?
         failure.fully_formatted(failure_number, colorizer)
       else
         formatted = "\n  #{failure_number}) #{failure.description}\n"

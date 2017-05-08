@@ -10,10 +10,6 @@ describe Validator::TestsuiteFormatter do
     output = StringIO.new
   }
 
-  before do
-    ENV['VERBOSE_FORMATTER'] = 'false'
-  end
-
   describe '#example_started' do
     let(:notification) {
       instance_double(RSpec::Core::Notifications::ExampleNotification)
@@ -77,6 +73,12 @@ describe Validator::TestsuiteFormatter do
       instance_double(RSpec::Core::Notifications::ExamplesNotification)
     }
 
+    let(:verbose) { false }
+
+    before do
+      allow(RSpec::configuration).to receive(:options).and_return(double('options', verbose?: verbose))
+    end
+
     context 'when no failure occurred' do
       it 'should not print anything' do
         allow(notification).to receive(:failure_notifications).and_return([])
@@ -103,9 +105,7 @@ describe Validator::TestsuiteFormatter do
       end
 
       context 'and VERBOSE_FORMATTER is used' do
-        before do
-          ENV['VERBOSE_FORMATTER'] = 'true'
-        end
+        let(:verbose) { true }
 
         let(:failure_notification) { instance_double(RSpec::Core::Notifications::FailedExampleNotification) }
 
@@ -126,6 +126,8 @@ describe Validator::TestsuiteFormatter do
       let(:failure_notification1) { mock_failure_notification('Failure description1', 'Failure exception1') }
       let(:failure_notification2) { mock_failure_notification('Failure description2', 'Failure exception2') }
 
+      let(:verbose) { false }
+
       it 'should report only the error number, error description and the error message' do
         allow(notification).to receive(:failure_notifications).and_return([failure_notification1, failure_notification2])
 
@@ -142,9 +144,7 @@ describe Validator::TestsuiteFormatter do
       end
 
       context 'and VERBOSE_FORMATTER is used' do
-        before do
-          ENV['VERBOSE_FORMATTER'] = 'true'
-        end
+        let(:verbose) { true }
 
         let(:failure_notification1) { instance_double(RSpec::Core::Notifications::FailedExampleNotification) }
         let(:failure_notification2) { instance_double(RSpec::Core::Notifications::FailedExampleNotification) }
@@ -216,12 +216,7 @@ describe Validator::TestsuiteFormatter do
       let(:failure_count) { 1 }
 
       before(:each) do
-        @orig_log_path = ENV['BOSH_OPENSTACK_CPI_LOG_PATH']
-        ENV['BOSH_OPENSTACK_CPI_LOG_PATH'] = 'test/path'
-      end
-
-      after(:each) do
-        ENV['BOSH_OPENSTACK_CPI_LOG_PATH'] = @orig_log_path if @orig_log_path
+        allow(RSpec::configuration).to receive(:options).and_return(double('options', log_path: 'test/path'))
       end
 
       it 'points the user to the log file' do

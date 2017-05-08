@@ -312,41 +312,18 @@ EOF
       end
     end
 
-    describe '#with_environment' do
-      it 'does not modify the environment for the outer scope' do
-        old_env = ENV.to_hash
-
-        subject.with_environment('TEST_ENV_KEY' => 'TEST_ENV_VALUE')
-
-        expect(ENV.to_hash).to eq(old_env)
-      end
-
-      it 'does modify the environment for the execution of the given block' do
-        subject.with_environment('TEST_ENV_KEY' => 'TEST_ENV_VALUE') {
-          expect(ENV['TEST_ENV_KEY']).to eq('TEST_ENV_VALUE')
-        }
-      end
-    end
-
     describe '#execute_specs' do
+      let(:verbose) { true }
+      let(:skip_cleanup) { true }
+
       let(:context) { double('context',
           path_environment: 'path environment', gems_folder: 'gems folder', bundle_command: 'command', working_dir: working_dir,
-          cpi_release: release_archive_path, skip_cleanup?: true, verbose?: true, config_path: 'validator_config_path',
+          cpi_release: release_archive_path, skip_cleanup?: skip_cleanup, verbose?: verbose, config_path: 'validator_config_path',
           validator_root_dir: expand_project_path(''), tag: nil, fail_fast?: false,
-          cpi_bin_path: File.join(working_dir, 'cpi'))
+          cpi_bin_path: File.join(working_dir, 'cpi'), create_validator_options: validator_options)
       }
-      let(:env) do
-        {
-          'BOSH_PACKAGES_DIR' => File.join(working_dir, 'packages'),
-          'BOSH_OPENSTACK_CPI_LOG_PATH' => File.join(working_dir, 'logs'),
-          'BOSH_OPENSTACK_STEMCELL_PATH' => File.join(working_dir, 'stemcell'),
-          'BOSH_OPENSTACK_CPI_PATH' => context.cpi_bin_path,
-          'BOSH_OPENSTACK_VALIDATOR_CONFIG' => 'validator_config_path',
-          'BOSH_OPENSTACK_CPI_CONFIG' => File.join(working_dir, 'cpi.json'),
-          'BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP' => context.skip_cleanup?.to_s,
-          'VERBOSE_FORMATTER' => context.verbose?.to_s
-        }
-      end
+      let(:validator_options) { Validator::Cli::Options.new }
+
       let(:spec_formatter_path) { File.join(context.validator_root_dir, 'lib', 'validator', 'formatter.rb') }
       let(:expected_command) {
         args = [
@@ -358,17 +335,13 @@ EOF
         args
       }
 
-      before(:each) do
-        allow(subject).to receive(:with_environment).and_call_original
-      end
-
       it 'should execute specs with rspec environment' do
         allow(RSpec::Core::Runner).to receive(:run).and_return(0)
 
         subject.execute_specs
 
         expect(RSpec::Core::Runner).to have_received(:run).with(expected_command, anything, $stdout)
-        expect(subject).to have_received(:with_environment).with(env)
+        expect(RSpec.configuration.options).to eq(validator_options)
       end
 
       context 'when execution fails' do
@@ -390,7 +363,7 @@ EOF
             path_environment: 'path environment', gems_folder: 'gems folder', bundle_command: 'command', working_dir: working_dir,
             cpi_release: release_archive_path, skip_cleanup?: true, verbose?: true, config_path: 'validator_config_path',
             validator_root_dir: expand_project_path(''), tag: 'focus', fail_fast?: true,
-            cpi_bin_path: File.join(working_dir, 'cpi'))
+            cpi_bin_path: File.join(working_dir, 'cpi'), create_validator_options: validator_options)
         }
 
         it 'should execute specs with fail fast option' do

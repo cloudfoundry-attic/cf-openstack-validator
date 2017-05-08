@@ -12,13 +12,9 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
   before(:all) {
     @config = Validator::Api.configuration
-
-    @stemcell_path     = stemcell_path
-    @cpi_path          = cpi_path
-    @cloud_config      = @config.cloud_config
-    @log_path          = log_path
-
-    @cpi = cpi(@cpi_path, @log_path)
+    options = RSpec.configuration.options
+    @stemcell_path = options.stemcell_path
+    @cpi = cpi(options.cpi_bin_path, options.log_path)
     @resource_tracker = Validator::Api::ResourceTracker.create
     @compute = Validator::Api::FogOpenStack.compute
   }
@@ -239,7 +235,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
   it 'allows a VM to reach the configured NTP server' do
     @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
 
-    ntp = YAML.load_file(ENV['BOSH_OPENSTACK_VALIDATOR_CONFIG'])['validator']['ntp']
+    ntp = @config.validator['ntp']
     sudo = " echo 'c1oudc0w' | sudo -S"
     create_ntpserver_command = "#{sudo} bash -c \"echo #{ntp.join(' ')} | tee /var/vcap/bosh/etc/ntpserver\""
     call_ntpdate_command = "#{sudo} /var/vcap/bosh/bin/ntpdate"

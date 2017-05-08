@@ -168,50 +168,30 @@ module Validator::Cli
       File.write(File.join(@context.working_dir, 'cpi.json'), cpi_config_content)
     end
 
-    def with_environment(env)
-      old_env = env.map {|key, _| [key, ENV[key]]}.to_h
-      env.each {|key, value| ENV[key] = value}
-      begin
-        yield if block_given?
-      ensure
-        old_env.each {|key, value| ENV[key] = value}
-      end
-    end
-
-    def get_rspec_env
-      {
-        'BOSH_PACKAGES_DIR' => File.join(@context.working_dir, 'packages'),
-        'BOSH_OPENSTACK_CPI_LOG_PATH' => File.join(@context.working_dir, 'logs'),
-        'BOSH_OPENSTACK_STEMCELL_PATH' => File.join(@context.working_dir, 'stemcell'),
-        'BOSH_OPENSTACK_CPI_PATH' => @context.cpi_bin_path,
-        'BOSH_OPENSTACK_VALIDATOR_CONFIG' => @context.config_path,
-        'BOSH_OPENSTACK_CPI_CONFIG' => File.join(@context.working_dir, 'cpi.json'),
-        'BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP' => @context.skip_cleanup?.to_s,
-        'VERBOSE_FORMATTER' => @context.verbose?.to_s,
-      }
-    end
-
     def execute_specs
       require 'rspec'
 
-      with_environment(get_rspec_env) do
-        rspec_command = []
-        rspec_command += ['--tag', @context.tag] if @context.tag
-        rspec_command += ['--fail-fast'] if @context.fail_fast?
-        rspec_command += [
-          '--order', 'defined',
-          '--color',
-          '--tty',
-          '--require',  File.join(@context.validator_root_dir, 'lib', 'validator', 'formatter.rb'),
-          '--format', 'Validator::TestsuiteFormatter',
-        ]
-        rspec_command += Dir.glob('src/specs/*')
+      RSpec.configure do |config|
+        config.add_setting :options
+        config.options = @context.create_validator_options
+      end
 
-        log_path = File.join(log_directory, 'testsuite.log')
-        File.open(log_path, 'w') do |log_file|
-          unless RSpec::Core::Runner.run(rspec_command, log_file, $stdout) == 0
-            raise ErrorWithLogDetails.new("Running 'RSpec::Core::Runner.run' with arguments '#{rspec_command}' failed", log_path)
-          end
+      rspec_command = []
+      rspec_command += ['--tag', @context.tag] if @context.tag
+      rspec_command += ['--fail-fast'] if @context.fail_fast?
+      rspec_command += [
+        '--order', 'defined',
+        '--color',
+        '--tty',
+        '--require',  File.join(@context.validator_root_dir, 'lib', 'validator', 'formatter.rb'),
+        '--format', 'Validator::TestsuiteFormatter',
+      ]
+      rspec_command += Dir.glob('src/specs/*')
+
+      log_path = File.join(log_directory, 'testsuite.log')
+      File.open(log_path, 'w') do |log_file|
+        unless RSpec::Core::Runner.run(rspec_command, log_file, $stdout) == 0
+          raise ErrorWithLogDetails.new("Running 'RSpec::Core::Runner.run' with arguments '#{rspec_command}' failed", log_path)
         end
       end
     end

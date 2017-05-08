@@ -1,13 +1,15 @@
 module Validator::Cli
+  Options = Struct.new(:packages_dir, :log_path, :stemcell_path, :cpi_bin_path, :config_path, :cpi_config, :skip_cleanup?, :verbose?)
+
   class Context
 
     attr_reader :openstack_cpi_bin_from_env, :working_dir, :config
 
     attr_accessor :cpi_bin_path, :cpi_release_path
 
-    def initialize(options, working_dir = "#{ENV['HOME']}/.cf-openstack-validator")
-      @options = options
-      @cpi_release_path = @options[:cpi_release]
+    def initialize(cli_options, working_dir = "#{ENV['HOME']}/.cf-openstack-validator")
+      @cli_options = cli_options
+      @cpi_release_path = @cli_options[:cpi_release]
       @working_dir = working_dir
       ensure_working_directory(@working_dir)
       @path_from_env = ENV['PATH']
@@ -17,27 +19,27 @@ module Validator::Cli
     end
 
     def tag
-     @options[:tag]
+     @cli_options[:tag]
     end
 
     def skip_cleanup?
-      @options[:skip_cleanup]
+      @cli_options[:skip_cleanup]
     end
 
     def verbose?
-      @options[:verbose]
+      @cli_options[:verbose]
     end
 
     def fail_fast?
-      @options[:fail_fast]
+      @cli_options[:fail_fast]
     end
 
     def stemcell
-      @options[:stemcell]
+      @cli_options[:stemcell]
     end
 
     def config_path
-      @options[:config_path]
+      @cli_options[:config_path]
     end
 
     def validator_root_dir
@@ -59,6 +61,19 @@ module Validator::Cli
 
     def packages_path
       File.join(working_dir, 'packages')
+    end
+
+    def create_validator_options
+      Options.new(
+          packages_path,
+          File.join(working_dir, 'logs'),
+          File.join(working_dir, 'stemcell'),
+          cpi_bin_path,
+          config_path,
+          File.join(working_dir, 'cpi.json'),
+          skip_cleanup?,
+          verbose?
+      ).freeze
     end
 
     private

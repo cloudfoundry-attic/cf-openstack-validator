@@ -2,8 +2,8 @@ require_relative '../../spec_helper'
 
 module Validator::Cli
   describe Context do
-    let(:options) { {} }
-    let(:subject) { Context.new(options, working_directory) }
+    let(:cli_options) { {} }
+    let(:subject) { Context.new(cli_options, working_directory) }
     let(:working_directory) { Dir.mktmpdir }
 
     after(:each) do
@@ -56,7 +56,7 @@ module Validator::Cli
           FileUtils.touch(path)
 
           expect {
-            Context.new(options, path)
+            Context.new(cli_options, path)
           }.to raise_error Errno::EEXIST
         end
       end
@@ -90,6 +90,35 @@ module Validator::Cli
     describe '#packages_path' do
       it 'should return gems folder path' do
         expect(subject.packages_path).to eq(File.join(subject.working_dir, 'packages'))
+      end
+    end
+
+    describe '#create_validator_options' do
+      let(:cli_options) do
+        {
+            config_path: 'validator_config_path',
+            skip_cleanup: true,
+            verbose: true
+        }
+      end
+
+      it 'sets all options' do
+        expected_options = Validator::Cli::Options.new(
+          File.join(working_directory, 'packages'),
+          File.join(working_directory, 'logs'),
+          File.join(working_directory, 'stemcell'),
+          File.join(working_directory, 'cpi'),
+          'validator_config_path',
+          File.join(working_directory, 'cpi.json'),
+          true,
+          true
+        )
+
+        expect(subject.create_validator_options).to eq(expected_options)
+      end
+
+      it 'returns a frozen Option instance' do
+        expect(subject.create_validator_options.frozen?).to eq(true)
       end
     end
   end

@@ -194,9 +194,9 @@ module Validator::Api
         let(:logger) { instance_double(Logger) }
 
         before do
-          allow_any_instance_of(Validator::Api::Logging).to receive(:log_path).and_return('some_file_path')
           allow(Logger).to receive(:new).and_return(logger)
           allow(logger).to receive(:error)
+          allow(RSpec::configuration).to receive(:options).and_return(double('options', cpi_bin_path: nil, log_path: 'some_file_path'))
         end
 
         it 're-raises error with the given error message and hint to log file' do

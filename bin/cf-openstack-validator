@@ -3,7 +3,7 @@
 require 'optparse'
 require_relative '../lib/validator/cli'
 
-options = {}
+cli_options = {}
 required_options = {stemcell: '--stemcell', config_path: '--config'}
 option_parser = OptionParser.new do |parser|
   parser.banner = 'Usage: cf-openstack-validator [options]'
@@ -14,37 +14,37 @@ option_parser = OptionParser.new do |parser|
   end
 
   parser.on('-r', '--cpi-release RELEASE', 'CPI release .tgz path. Latest version will be downloaded if not specified (optional)') do |release|
-    options[:cpi_release] = release
+    cli_options[:cpi_release] = release
   end
 
   parser.on('-s', "#{required_options[:stemcell]} STEMCELL", 'Stemcell path') do |stemcell|
-    options[:stemcell] = stemcell
+    cli_options[:stemcell] = stemcell
   end
 
   parser.on('-c', "#{required_options[:config_path]} CONFIG_FILE", 'Configuration YAML file path') do |config_path|
-    options[:config_path] = config_path
+    cli_options[:config_path] = config_path
   end
 
   parser.on('-t', '--tag TAG', 'Run tests that match a specified RSpec tag (optional)') do |tag|
-    options[:tag] = tag
+    cli_options[:tag] = tag
   end
 
   parser.on('-k', '--skip-cleanup', 'Skip cleanup of OpenStack resources (optional)') do
-    options[:skip_cleanup] = true
+    cli_options[:skip_cleanup] = true
   end
 
   parser.on('-v', '--verbose', 'Print more output for failing tests (optional)') do
-    options[:verbose] = true
+    cli_options[:verbose] = true
   end
 
   parser.on('-f', '--fail-fast', 'Stop execution after the first test failure (optional)') do
-    options[:fail_fast] = true
+    cli_options[:fail_fast] = true
   end
 end
 option_parser.parse!
 
 missing_required_options = required_options.keys.select do |required_option|
-  !options.include?(required_option)
+  !cli_options.include?(required_option)
 end
 
 unless missing_required_options.empty?
@@ -53,6 +53,6 @@ unless missing_required_options.empty?
   exit 1
 end
 
-context = Validator::Cli::Context.new(options)
+context = Validator::Cli::Context.new(cli_options)
 validator = Validator::Cli::CfOpenstackValidator.create(context)
 validator.run

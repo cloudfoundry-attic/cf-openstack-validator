@@ -139,9 +139,9 @@ extensions:
 
   end
 
-
-
   describe '.eval' do
+    let(:verbose) {false}
+
     before do
       @extensionsdir = File.join(@tmpdir, 'extensions')
       FileUtils.mkdir(@extensionsdir)
@@ -153,6 +153,8 @@ extensions:
       @specs.each { |spec| FileUtils.touch(spec) }
 
       File.write(@validator_config, '---')
+
+      allow(RSpec::configuration).to receive(:options).and_return(double('options', verbose?: verbose))
     end
 
     it 'tells which extension it is running' do
@@ -184,51 +186,19 @@ extensions:
         }.to output(/unknown type of %string\n%fa#23\n /).to_stdout
       end
 
-      context 'VERBOSE_FORMATTER' do
-        before(:each) do
-          @orig = ENV['VERBOSE_FORMATTER']
-        end
+      context 'when verbose option is true' do
+        let(:verbose) {true}
 
-        after(:each) do
-          if @orig
-            ENV['VERBOSE_FORMATTER'] = @orig
-          else
-            ENV.delete('VERBOSE_FORMATTER')
-          end
-        end
-
-        context 'when VERBOSE_FORMATTER=true is given' do
-          before(:each) do
-            ENV['VERBOSE_FORMATTER'] = 'true'
-          end
-
-          it 'prints the errors backtrace to stdout' do
-            expect {
-              begin
-                Validator::Extensions.eval(@specs, binding)
-              rescue SyntaxError
-                # not relevant for test
-              end
-            }.to output(/:in `eval'/).to_stdout
-          end
-        end
-
-        context 'VERBOSE_FORMATTER not true' do
-          before(:each) do
-            ENV['VERBOSE_FORMATTER'] = 'anything but true'
-          end
-
-          it 'prints the errors without backtrace to stdout' do
-            expect {
-              begin
-                Validator::Extensions.eval(@specs, binding)
-              rescue SyntaxError
-                # not relevant for test
-              end
-            }.not_to output(/:in `eval'/).to_stdout
-          end
-        end
+        it 'prints the errors backtrace to stdout' do
+          expect {
+            begin
+              Validator::Extensions.eval(@specs, binding)
+            rescue SyntaxError
+              # not relevant for test
+            end
+          }.to output(/:in `eval'/).to_stdout
         end
       end
+    end
   end
 end

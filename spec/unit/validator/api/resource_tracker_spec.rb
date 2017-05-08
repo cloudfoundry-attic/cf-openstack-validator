@@ -206,6 +206,7 @@ module Validator::Api
         allow(resource).to receive(:destroy).and_return(true)
 
         allow(Validator::ExternalCpi).to receive(:new).and_return(cpi)
+        allow(RSpec::configuration).to receive(:options).and_return(double('options', cpi_bin_path: nil, log_path: nil))
       end
 
       after do
@@ -241,6 +242,7 @@ module Validator::Api
         before do
           allow(file_resource).to receive(:destroy).and_return(true)
           allow(file_resources).to receive(:each).and_yield(file_resource).and_yield(file_resource)
+          allow(RSpec::configuration).to receive(:options).and_return(double('options', cpi_bin_path: nil, log_path: nil))
         end
 
         context 'when a directory contains files' do

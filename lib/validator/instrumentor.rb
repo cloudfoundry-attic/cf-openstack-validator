@@ -5,7 +5,7 @@ module Validator
     @logger = nil
 
     def self.logger
-      @logger = @logger || Logger.new("#{File.join(ENV['BOSH_OPENSTACK_CPI_LOG_PATH'], 'excon.log')}")
+      @logger = @logger || Logger.new("#{File.join(RSpec::configuration.options.log_path, 'excon.log')}")
     end
 
     def self.instrument(name, params = {})

@@ -1,14 +1,17 @@
 module Validator
   module Api
     module CpiHelpers
-      include Logging
+
+      def log_path
+        RSpec::configuration.options.log_path
+      end
 
       def stemcell_path
-        ENV['BOSH_OPENSTACK_STEMCELL_PATH']
+        RSpec.configuration.options.stemcell_path
       end
 
       def cpi_path
-        ENV['BOSH_OPENSTACK_CPI_PATH']
+        RSpec.configuration.options.cpi_bin_path
       end
 
       def execute_ssh_command_on_vm_with_retry(private_key_path, ip, command, time_in_seconds = 60, frequency = 3)
@@ -98,7 +101,7 @@ module Validator
         }
       end
 
-      def cpi(cpi_path_arg = cpi_path, log_path_arg = log_path)
+      def cpi(cpi_path_arg = RSpec.configuration.options.cpi_bin_path, log_path_arg = RSpec.configuration.options.log_path)
         logger = Logger.new("#{log_path_arg}/testsuite.log")
         Validator::ExternalCpi.new(cpi_path_arg, logger, "#{log_path_arg}/cpi.log", "#{log_path_arg}/stats.log")
       end

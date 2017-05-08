@@ -15,7 +15,7 @@ module Validator
             binding.eval(File.read(file), file)
           rescue Exception => e
             puts e
-            puts e.backtrace if ENV['VERBOSE_FORMATTER'] == 'true'
+            puts e.backtrace if RSpec::configuration.options.verbose?
             raise e
           end
         end

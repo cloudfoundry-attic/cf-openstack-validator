@@ -62,7 +62,7 @@ module Validator
       end
 
       def registry_port
-        endpoint = YAML.load_file(ENV['BOSH_OPENSTACK_CPI_CONFIG'])['cloud']['properties']['registry']['endpoint']
+        endpoint = YAML.load_file(RSpec::configuration.options.cpi_config)['cloud']['properties']['registry']['endpoint']
         endpoint.scan(/\d+/).join.to_i
       end
 
@@ -108,7 +108,7 @@ module Validator
           end
 
           after(:all) do
-            RSpec::configuration.validator_resources.cleanup unless Validator::Options.new(ENV).skip_cleanup?
+            RSpec::configuration.validator_resources.cleanup unless RSpec::configuration.options.skip_cleanup?
             kill_server(@server_thread)
           end
 
