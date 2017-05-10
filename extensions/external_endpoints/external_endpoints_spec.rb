@@ -12,7 +12,7 @@ describe 'test access to external endpoints' do
   end
 
   config = Validator::Api.configuration.extensions
-  endpoints = YAML.load_file( config['external_endpoints']['expected_endpoints'])
+  endpoints = YAML.load_file( config['external_endpoints']['expected_endpoints']) || []
 
   it 'prepare image' do
     stemcell_manifest = YAML.load_file(File.join(@stemcell_path, 'stemcell.MF'))
