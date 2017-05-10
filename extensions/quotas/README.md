@@ -60,9 +60,9 @@ Add the extension to your `validator.yml`:
 
 ```yaml
 extensions:
-  paths: ['./extensions/quotas']
+  paths: [./extensions/quotas]
   config:
     quotas:
-     expected_quotas: 'quotas.yml'
+     expected_quotas: </absolute/path/to/quotas.yml>
      project_id: <project_id_to_validate>
 ```

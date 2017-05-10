@@ -18,8 +18,8 @@ Add the extension to your `validator.yml`:
 
 ```yaml
 extensions:
-  paths: ['./extensions/external_endpoints']
+  paths: [./extensions/external_endpoints]
   config:
     external_endpoints:
-      expected_endpoints: 'endpoints.yml'
+      expected_endpoints: </absolute/path/to/endpoints.yml>
 ```

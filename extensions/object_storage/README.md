@@ -11,7 +11,7 @@ Add the extension to your `validator.yml`:
 
 ```yaml
 extensions:
-  paths: ['./extensions/object_storage']
+  paths: [./extensions/object_storage]
     object_storage:
       openstack:
         openstack_temp_url_key: <temp-url-key>

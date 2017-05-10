@@ -38,8 +38,8 @@ Add the extension to your `validator.yml`:
 
 ```yaml
 extensions:
-  paths: ['./extensions/flavors']
+  paths: [./extensions/flavors]
   config:
     flavors:
-     expected_flavors: 'flavors.yml'
+     expected_flavors: </absolute/path/to/flavors.yml>
 ```
