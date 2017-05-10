@@ -62,7 +62,7 @@ openstack_suite.context 'API', position: 1, order: :global do
   def port_open?(direction, port, protocol, security_group)
     security_group = @network.security_groups.find { |sg| sg.name == security_group }
     rule = security_group.security_group_rules.find { |rule|
-      rule.direction == direction && rule.ethertype == 'IPv4' && protocol_included?(rule, protocol) && port_in_range?(port, rule)
+      rule.direction == direction && rule.ethertype == 'IPv4' && protocol_included?(rule, protocol) && port_in_range?(port, rule) && rule.remote_group_id == nil
     }
     rule != nil
   end
