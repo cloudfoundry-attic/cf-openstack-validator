@@ -321,6 +321,22 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     }
   end
 
+  it 'has configured MTU size' do
+    @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM with floating IP to use')
+    @resource_tracker.consumes(:vm_cid_static_ip, 'No VM with static IP to use')
+
+    sudo = "echo 'c1oudc0w' | sudo -S"
+    command = "#{sudo} traceroute -M raw -m 1 --mtu #{@config.validator['static_ip']}"
+
+    response, err, status = execute_ssh_command_on_vm(@config.private_key_path, @config.validator['floating_ip'], command)
+
+    expect(status.exitstatus).to eq(0), "SSH connection didn't succeed. MTU size could not be checked.\nError was: #{err}"
+    actual_mtu_size = response.match(/=(\d+)/)[1]
+    recommendation = "The available MTU size on the VMs is '#{actual_mtu_size}'. The desired MTU is '#{@config.validator['mtu_size']}'. "\
+                     "If you're using GRE or VXLAN, make sure you account for the tunnel overhead buy increasing MTU in your underlay network."
+    expect(actual_mtu_size.to_s).to eq(@config.validator['mtu_size'].to_s), recommendation
+  end
+
   it 'can delete a stemcell' do
     stemcell_cid = @resource_tracker.consumes(:stemcell_cid, 'No stemcell to delete')
 
