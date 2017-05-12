@@ -41,6 +41,10 @@ The validator runs on Mac and Linux. Please ensure that the following packages a
 
 * xcode command line tools
 
+**Running the validator**
+
+The intended place to run the validator is a VM within your OpenStack. If you are executing the tests from a machine outside your OpenStack, you need to set `validator.use_external_ip` to `true`.
+
 ## Usage
 
 * `git clone https://github.com/cloudfoundry-incubator/cf-openstack-validator.git`

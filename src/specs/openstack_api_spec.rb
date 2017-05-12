@@ -38,7 +38,8 @@ openstack_suite.context 'API', position: 1, order: :global do
 
     it 'has ingress rule for SSH' do
       error_message = 'BOSH requires incoming SSH access. Expected any security group to have ingress port 22 for TCP open.'
-      expect(port_open_in_any_security_group?('ingress', 22, 'tcp', @configured_security_groups)).to be(true), error_message
+      check_remote_group_id_empty = Validator::Api.configuration.validator['use_external_ip']
+      expect(port_open_in_any_security_group?('ingress', 22, 'tcp', @configured_security_groups, check_remote_group_id_empty)).to be(true), error_message
     end
 
     it 'has egress rule for HTTP' do
@@ -53,16 +54,20 @@ openstack_suite.context 'API', position: 1, order: :global do
     end
   end
 
-  def port_open_in_any_security_group?(direction, port, protocol, security_groups)
+  def port_open_in_any_security_group?(direction, port, protocol, security_groups, check_remote_group_id_empty = false)
     port_open = false
-    security_groups.each { |security_group| port_open ||= port_open?(direction, port, protocol, security_group) }
+    security_groups.each { |security_group| port_open ||= port_open?(direction, port, protocol, security_group, check_remote_group_id_empty) }
     port_open
   end
 
-  def port_open?(direction, port, protocol, security_group)
+  def port_open?(direction, port, protocol, security_group, check_remote_group_id_empty = false)
     security_group = @network.security_groups.find { |sg| sg.name == security_group }
     rule = security_group.security_group_rules.find { |rule|
-      rule.direction == direction && rule.ethertype == 'IPv4' && protocol_included?(rule, protocol) && port_in_range?(port, rule)
+      result = rule.direction == direction && rule.ethertype == 'IPv4' && protocol_included?(rule, protocol) && port_in_range?(port, rule)
+      if check_remote_group_id_empty
+        result = result && rule.remote_group_id == nil
+      end
+      result
     }
     rule != nil
   end
