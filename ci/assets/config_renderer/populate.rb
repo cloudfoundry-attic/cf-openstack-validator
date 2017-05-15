@@ -100,6 +100,8 @@ def populate(working_directory, config, context)
     'expected_endpoints' => File.join(working_directory, 'endpoints.yml')
   }
 
+  config['validator']['use_external_ip'] = true
+
   config
 end
 
