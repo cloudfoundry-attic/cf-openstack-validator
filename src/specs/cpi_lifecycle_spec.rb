@@ -168,26 +168,33 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
     vm_ip_to_ssh = vm_ip(vm_cid)
 
-    _, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, "echo hi")
+    command = 'echo hi'
+    output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, command)
 
-    expect(status.exitstatus).to eq(0), "SSH connection to VM via IP '#{vm_ip_to_ssh}' didn't succeed.\nError was: #{err}"
+    expect(status.exitstatus).to eq(0),
+        error_message("SSH connection to VM via IP '#{vm_ip_to_ssh}' didn't succeed.", command, err, output)
   end
 
   it 'can access the internet' do
     vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
     vm_ip_to_ssh = vm_ip(vm_cid)
 
-    _, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path,
-                                            vm_ip_to_ssh, "nslookup github.com")
+    nslookup_command = 'nslookup github.com'
+    output, err, status = execute_ssh_command_on_vm_with_retry(
+        @config.private_key_path,
+        vm_ip_to_ssh,
+        nslookup_command
+    )
 
     if status.exitstatus > 0
-      fail "DNS server might not be reachable from VM with floating IP.\nError is: #{err}"
+      fail error_message("DNS server might not be reachable from VM with IP #{vm_ip_to_ssh}.", nslookup_command, err, output)
     end
 
-   _, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, "curl http://github.com")
+    curl_command = 'curl http://github.com'
+    output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, curl_command)
 
     expect(status.exitstatus).to eq(0),
-                      "Failed to curl http://github.com from VM with floating IP.\n     #{parse_curl_error(err)}"
+        error_message('Failed to curl http://github.com from VM with floating IP.', curl_command, err, output)
   end
 
   it 'can save and retrieve user-data from metadata service' do
@@ -195,17 +202,19 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
     vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
 
-    response, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path,
-                                               vm_ip(vm_cid), 'curl -m 10 http://169.254.169.254/latest/user-data')
+    curl_command = 'curl -m 10 http://169.254.169.254/latest/user-data'
+    output, err, status = execute_ssh_command_on_vm_with_retry(
+        @config.private_key_path,
+        vm_ip(vm_cid),
+        curl_command
+    )
 
     if status.exitstatus > 0
-      error_message = 'Cannot access metadata service at 169.254.169.254.'
-      STDERR.puts(error_message + ' ' + parse_curl_error(err))
-      fail error_message
+      fail error_message('Cannot access metadata service at 169.254.169.254.', curl_command, err, output)
     end
 
     ['registry', 'server', 'networks'].each do |key|
-      expect(JSON.parse(response).keys).to include(key)
+      expect(JSON.parse(output).keys).to include(key)
     end
   end
 
@@ -218,23 +227,25 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     sudo_command = "echo #{vcap_password}| sudo -S"
     mount_path = "/tmp/#{SecureRandom.uuid}"
     config_drive_disk_path = '/dev/disk/by-label/config-2'
-    _, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, "#{sudo_command} mkdir #{mount_path} & #{sudo_command} mount #{config_drive_disk_path} #{mount_path}")
-    if status.exitstatus > 0
-      error_message = "Cannot mount config drive at '#{config_drive_disk_path}'"
-      STDERR.puts(error_message + ' ' + err)
-      fail error_message
-    end
-    response, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, "#{sudo_command} cat #{mount_path}/ec2/latest/user-data")
-    execute_ssh_command_on_vm_with_retry(@config.private_key_path, @config.validator['floating_ip'], "#{sudo_command} umount #{mount_path}")
+    command = "#{sudo_command} mkdir #{mount_path} & #{sudo_command} mount #{config_drive_disk_path} #{mount_path}"
+
+    output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, command)
 
     if status.exitstatus > 0
-      error_message = "Cannot access metadata at '#{mount_path}/ec2/latest/user-data'"
-      STDERR.puts(error_message + ' ' + err)
-      fail error_message
+      fail error_message("Cannot mount config drive at '#{config_drive_disk_path}'", command, err, output)
+    end
+
+    cat_command = "#{sudo_command} cat #{mount_path}/ec2/latest/user-data"
+
+    output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, cat_command)
+    execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, "#{sudo_command} umount #{mount_path}")
+
+    if status.exitstatus > 0
+      fail error_message("Cannot access metadata at '#{mount_path}/ec2/latest/user-data'", cat_command, err, output)
     end
 
     ['registry', 'server', 'networks'].each do |key|
-      expect(JSON.parse(response).keys).to include(key)
+      expect(JSON.parse(output).keys).to include(key)
     end
   end
 
@@ -249,8 +260,16 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     _, _, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, create_ntpserver_command)
     expect(status.exitstatus).to eq(0)
 
-    _, _, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, call_ntpdate_command)
-    expect(status.exitstatus).to eq(0), "Failed to reach any of the following NTP servers: #{ntp.join(', ')}. If your OpenStack requires an internal time server, you need to configure it in the validator.yml."
+    output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, call_ntpdate_command)
+    execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, call_ntpdate_command)
+    expect(status.exitstatus).to eq(0),
+        error_message(
+            "Failed to reach any of the following NTP servers: #{ntp.join(', ')}. " +
+                'If your OpenStack requires an internal time server, you need to configure it in the validator.yml.',
+            call_ntpdate_command,
+            err,
+            output
+        )
   end
 
   it 'allows one VM to reach port 22 of another VM within the same network' do
@@ -274,9 +293,11 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     second_vm_ip = second_vm.addresses.values.first.first['addr']
     second_vm.wait_for { ready? }
 
-    _, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip(vm_cid), "nc -zv #{second_vm_ip} 22")
+    command = "nc -zv #{second_vm_ip} 22"
+    output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip(vm_cid), command)
 
-    expect(status.exitstatus).to eq(0), "Failed to nc port 22 on second VM.\nError is: #{err}"
+    expect(status.exitstatus).to eq(0),
+        error_message('Failed to nc port 22 on second VM.', command, err, output)
   end
 
   it 'can create a VM with static IP' do
@@ -302,9 +323,11 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM with floating IP to use')
     @resource_tracker.consumes(:vm_cid_static_ip, 'No VM with static IP to use')
 
-    _, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip(vm_cid), "nc -zv #{@config.validator['static_ip']} 22")
+    command = "nc -zv #{@config.validator['static_ip']} 22"
+    output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip(vm_cid), command)
 
-    expect(status.exitstatus).to eq(0), "Failed to nc port 22 on VM with.\nError is: #{err}"
+    expect(status.exitstatus).to eq(0),
+        error_message('Failed to nc port 22 on VM with.', command, err, output)
   end
 
   it 'can create large disk' do
@@ -334,10 +357,12 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     sudo = "echo 'c1oudc0w' | sudo -S"
     command = "#{sudo} traceroute -M raw -m 1 --mtu #{@config.validator['static_ip']}"
 
-    response, err, status = execute_ssh_command_on_vm(@config.private_key_path, vm_ip(vm_cid), command)
+    output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip(vm_cid), command)
 
-    expect(status.exitstatus).to eq(0), "SSH connection didn't succeed. MTU size could not be checked.\nError was: #{err}"
-    actual_mtu_size = response.match(/=(\d+)/)[1]
+    expect(status.exitstatus).to eq(0),
+        error_message("SSH connection didn't succeed. MTU size could not be checked.", command, err, output)
+
+    actual_mtu_size = output.match(/=(\d+)/)[1]
     recommendation = "The available MTU size on the VMs is '#{actual_mtu_size}'. The desired MTU is '#{@config.validator['mtu_size']}'. "\
                      "If you're using GRE or VXLAN, make sure you account for the tunnel overhead buy increasing MTU in your underlay network."
     expect(actual_mtu_size.to_s).to eq(@config.validator['mtu_size'].to_s), recommendation

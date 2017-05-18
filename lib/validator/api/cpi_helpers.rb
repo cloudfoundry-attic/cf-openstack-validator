@@ -37,16 +37,10 @@ module Validator
         end
       end
 
-      def execute_ssh_command_on_vm(private_key_path, ip, command)
-        output, err, status = execute_ssh(private_key_path, ip, command)
-
-        validate_ssh_connection(err, status)
-
-        [output, err, status]
-      end
-
       def execute_ssh(private_key_path, ip, command)
-        Open3.capture3 "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i #{private_key_path} vcap@#{ip} -C '#{command}'"
+        stdout, stderr, status = Open3.capture3 "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i #{private_key_path} vcap@#{ip} -C '#{command}'"
+        stderr_without_ssh_warning = stderr.gsub(/Warning: Permanently added (.|\s)+? logging and monitoring./, '')
+        [stdout, stderr_without_ssh_warning, status]
       end
 
       def validate_ssh_connection(err, status)
@@ -61,6 +55,10 @@ module Validator
 
           fail "Failed to ssh to VM with floating IP.\nError is: #{err}"
         end
+      end
+
+      def error_message(message, command, err, output)
+        "#{message}\nExecuted remote command: $ #{command}\nstderr: #{err}\nstdout: #{output}"
       end
 
       def network_spec

@@ -52,13 +52,17 @@ describe 'test access to external endpoints' do
       it "can access #{endpoint['host']}:#{endpoint['port']}" do
         @resource_tracker.consumes(:vm_cid, 'No VM to check')
 
-        _, _, status =  execute_ssh_command_on_vm_with_retry(
+        command = "nc -vz #{endpoint['host']} #{endpoint['port']}"
+
+        floating_ip = @config.validator['floating_ip']
+        output, err, status =  execute_ssh_command_on_vm_with_retry(
           @config.private_key_path,
-          @config.validator['floating_ip'], "nc -vz #{endpoint['host']} #{endpoint['port']}"
+          floating_ip,
+          command
         )
 
         expect(status.exitstatus).to eq(0),
-          "Failed to `nc -vz #{endpoint['host']} #{endpoint['port']}` from VM with floating IP.\n"
+          error_message("Failed to reach endpoint from VM with IP #{floating_ip}.", command, err, output)
       end
     end
 
