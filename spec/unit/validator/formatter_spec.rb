@@ -2,6 +2,10 @@ require_relative '../spec_helper'
 
 describe Validator::TestsuiteFormatter do
 
+  before(:each) {
+    allow(RSpec::configuration).to receive(:options).and_return(double('options'))
+  }
+
   subject {
     Validator::TestsuiteFormatter.new output
   }

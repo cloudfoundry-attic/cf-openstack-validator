@@ -335,13 +335,22 @@ EOF
         args
       }
 
+      let(:config) { double(RSpec::Core::Configuration, :add_setting => nil, :options= => nil) }
+
+      before(:each) {
+        allow(RSpec).to receive(:configure).and_yield(config)
+        # allow(config).to receive(:add_setting)
+        # allow(config).to receive(:options=)
+      }
+
       it 'should execute specs with rspec environment' do
         allow(RSpec::Core::Runner).to receive(:run).and_return(0)
 
         subject.execute_specs
 
         expect(RSpec::Core::Runner).to have_received(:run).with(expected_command, anything, $stdout)
-        expect(RSpec.configuration.options).to eq(validator_options)
+        expect(config).to have_received(:add_setting).with(:options)
+        expect(config).to have_received(:options=).with(validator_options)
       end
 
       context 'when execution fails' do
