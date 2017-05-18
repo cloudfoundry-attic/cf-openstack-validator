@@ -58,7 +58,20 @@ module Validator
       end
 
       def error_message(message, command, err, output)
-        "#{message}\nExecuted remote command: $ #{command}\nstderr: #{err}\nstdout: #{output}"
+        stderr = 'stderr: '
+        stdout = 'stdout: '
+        "#{message}\n" \
+          "Executed remote command: $ #{command}\n" \
+          "#{stderr}#{indent(err, stderr)}\n" \
+          "#{stdout}#{indent(output, stdout)}"
+      end
+
+      def indent(msg, space_text)
+        msg.gsub("\n", "\n#{indentation(space_text)}")
+      end
+
+      def indentation(text)
+        ' ' * text.size
       end
 
       def network_spec

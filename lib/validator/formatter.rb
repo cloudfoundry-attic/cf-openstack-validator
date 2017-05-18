@@ -58,8 +58,16 @@ module Validator
         failure.fully_formatted(failure_number, colorizer)
       else
         formatted = "\n  #{failure_number}) #{failure.description}\n"
-        formatted << colorizer.wrap("     #{failure.exception.message}\n", RSpec.configuration.failure_color)
+        formatted << colorizer.wrap("#{indent(failure.exception.message, failure_number)}\n", RSpec.configuration.failure_color)
       end
+    end
+
+    def indent(message, failure_number)
+      message.lines.map {|l| "#{indentation(failure_number)}#{l}"}.join('')
+    end
+
+    def indentation(failure_number)
+      ' ' * (failure_number.to_s.size + 4)
     end
   end
 end

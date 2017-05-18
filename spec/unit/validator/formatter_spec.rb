@@ -94,18 +94,20 @@ describe Validator::TestsuiteFormatter do
     end
 
     context 'when there is a failure' do
-      let(:failure_notification) { mock_failure_notification('Failure description', 'Failure exception') }
+      let(:failure_notification) { mock_failure_notification('Failure description', "Failure exception\nover multiple lines") }
 
       it 'should report only the error number, error description and the error message' do
         allow(notification).to receive(:failure_notifications).and_return([failure_notification])
 
         subject.dump_failures(notification)
 
-        expect(output.string).to eq("\nFailures:\n"\
-                                    "\n" \
-                                    "  1) Failure description\n" \
-                                    "     Failure exception\n"
-                                 )
+        expect(output.string).to eq(
+            "\nFailures:\n" \
+            "\n" \
+            "  1) Failure description\n" \
+            "     Failure exception\n" \
+            "     over multiple lines\n"
+        )
       end
 
       context 'and VERBOSE_FORMATTER is used' do
