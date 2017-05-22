@@ -5,6 +5,7 @@ openstack:
   password: <replace-me> # String
   domain: <replace-me> # String
   project: <replace-me> # String
+  region: <replace-me> # String
   default_key_name: cf-validator # String
   default_security_groups: [default] # List of String
   boot_from_volume: false # Boolean
