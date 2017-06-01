@@ -26,6 +26,31 @@ variable "insecure" {
    description = "SSL certificate validation"
 }
 
+variable "name_prefix" {
+   default = ""
+   description = "Prefix for names of infrastucture components"
+}
+
+variable "net_cidr" {
+   default = "10.0.1.0/24"
+   description = "CIDR of validator subnet"
+}
+
+variable "allocation_pool_start" {
+  default = "10.0.1.200"
+  description = "Allocation pool start"
+}
+
+variable "allocation_pool_end" {
+  default = "10.0.1.254"
+  description = "Allocation pool end"
+}
+
+variable "gateway_ip" {
+  default= "10.0.1.1"
+  description = "Default gateway"
+}
+
 variable "cacert_file" {
   default = ""
   description = "CA File"
