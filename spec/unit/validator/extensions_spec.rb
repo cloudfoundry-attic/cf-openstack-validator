@@ -85,7 +85,7 @@ extensions:
             it 'returns all specs' do
               specs = Validator::Extensions.all
               expect(specs.size).to eq(2)
-              expect(specs).to eq(["#{absolute_path_to_extensions}/test1_spec.rb", "#{absolute_path_to_extensions}/test2_spec.rb"])
+              expect(specs).to include("#{absolute_path_to_extensions}/test1_spec.rb", "#{absolute_path_to_extensions}/test2_spec.rb")
             end
 
             context 'and also contains non-spec files' do
@@ -96,7 +96,7 @@ extensions:
               it 'returns only the spec files' do
                 specs = Validator::Extensions.all
                 expect(specs.size).to equal(2)
-                expect(specs).to eq(["#{absolute_path_to_extensions}/test1_spec.rb", "#{absolute_path_to_extensions}/test2_spec.rb"])
+                expect(specs).to include("#{absolute_path_to_extensions}/test1_spec.rb", "#{absolute_path_to_extensions}/test2_spec.rb")
               end
             end
           end
