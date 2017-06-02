@@ -417,9 +417,12 @@ EOF
 
       context 'when a dependency is missing' do
         it 'should list all packages in the right order without the missing package' do
+          expected_package_order_1 = [@common_package_path, @a_dummy_package_path, @second_dummy_package_path]
+          expected_package_order_2 = [@common_package_path, @second_dummy_package_path, @a_dummy_package_path]
+
           package_order = subject.release_packages(@package_dir, ['common_package', 'missing_package'])
 
-          expect(package_order).to eq([@common_package_path, @a_dummy_package_path, @second_dummy_package_path])
+          expect(package_order).to eq(expected_package_order_1).or eq(expected_package_order_2)
         end
       end
     end
