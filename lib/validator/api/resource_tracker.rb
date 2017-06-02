@@ -108,6 +108,14 @@ module Validator
           directory = super(:directories, directory_id)
           directory.files.get(file_id) if directory
         end
+
+        def destroy(type, id)
+          begin
+            super(type, id)
+          rescue Fog::Storage::OpenStack::NotFound
+            true
+          end
+        end
       end
 
       RESOURCE_HANDLER = {

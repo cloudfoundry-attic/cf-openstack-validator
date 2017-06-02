@@ -267,6 +267,19 @@ module Validator::Api
             expect(resource).to_not have_received(:destroy)
             expect(file_resource).to have_received(:destroy).exactly(1).times
           end
+
+          context 'when file object throws NotFound in destroy' do
+            it 'ignores the exception' do
+              allow(file_resource).to receive(:destroy).and_raise(Fog::Storage::OpenStack::NotFound)
+              subject.produce(:files) { ['directory_id', 'file_id'] }
+
+              result = subject.cleanup
+
+              expect(result).to eq(true)
+              expect(resource).to_not have_received(:destroy)
+              expect(file_resource).to have_received(:destroy).exactly(1).times
+            end
+          end
         end
       end
 
