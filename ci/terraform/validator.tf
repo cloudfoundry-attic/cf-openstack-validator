@@ -14,7 +14,7 @@ provider "openstack" {
 
 resource "openstack_compute_keypair_v2" "openstack_default_key_name" {
   region     = "${var.region_name}"
-  name       = "${var.tenant_name}-validator"
+  name       = "${var.name_prefix}${var.tenant_name}-validator"
   public_key = "${var.openstack_default_key_public_key}"
 }
 
@@ -22,21 +22,21 @@ resource "openstack_compute_keypair_v2" "openstack_default_key_name" {
 
 resource "openstack_networking_network_v2" "validator_net" {
   region         = "${var.region_name}"
-  name           = "validator"
+  name           = "${var.name_prefix}validator"
   admin_state_up = "true"
 }
 
 resource "openstack_networking_subnet_v2" "validator_sub" {
   region           = "${var.region_name}"
   network_id       = "${openstack_networking_network_v2.validator_net.id}"
-  cidr             = "10.0.1.0/24"
+  cidr             = "${var.net_cidr}"
   ip_version       = 4
-  name             = "validator_sub"
+  name             = "${var.name_prefix}validator_sub"
   allocation_pools = {
-    start = "10.0.1.200"
-    end   = "10.0.1.254"
+    start = "${var.allocation_pool_start}"
+    end = "${var.allocation_pool_end}"
   }
-  gateway_ip       = "10.0.1.1"
+  gateway_ip       = "${var.gateway_ip}"
   enable_dhcp      = "true"
   dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
 }
@@ -45,7 +45,7 @@ resource "openstack_networking_subnet_v2" "validator_sub" {
 
 resource "openstack_networking_router_v2" "default_router" {
   region           = "${var.region_name}"
-  name             = "validator-router"
+  name             = "${var.name_prefix}validator-router"
   admin_state_up   = "true"
   external_gateway = "${var.ext_net_id}"
 }
@@ -65,7 +65,7 @@ resource "openstack_compute_floatingip_v2" "validator_floating_ip" {
 
 resource "openstack_networking_secgroup_v2" "validator_secgroup" {
   region      = "${var.region_name}"
-  name        = "validator"
+  name        = "${var.name_prefix}validator"
   description = "validator security group"
 }
 
