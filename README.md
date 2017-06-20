@@ -11,6 +11,7 @@ Is your OpenStack installation ready to run BOSH and install Cloud Foundry? Run 
 
 * Keystone v2/v3
 * Create an OpenStack project/tenant
+* Create a user with access to the previously created project/tenant (ideally you don't want to run as admin)
 * Create a network
   * Connect the network with a router to your external network
 * Allocate a floating IP
