@@ -57,7 +57,7 @@ The intended place to run the validator is a VM within your OpenStack. If you ar
 ```bash
 $ cp validator.template.yml validator.yml
 ```
-* Download a stemcell from [OpenStack stemcells bosh.io](http://bosh.io/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent)
+* Download a stemcell from [OpenStack stemcells bosh.io](https://bosh.io/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent)
 ```
 $ curl -L -J -O https://bosh.io/d/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent
 ```
