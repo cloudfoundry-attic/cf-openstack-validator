@@ -224,7 +224,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
     vm_ip_to_ssh = vm_ip(vm_cid)
     vcap_password = 'c1oudc0w'
-    sudo_command = "echo #{vcap_password}| sudo -S"
+    sudo_command = "echo #{vcap_password}| sudo --prompt \"\" --stdin"
     mount_path = "/tmp/#{SecureRandom.uuid}"
     config_drive_disk_path = '/dev/disk/by-label/config-2'
     command = "#{sudo_command} mkdir #{mount_path} & #{sudo_command} mount #{config_drive_disk_path} #{mount_path}"
@@ -253,12 +253,18 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
     vm_ip_to_ssh = vm_ip(vm_cid)
     ntp = @config.validator['ntp']
-    sudo = " echo 'c1oudc0w' | sudo -S"
+    sudo = "echo 'c1oudc0w' | sudo --prompt \"\" --stdin"
     create_ntpserver_command = "#{sudo} bash -c \"echo #{ntp.join(' ')} | tee /var/vcap/bosh/etc/ntpserver\""
     call_ntpdate_command = "#{sudo} /var/vcap/bosh/bin/ntpdate"
 
-    _, _, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, create_ntpserver_command)
-    expect(status.exitstatus).to eq(0)
+    output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, create_ntpserver_command)
+    expect(status.exitstatus).to eq(0),
+        error_message(
+            "Failed to configure NTP server on #{vm_ip_to_ssh}",
+            create_ntpserver_command,
+            err,
+            output
+        )
 
     output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, call_ntpdate_command)
     execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, call_ntpdate_command)
@@ -354,7 +360,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM with floating IP to use')
     @resource_tracker.consumes(:vm_cid_static_ip, 'No VM with static IP to use')
 
-    sudo = "echo 'c1oudc0w' | sudo -S"
+    sudo = "echo 'c1oudc0w' | sudo --prompt \"\" --stdin"
     command = "#{sudo} traceroute -M raw -m 1 --mtu #{@config.validator['static_ip']}"
 
     output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip(vm_cid), command)
@@ -362,7 +368,14 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     expect(status.exitstatus).to eq(0),
         error_message("SSH connection didn't succeed. MTU size could not be checked.", command, err, output)
 
-    actual_mtu_size = output.match(/=(\d+)/)[1]
+    actual_mtu_size = output.match(/=(\d+)/)
+
+    if actual_mtu_size
+      actual_mtu_size = actual_mtu_size[1]
+    else
+      fail error_message('MTU size could not be checked.', command, err, output)
+    end
+
     recommendation = "The available MTU size on the VMs is '#{actual_mtu_size}'. The desired MTU is '#{@config.validator['mtu_size']}'. "\
                      "If you're using GRE or VXLAN, make sure you account for the tunnel overhead buy increasing MTU in your underlay network."
     expect(actual_mtu_size.to_s).to eq(@config.validator['mtu_size'].to_s), recommendation
