@@ -45,6 +45,4 @@ cat validator.yml
 
 ./validate -s ~/stemcell.tgz -c validator.yml
 
-echo 'Stats:'
-cat ~/.cf-openstack-validator/logs/stats.log
-ruby influx-upload.rb -u user -p pass -u url stats.log
+INFLUXDB_IP=52.57.40.221 INFLUXDB_PORT=8086 ruby upload-stats.rb ~/.cf-openstack-validator/logs/stats.log

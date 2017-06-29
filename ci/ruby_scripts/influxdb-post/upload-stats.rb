@@ -1,26 +1,30 @@
 #!/usr/bin/env ruby
-#
 
 require 'json'
 require 'net/http'
+require_relative 'lib/parser'
 
-unless ENV['INFLUX_URL'] && ENV['INFLUX_USER'] && ENV['INFLUX_PASSWORD'] 
-    puts "set up environment first!"
+unless ENV['INFLUX_IP'] && ENV['INFLUX_PORT']
+    puts "Set up environment first!"
     exit 1
 end
 
-filename = ARGS[1]
+filename = ARGV[0]
+puts "Filename: #{filename}"
 unless File.readable?(filename)
     puts "usage: #{$0} stats.log"
     exit 1
 end
 
-data = []
-File.read(filename).each_line do |line|
-    line.chomp!
+data = Parser.new(filename).to_influx
+puts data
 
-    data << JSON.parse(line).map { |key, value| "#{key}=#{value}" }.join(' ')
+http = Net::HTTP.new(ENV['INFLUX_IP'], ENV['INFLUX_PORT'])
+request = Net::HTTP::Post.new('/write?db=validator')
+request.body = data
+response = http.request(request)
 
+unless response.code == '204'
+  puts 'Error sending data to InfluxDB'
+  exit 1
 end
-
-puts data.join("\n")
