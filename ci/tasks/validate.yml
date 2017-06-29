@@ -13,6 +13,7 @@ inputs:
 params:
   AUTH_URL:           ""
   USERNAME:           ""
+  INFLUX_USER: ""
   API_KEY:            ""
   DOMAIN:             ""
   PROJECT:            ""

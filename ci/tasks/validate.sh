@@ -47,3 +47,4 @@ cat validator.yml
 
 echo 'Stats:'
 cat ~/.cf-openstack-validator/logs/stats.log
+ruby influx-upload.rb -u user -p pass -u url stats.log
