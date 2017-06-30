@@ -4,8 +4,8 @@ require 'json'
 require 'net/http'
 require_relative 'lib/parser'
 
-unless ENV['INFLUX_IP'] && ENV['INFLUX_PORT'] && ENV['PIPELINE_NAME']
-    puts "Set up environment first!"
+unless ENV['INFLUXDB_IP'] && ENV['INFLUXDB_PORT'] && ENV['PIPELINE_NAME']
+    puts 'Set up environment first. INFLUXDB_IP, INFLUXDB_PORT and PIPELINE_NAME need to be set.'
     exit 1
 end
 
