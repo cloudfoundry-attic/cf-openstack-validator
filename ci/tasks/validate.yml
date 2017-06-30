@@ -33,6 +33,7 @@ params:
   EXPECTED_ENDPOINTS: ""
   INFLUXDB_IP:        ""
   INFLUXDB_PORT:      ""
+  PIPELINE_NAME:      ""
 
 run:
   path: validator-src/ci/tasks/validate.sh

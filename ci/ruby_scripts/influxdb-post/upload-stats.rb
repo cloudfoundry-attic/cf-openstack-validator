@@ -4,7 +4,7 @@ require 'json'
 require 'net/http'
 require_relative 'lib/parser'
 
-unless ENV['INFLUX_IP'] && ENV['INFLUX_PORT']
+unless ENV['INFLUX_IP'] && ENV['INFLUX_PORT'] && ENV['PIPELINE_NAME']
     puts "Set up environment first!"
     exit 1
 end
@@ -16,7 +16,7 @@ unless File.readable?(filename)
     exit 1
 end
 
-data = Parser.new(filename).to_influx
+data = Parser.new(filename).to_influx(landscape: ENV['PIPELINE_NAME'])
 puts data
 
 http = Net::HTTP.new(ENV['INFLUX_IP'], ENV['INFLUX_PORT'])

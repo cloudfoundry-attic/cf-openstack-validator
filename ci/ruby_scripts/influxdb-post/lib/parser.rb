@@ -8,9 +8,13 @@ class Parser
     @data = initialize_json(file_path)
   end
 
-  def to_influx
+  def to_influx(args={})
+    raise ArgumentError unless args.class == Hash
+
+    additional_tags = args.map { |key, value| ",#{key.to_s}=#{value}"}.join('')
+
     data.map do |line|
-      "cpi_duration,method=#{line['request']['method']} value=#{line['duration']} #{Parser.current_time_in_influx_format}"
+      "cpi_duration,method=#{line['request']['method']}#{additional_tags} value=#{line['duration']} #{Parser.current_time_in_influx_format}"
     end.join("\n")
   end
 

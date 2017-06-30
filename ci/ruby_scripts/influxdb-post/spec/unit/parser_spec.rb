@@ -15,7 +15,23 @@ describe Parser do
     end
 
     it 'returns a string in influxdb format' do
-      expect(subject.to_influx).to eq("cpi_duration,method=create_stemcell value=15.95 1434055562000000000\ncpi_duration,method=something-else value=5.0 1434055562000000000")
+      expected_string = "cpi_duration,method=create_stemcell value=15.95 1434055562000000000\n" +
+                        'cpi_duration,method=something-else value=5.0 1434055562000000000'
+      expect(subject.to_influx).to eq(expected_string)
+    end
+
+    context 'with a parameter' do
+      it 'adds it as a tag' do
+        expected_string = "cpi_duration,method=create_stemcell,landscape=my-landscape value=15.95 1434055562000000000\n" +
+                          'cpi_duration,method=something-else,landscape=my-landscape value=5.0 1434055562000000000'
+        expect(subject.to_influx(landscape: 'my-landscape')).to eq(expected_string)
+      end
+
+      it 'raises if the parameter is not a hash' do
+        expect {
+          subject.to_influx('hello')
+        }.to raise_error(ArgumentError)
+      end
     end
   end
 end
