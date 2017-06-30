@@ -1,0 +1,2 @@
+{"request":{"method":"create_stemcell","arguments":["/image-path",{}],"context":{}},"duration":15.95}
+{"request":{"method":"something-else"},"duration":5.0}

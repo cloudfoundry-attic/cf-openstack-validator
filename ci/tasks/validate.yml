@@ -31,6 +31,8 @@ params:
   EXPECTED_FLAVORS:   ""
   EXPECTED_QUOTAS:    ""
   EXPECTED_ENDPOINTS: ""
+  INFLUXDB_IP:        ""
+  INFLUXDB_PORT:      ""
 
 run:
   path: validator-src/ci/tasks/validate.sh

@@ -97,6 +97,8 @@ jobs:
       EXPECTED_FLAVORS:               {{expected_flavors}}
       EXPECTED_QUOTAS:                {{expected_quotas}}
       EXPECTED_ENDPOINTS:             {{expected_endpoints}}
+      INFLUXDB_IP:                    {{influxdb_ip}}
+      INFLUXDB_PORT:                  8086
 
 - name: release
   build_logs_to_retain: *build_logs_to_retain

@@ -45,5 +45,7 @@ cat validator.yml
 
 ./validate -s ~/stemcell.tgz -c validator.yml
 
-echo 'Stats:'
-cat ~/.cf-openstack-validator/logs/stats.log
+if [ ! -z ${INFLUXDB_IP} ] && [ ! -z ${INFLUXDB_PORT} ]; then
+  echo 'Sending stats to performance database'
+  ruby upload-stats.rb ~/.cf-openstack-validator/logs/stats.log
+fi
