@@ -19,7 +19,7 @@ end
 data = Parser.new(filename).to_influx(landscape: ENV['PIPELINE_NAME'])
 puts data
 
-http = Net::HTTP.new(ENV['INFLUX_IP'], ENV['INFLUX_PORT'])
+http = Net::HTTP.new(ENV['INFLUXDB_IP'], ENV['INFLUXDB_PORT'])
 request = Net::HTTP::Post.new('/write?db=validator')
 request.body = data
 response = http.request(request)
