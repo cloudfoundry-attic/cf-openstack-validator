@@ -22,6 +22,15 @@ set -e -x
 : ${EXPECTED_QUOTAS:?}
 : ${EXPECTED_ENDPOINTS:?}
 
+report_performance_stats(){
+  echo 'Stats:'
+  cat ~/.cf-openstack-validator/logs/stats.log
+  if [ ! -z ${INFLUXDB_IP} ] && [ ! -z ${INFLUXDB_PORT} ]; then
+    echo 'Sending stats to performance database'
+    ruby ci/ruby_scripts/influxdb-post/upload-stats.rb ~/.cf-openstack-validator/logs/stats.log
+  fi
+}
+
 # Copy to user's home, because we don't have write permissions on the source directory
 cp -r validator-src ~
 
@@ -37,17 +46,11 @@ bundle install --path .bundle
 
 ./validate -s ~/stemcell.tgz -c validator.yml
 
-echo 'Stats:'
-cat ~/.cf-openstack-validator/logs/stats.log
+report_performance_stats
 
 CONFIG_DRIVE='disk' ci/assets/config_renderer/render validator.template.yml > validator.yml
 cat validator.yml
 
 ./validate -s ~/stemcell.tgz -c validator.yml
 
-set +x
-if [ ! -z ${INFLUXDB_IP} ] && [ ! -z ${INFLUXDB_PORT} ]; then
-  set -x
-  echo 'Sending stats to performance database'
-  ruby ci/ruby_scripts/influxdb-post/upload-stats.rb ~/.cf-openstack-validator/logs/stats.log
-fi
+report_performance_stats
