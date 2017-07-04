@@ -163,7 +163,7 @@ module Validator::Cli
     end
 
     def generate_cpi_config
-      cpi_config_content = JSON.pretty_generate(Validator::Converter.to_cpi_json(@context.config.openstack))
+      cpi_config_content = JSON.pretty_generate(Validator::Redactor.redact(Validator::Converter.to_cpi_json(@context.config.openstack), 'cloud.properties.openstack.api_key'))
       puts "CPI will use the following configuration: \n#{cpi_config_content}"
       File.write(File.join(@context.working_dir, 'cpi.json'), cpi_config_content)
     end

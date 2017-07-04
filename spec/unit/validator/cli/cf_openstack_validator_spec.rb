@@ -302,7 +302,7 @@ EOF
       let(:options) {{cpi_release: release_archive_path, config_path: validator_config_path}}
 
       it 'should generate cpi config and print out' do
-        allow(Validator::Converter).to receive(:to_cpi_json).and_return([])
+        allow(Validator::Converter).to receive(:to_cpi_json).and_return({})
 
         expect{ subject.generate_cpi_config
         }.to output(/CPI will use the following configuration/).to_stdout
@@ -310,6 +310,17 @@ EOF
         expect(File.exist?(File.join(working_dir, 'cpi.json'))).to eq(true)
         expect(Validator::Converter).to have_received(:to_cpi_json).with(Validator::Api::Configuration.new(validator_config_path).openstack)
       end
+
+      it 'redacts the api_key' do
+        subject.generate_cpi_config
+
+        cpi_config_path = File.join(working_dir, 'cpi.json')
+        expect(File.exist?(cpi_config_path)).to eq(true)
+        cpi_config = JSON.parse(File.read(cpi_config_path))
+
+        expect(cpi_config['cloud']['properties']['openstack']['api_key']).to eq('<redacted>')
+      end
+
     end
 
     describe '#execute_specs' do
