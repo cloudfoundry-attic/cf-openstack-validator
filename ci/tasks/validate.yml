@@ -33,6 +33,8 @@ params:
   EXPECTED_ENDPOINTS: ""
   INFLUXDB_IP:        ""
   INFLUXDB_PORT:      ""
+  INFLUXDB_USER:      ""
+  INFLUXDB_PASSWORD:  ""
   PIPELINE_NAME:      ""
 
 run:

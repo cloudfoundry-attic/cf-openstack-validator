@@ -4,8 +4,8 @@ require 'json'
 require 'net/http'
 require_relative 'lib/parser'
 
-unless ENV['INFLUXDB_IP'] && ENV['INFLUXDB_PORT'] && ENV['PIPELINE_NAME']
-    puts 'Set up environment first. INFLUXDB_IP, INFLUXDB_PORT and PIPELINE_NAME need to be set.'
+unless ENV['INFLUXDB_IP'] && ENV['INFLUXDB_PORT'] && ENV['PIPELINE_NAME'] && ENV['INFLUXDB_USER'] && ENV['INFLUXDB_PASSWORD']
+    puts 'Set up environment first. INFLUXDB_IP, INFLUXDB_PORT, INFLUXDB_USER, INFLUXDB_PASSWORD and PIPELINE_NAME need to be set.'
     exit 1
 end
 
@@ -21,6 +21,7 @@ puts data
 
 http = Net::HTTP.new(ENV['INFLUXDB_IP'], ENV['INFLUXDB_PORT'])
 request = Net::HTTP::Post.new('/write?db=validator')
+request.basic_auth(ENV['INFLUXDB_USER'], ENV['INFLUXDB_PASSWORD'])
 request.body = data
 response = http.request(request)
 
