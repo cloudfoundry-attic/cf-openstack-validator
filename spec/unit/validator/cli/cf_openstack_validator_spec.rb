@@ -308,17 +308,19 @@ EOF
         }.to output(/CPI will use the following configuration/).to_stdout
 
         expect(File.exist?(File.join(working_dir, 'cpi.json'))).to eq(true)
-        expect(Validator::Converter).to have_received(:to_cpi_json).with(Validator::Api::Configuration.new(validator_config_path).openstack)
+        expect(Validator::Converter).to have_received(:to_cpi_json).with(Validator::Api::Configuration.new(validator_config_path).openstack).twice
       end
 
-      it 'redacts the api_key' do
-        subject.generate_cpi_config
+      it 'redacts the api_key in the output, but not in the config file' do
+        expect {
+          subject.generate_cpi_config
+        }.to output(/"api_key": "<redacted>"/).to_stdout
 
         cpi_config_path = File.join(working_dir, 'cpi.json')
         expect(File.exist?(cpi_config_path)).to eq(true)
         cpi_config = JSON.parse(File.read(cpi_config_path))
 
-        expect(cpi_config['cloud']['properties']['openstack']['api_key']).to eq('<redacted>')
+        expect(cpi_config['cloud']['properties']['openstack']['api_key']).to eq('password')
       end
 
     end
