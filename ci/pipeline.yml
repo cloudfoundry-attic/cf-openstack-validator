@@ -99,6 +99,8 @@ jobs:
       EXPECTED_ENDPOINTS:             {{expected_endpoints}}
       INFLUXDB_IP:                    {{influxdb_ip}}
       INFLUXDB_PORT:                  8086
+      INFLUXDB_USER:                  admin
+      INFLUXDB_PASSWORD:              {{influxdb_password}}
       PIPELINE_NAME:                  {{pipeline_name}}
 
 - name: release
