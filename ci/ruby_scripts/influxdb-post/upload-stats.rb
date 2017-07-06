@@ -20,6 +20,7 @@ data = Parser.new(filename).to_influx(landscape: ENV['PIPELINE_NAME'])
 puts data
 
 http = Net::HTTP.new(ENV['INFLUXDB_IP'], ENV['INFLUXDB_PORT'])
+http.use_ssl = true
 request = Net::HTTP::Post.new('/write?db=validator')
 request.basic_auth(ENV['INFLUXDB_USER'], ENV['INFLUXDB_PASSWORD'])
 request.body = data
