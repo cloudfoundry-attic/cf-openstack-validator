@@ -166,7 +166,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
   it 'can SSH into VM' do
     vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
-    vm_ip_to_ssh = vm_ip(vm_cid)
+    vm_ip_to_ssh = Validator::NetworkHelper.vm_ip_to_ssh(vm_cid, @config, @compute)
 
     command = 'echo hi'
     output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, command)
@@ -177,7 +177,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
   it 'can access the internet' do
     vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
-    vm_ip_to_ssh = vm_ip(vm_cid)
+    vm_ip_to_ssh = Validator::NetworkHelper.vm_ip_to_ssh(vm_cid, @config, @compute)
 
     nslookup_command = 'nslookup github.com'
     output, err, status = execute_ssh_command_on_vm_with_retry(
@@ -205,7 +205,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     curl_command = 'curl -m 10 http://169.254.169.254/latest/user-data'
     output, err, status = execute_ssh_command_on_vm_with_retry(
         @config.private_key_path,
-        vm_ip(vm_cid),
+        Validator::NetworkHelper.vm_ip_to_ssh(vm_cid, @config, @compute),
         curl_command
     )
 
@@ -222,7 +222,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     Validator::Api::skip_test('`config_drive` is not configured in validator.yml.') unless @config.openstack['config_drive']
 
     vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
-    vm_ip_to_ssh = vm_ip(vm_cid)
+    vm_ip_to_ssh = Validator::NetworkHelper.vm_ip_to_ssh(vm_cid, @config, @compute)
     vcap_password = 'c1oudc0w'
     sudo_command = "echo #{vcap_password}| sudo --prompt \"\" --stdin"
     mount_path = "/tmp/#{SecureRandom.uuid}"
@@ -251,7 +251,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
   it 'allows a VM to reach the configured NTP server' do
     vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
-    vm_ip_to_ssh = vm_ip(vm_cid)
+    vm_ip_to_ssh = Validator::NetworkHelper.vm_ip_to_ssh(vm_cid, @config, @compute)
     ntp = @config.validator['ntp']
     sudo = "echo 'c1oudc0w' | sudo --prompt \"\" --stdin"
     create_ntpserver_command = "#{sudo} bash -c \"echo #{ntp.join(' ')} | tee /var/vcap/bosh/etc/ntpserver\""
@@ -280,6 +280,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
   it 'allows one VM to reach port 22 of another VM within the same network' do
     vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
+    vm_ip_to_ssh = Validator::NetworkHelper.vm_ip_to_ssh(vm_cid, @config, @compute)
     stemcell_cid = @resource_tracker.consumes(:stemcell_cid, 'No stemcell to create VM from')
 
     second_vm_cid = with_cpi('Second VM could not be created.') {
@@ -300,7 +301,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     second_vm.wait_for { ready? }
 
     command = "nc -zv #{second_vm_ip} 22"
-    output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip(vm_cid), command)
+    output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, command)
 
     expect(status.exitstatus).to eq(0),
         error_message('Failed to nc port 22 on second VM.', command, err, output)
@@ -327,10 +328,11 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
   it 'allows one VM to reach port 22 of another VM with static IP within the same network' do
     vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM with floating IP to use')
+    vm_ip_to_ssh = Validator::NetworkHelper.vm_ip_to_ssh(vm_cid, @config, @compute)
     @resource_tracker.consumes(:vm_cid_static_ip, 'No VM with static IP to use')
 
     command = "nc -zv #{@config.validator['static_ip']} 22"
-    output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip(vm_cid), command)
+    output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, command)
 
     expect(status.exitstatus).to eq(0),
         error_message('Failed to nc port 22 on VM with.', command, err, output)
@@ -358,12 +360,13 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
   it 'has configured MTU size' do
     vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM with floating IP to use')
+    vm_ip_to_ssh = Validator::NetworkHelper.vm_ip_to_ssh(vm_cid, @config, @compute)
     @resource_tracker.consumes(:vm_cid_static_ip, 'No VM with static IP to use')
 
     sudo = "echo 'c1oudc0w' | sudo --prompt \"\" --stdin"
     command = "#{sudo} traceroute -M raw -m 1 --mtu #{@config.validator['static_ip']}"
 
-    output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip(vm_cid), command)
+    output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, command)
 
     expect(status.exitstatus).to eq(0),
         error_message("SSH connection didn't succeed. MTU size could not be checked.", command, err, output)
@@ -393,14 +396,5 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
     curl_err = error.match(/curl: \(\d+\) (.+)/)
     return "Error is: #{curl_err[1]}\n" unless curl_err.nil?
     nil
-  end
-
-  def vm_ip(vm_id)
-    if @config.validator['use_external_ip']
-      @config.validator['floating_ip']
-    else
-      server = @compute.servers.get(vm_id)
-      server.addresses.values.first.dig(0,'addr')
-    end
   end
 end
