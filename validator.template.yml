@@ -24,8 +24,8 @@ validator:
   mtu_size: 1500 # expected network MTU size in byte
   releases:
   - name: bosh-openstack-cpi
-    url: https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=30
-    sha1: 2fff8e1c241a91267ddd099a553c1339d2709821
+    url: https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=33
+    sha1: 86b8eedcb0a6be3e821a5d0042916180706262be
 
 cloud_config:
   vm_types: # See https://bosh.io/docs/cloud-config.html#vm-types
