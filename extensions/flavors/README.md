@@ -4,37 +4,29 @@ This extension verifies that the given flavors exist in `openstack.project` conf
 
 ## Configuration
 
-Create a `flavors.yml` and include each flavor you want to check for:
+Create a `flavors.yml` which describes each flavor you want to check in OpenStack. You can describe a flavor using with the following key/value pairs:
 
-```yaml
-- name: m1.small
-    vcpus: 1
-    ram: 2048
-    disk: 20
-    ephemeral: 0
-- name: m1.medium
-    vcpus: 2
-    ram: 4096
-    disk: 40
-    ephemeral: 0
-```
+| key | value | mandatory |
+| ----- |------|-----------|
+| name | string | yes |
+| vcpus | integer | yes |
+| ram | integer [MiB] | yes |
+| ephemeral | integer [GiB] | yes |
+| metadata | key/value pairs | no |
 
-`name`, `vcpus`, `ram`, `disk`, and `ephemeral` are mandatory fields.
+Each value is evaluated one to one against the flavor in OpenStack, except for `ephemeral` which is evaluated in one of the following ways:
 
-You can optionally check for required metadata as well, e.g. hardware number generators
+- If the flavor only has Root Disk:
 
-```yaml
-- name: m1.small-hw_rng
-    vcpus: 1
-    ram: 2048
-    disk: 20
-    ephemeral: 0
-    metadata:
-      hw_rng:allowed: 'True'
-```
+    > Root Disk >= 3 [GiB] + `ephemeral` [GiB] + `ram` [GiB]
+    
+- If the flavor has Root Disk and Ephemeral Disk:
+
+    > Root Disk >= 3 and Ephemeral Disk >= `ephemeral` [GiB] + `ram` [GiB]
+    
 The [OpenStack admin guide](https://docs.openstack.org/admin-guide/compute-flavors.html#extra-specs) provides an overview of possible metadata.
 
-Add the extension to your `validator.yml`:
+Once all flavors are defined, configure the extension in the `validator.yml`:
 
 ```yaml
 extensions:
@@ -42,4 +34,19 @@ extensions:
   config:
     flavors:
      expected_flavors: </absolute/path/to/flavors.yml>
+```
+
+## Examples
+
+```yaml
+- name: m1.small
+    vcpus: 1
+    ram: 2048
+    ephemeral: 0
+- name: m1.medium
+    vcpus: 2
+    ram: 4096
+    ephemeral: 0
+    metadata:
+          hw_rng:allowed: 'True'
 ```

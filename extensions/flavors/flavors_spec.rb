@@ -11,40 +11,47 @@ fdescribe 'Flavors' do
     flavors.map { |flavor| flavor.fetch('metadata', {}).keys }.flatten.uniq
   end
 
-  it 'can get flavors' do
+  it 'can get list of flavors' do
     flavor_list = compute.flavors
     expect(flavor_list).not_to be_nil, 'could not get list of flavors'
   end
 
   flavors.each do |flavor|
-    describe "check flavor '#{flavor['name']}'" do
+    describe "'#{flavor['name']}'" do
       let(:os_flavor) { compute.flavors.find { |f| f.name == flavor['name'] } }
+
       it 'exists' do
-        fail_message = "Missing flavor '#{flavor['name']}'. \n" \
-                       "Hint: Create flavor '#{flavor['name']}' with \n" +
-                       flavor_to_s(flavor, method(:get_value_from_hash))
+        fail_message = "Missing flavor '#{flavor['name']}'"
         expect(os_flavor).not_to be_nil, fail_message
       end
-      it 'has expected configuration' do
+
+      it 'is configured' do
         Validator::Api.skip_test('flavor not present') unless os_flavor
+
+        expected_attributes = ['ephemeral', 'name', 'ram', 'vcpus']
+        given_attributes = flavor.keys.sort
+        missing_attributes = (expected_attributes - given_attributes).join(',')
+        expect(given_attributes).to eq(expected_attributes), "Following flavor attributes are missing: #{missing_attributes}"
+
         ram_size_gb = flavor['ram'] / 1024
 
         if os_flavor.ephemeral.nil? || os_flavor.ephemeral == 0
-          disks_fail_message = "  disk >= #{3 + flavor['ephemeral'] + ram_size_gb} GiB (3 + ephemeral disk (#{flavor['ephemeral']}) + ram (#{ram_size_gb})) \n"
+          disks_fail_message = "  disk >= #{3 + flavor['ephemeral'] + ram_size_gb} GiB (root (3 GiB) + ephemeral disk (#{flavor['ephemeral']} GiB) + ram (#{ram_size_gb} GiB))"
           disks_expectation_value = os_flavor.disk >= flavor['ephemeral'] + ram_size_gb + 3
         else
           disks_fail_message = "  disk >= 3 GiB \n" \
-                               "  ephemeral disk >= ephemeral disk + ram (#{flavor['ephemeral'] + ram_size_gb} GiB) \n"
+                               "  ephemeral disk >= #{flavor['ephemeral'] + ram_size_gb} GiB (ephemeral disk (#{flavor['ephemeral']} GiB) + ram (#{ram_size_gb} GiB))"
           disks_expectation_value = (os_flavor.ephemeral >= flavor['ephemeral'] + ram_size_gb) && (os_flavor.disk >= 3)
         end
 
-        fail_message = "Found flavor in OpenStack: \n" +
-                       flavor_to_s(os_flavor, method(:get_value_from_object)) +
-                       "\nExpected a flavor with \n" +
+        fail_message = "Expected: \n" +
                        flavor_vcpus_to_s(flavor, method(:get_value_from_hash)) +
                        flavor_ram_to_s(flavor, method(:get_value_from_hash)) +
                        disks_fail_message +
-                       flavor_properties_to_s(flavor, method(:get_value_from_hash))
+                       flavor_properties_to_s(flavor, method(:get_value_from_hash)) +
+                       "\nGot (OpenStack): \n" +
+                       flavor_to_s(os_flavor, method(:get_value_from_object))
+
         expect(
           os_flavor.vcpus == flavor['vcpus'] &&
           os_flavor.ram == flavor['ram'] &&
@@ -52,6 +59,7 @@ fdescribe 'Flavors' do
           check_flavor_properties(flavor.fetch('metadata', {}), os_flavor.metadata)
         ).to eq(true), fail_message
       end
+
       def get_value_from_hash(flavor, key)
         flavor.fetch(key, {})
       end
