@@ -30,8 +30,8 @@ fdescribe 'Flavors' do
 
         expected_attributes = ['ephemeral', 'name', 'ram', 'vcpus']
         given_attributes = flavor.keys.sort
-        missing_attributes = (expected_attributes - given_attributes).join(',')
-        expect(given_attributes).to eq(expected_attributes), "Following flavor attributes are missing: #{missing_attributes}"
+        missing_attributes = expected_attributes - given_attributes
+        expect(missing_attributes.empty?).to eq(true), "Following flavor attributes are missing: #{missing_attributes.join(',')}"
 
         ram_size_gb = flavor['ram'] / 1024
 
