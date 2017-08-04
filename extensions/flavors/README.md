@@ -48,5 +48,5 @@ extensions:
     ram: 4096
     ephemeral: 0
     metadata:
-          hw_rng:allowed: 'True'
+      hw_rng:allowed: 'True'
 ```
