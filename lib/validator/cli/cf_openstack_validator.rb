@@ -276,6 +276,7 @@ BOSH_PACKAGES_DIR=\${BOSH_PACKAGES_DIR:-#{@context.packages_path}}
 
 PATH=\$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin:\$PATH
 export PATH
+export HOME=~
 
 export BUNDLE_GEMFILE=\$BOSH_PACKAGES_DIR/bosh_openstack_cpi/Gemfile
 
