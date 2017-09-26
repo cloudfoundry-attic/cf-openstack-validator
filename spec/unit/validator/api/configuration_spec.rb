@@ -6,9 +6,7 @@ describe Validator::Api::Configuration do
   let(:validator_config) { File.join(tmpdir, 'validator.yml') }
   let(:validator_config_content) { nil }
 
-  subject {
-    Validator::Api::Configuration.new(validator_config)
-  }
+  subject { Validator::Api::Configuration.new(validator_config) }
 
   before(:each) do
     if validator_config_content
@@ -114,12 +112,11 @@ extensions:
 
   describe '#openstack' do
     it 'uses Converter to convert values from validator.yml' do
-      allow(YAML).to receive(:load_file).and_return({'openstack' => {}})
-      allow(Validator::Converter).to receive(:convert_and_apply_defaults)
+      allow(YAML).to receive(:load_file).and_return({
+        'openstack' => { 'auth_url' => '', 'connection_options' => { 'ca_cert' => 'fake-cert' } }
+      })
 
-      subject.openstack
-
-      expect(Validator::Converter).to have_received(:convert_and_apply_defaults)
+      expect(subject.openstack).to eq('fake-data')
     end
   end
 

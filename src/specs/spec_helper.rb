@@ -8,7 +8,7 @@ RSpec.configure do |config|
   end
 
   config.add_setting :validator_config
-  config.validator_config = Validator::Api::Configuration.new(RSpec::configuration.options.config_path)
+  config.validator_config = Validator::Api::Configuration.new(RSpec::configuration.options.config_path, nil)
 
   config.add_setting :validator_resources
   config.validator_resources = Validator::Resources.new

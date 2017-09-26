@@ -318,14 +318,11 @@ EOF
       let(:cpi_config_path) { File.join(working_dir, 'jobs/openstack_cpi/config/cpi.json') }
 
       it 'should generate cpi config and print out' do
-        allow(Validator::Converter).to receive(:to_cpi_json).and_return({})
-
         expect {
           subject.generate_cpi_config
         }.to output(/CPI will use the following configuration/).to_stdout
 
         expect(File.exist?(cpi_config_path)).to eq(true)
-        expect(Validator::Converter).to have_received(:to_cpi_json).with(Validator::Api::Configuration.new(validator_config_path).openstack).twice
       end
 
       it 'redacts the api_key in the output, but not in the config file' do

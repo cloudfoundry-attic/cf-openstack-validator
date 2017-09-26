@@ -1,11 +1,26 @@
 module Validator
   class Converter
 
-    def self.cacert_path=(value)
-      @@cacert_path = value
+    def initialize(cacert_path)
+      @cacert_path = cacert_path
     end
 
-    def self.openstack_defaults
+    def convert_and_apply_defaults(openstack_params)
+      converters = Converter.is_v3(openstack_params.fetch('auth_url')) ? keystone_v3_converters : keystone_v2_converters
+      apply_converters(openstack_defaults.merge(openstack_params), converters)
+    end
+
+    def to_cpi_json(openstack_config)
+      registry_port = NetworkHelper.next_free_ephemeral_port
+
+      cpi_config(openstack_config, registry_port)
+    end
+
+    def self.is_v3(auth_url)
+      auth_url.match(/\/v3(?=\/|$)/)
+    end
+
+    def openstack_defaults
       {
         "default_key_name" => "cf-validator",
         "default_security_groups" => ["default"],
@@ -20,7 +35,9 @@ module Validator
       }
     end
 
-    def self.cpi_config(openstack_params, registry_port)
+    private
+
+    def cpi_config(openstack_params, registry_port)
       {
         "cloud" => {
           "plugin" => "openstack",
@@ -36,19 +53,13 @@ module Validator
       }
     end
 
-    def self.to_cpi_json(openstack_config)
-      registry_port = NetworkHelper.next_free_ephemeral_port
-
-      cpi_config(openstack_config, registry_port)
-    end
-
-    def self.base_converters
+    def base_converters
       {
         'password' => ->(_, value) { ['api_key', value] },
         'connection_options' => {
             'ca_cert' => ->(_, value) {
               return nil if value.to_s == ''
-              ssl_ca_file_path = @@cacert_path
+              ssl_ca_file_path = @cacert_path
               File.write(ssl_ca_file_path, value)
               ['ssl_ca_file', ssl_ca_file_path]
             }
@@ -56,7 +67,7 @@ module Validator
       }
     end
 
-    def self.keystone_v2_converters
+    def keystone_v2_converters
       {
         'auth_url' => ->(key, value) {
           if value.end_with?('/tokens')
@@ -74,7 +85,7 @@ module Validator
       }.merge(base_converters)
     end
 
-    def self.keystone_v3_converters
+    def keystone_v3_converters
       {
         'auth_url' => ->(key, value) {
           if value.end_with?('/auth/tokens')
@@ -89,12 +100,7 @@ module Validator
       }.merge(base_converters)
     end
 
-    def self.convert_and_apply_defaults(openstack_params)
-      converters = is_v3(openstack_params.fetch('auth_url')) ? keystone_v3_converters : keystone_v2_converters
-      apply_converters(openstack_defaults.merge(openstack_params), converters)
-    end
-
-    def self.apply_converters(hash, converters)
+    def apply_converters(hash, converters)
       no_op = -> (*args) { args }
 
       hash.map do |key, value|
@@ -106,11 +112,5 @@ module Validator
         end
       end.compact.to_h
     end
-
-    def self.is_v3(auth_url)
-      auth_url.match(/\/v3(?=\/|$)/)
-    end
-
-    private_class_method :apply_converters
   end
 end

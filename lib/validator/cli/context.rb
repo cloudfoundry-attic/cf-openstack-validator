@@ -3,7 +3,7 @@ module Validator::Cli
 
   class Context
 
-    attr_reader :openstack_cpi_bin_from_env, :working_dir, :config
+    attr_reader :openstack_cpi_bin_from_env, :working_dir, :config, :jobs_config_path, :cacert_path, :converter
 
     attr_accessor :cpi_bin_path, :cpi_release_path
 
@@ -15,7 +15,10 @@ module Validator::Cli
       @path_from_env = ENV['PATH']
       @openstack_cpi_bin_from_env = ENV['OPENSTACK_CPI_BIN']
       @cpi_bin_path = File.join(@working_dir, 'cpi')
-      @config = Validator::Api::Configuration.new(config_path)
+      @jobs_config_path = File.join(@working_dir, 'jobs/openstack_cpi/config')
+      @cacert_path = File.join(@jobs_config_path, 'cacert.pem')
+      @converter = Validator::Converter.new(@cacert_path)
+      @config = Validator::Api::Configuration.new(config_path, @converter)
     end
 
     def tag

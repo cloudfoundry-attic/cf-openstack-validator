@@ -11,13 +11,11 @@ module Validator::Cli
 
     def initialize(context)
       @context = context
-      @config_path = File.join(@context.working_dir, 'jobs/openstack_cpi/config')
-      FileUtils.mkdir_p(@config_path)
-      Validator::Converter.cacert_path = File.join(@config_path, 'cacert.pem')
     end
 
     def run
       begin
+        FileUtils.mkdir_p(@context.jobs_config_path)
         print_working_dir
         cleanup_logs
         validate_config
@@ -172,9 +170,9 @@ module Validator::Cli
     end
 
     def generate_cpi_config
-      cpi_config_content = Validator::Converter.to_cpi_json(@context.config.openstack)
+      cpi_config_content = @context.converter.to_cpi_json(@context.config.openstack)
       puts "CPI will use the following configuration: \n#{JSON.pretty_generate(Validator::Redactor.redact(cpi_config_content, 'cloud.properties.openstack.api_key'))}"
-      File.write(File.join(@config_path, 'cpi.json'), JSON.pretty_generate(Validator::Converter.to_cpi_json(@context.config.openstack)))
+      File.write(File.join(@context.jobs_config_path, 'cpi.json'), JSON.pretty_generate(@context.converter.to_cpi_json(@context.config.openstack)))
     end
 
     def execute_specs

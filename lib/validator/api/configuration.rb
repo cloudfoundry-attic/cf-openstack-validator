@@ -4,8 +4,9 @@ module Validator
 
       attr_reader :path
 
-      def initialize(path)
+      def initialize(path, converter)
         @path = path
+        @converter = converter
       end
 
       def all
@@ -19,7 +20,7 @@ module Validator
       end
 
       def openstack
-        Converter.convert_and_apply_defaults(all.fetch('openstack'))
+        @converter.convert_and_apply_defaults(all.fetch('openstack'))
       end
 
       def cloud_config
