@@ -109,7 +109,7 @@ module Validator::Cli
           File.join(working_directory, 'stemcell'),
           File.join(working_directory, 'cpi'),
           'validator_config_path',
-          File.join(working_directory, 'cpi.json'),
+          File.join(working_directory, 'jobs/openstack_cpi/config/cpi.json'),
           true,
           true
         )

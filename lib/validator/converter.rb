@@ -1,6 +1,10 @@
 module Validator
   class Converter
 
+    def self.cacert_path=(value)
+      @@cacert_path = value
+    end
+
     def self.openstack_defaults
       {
         "default_key_name" => "cf-validator",
@@ -44,7 +48,7 @@ module Validator
         'connection_options' => {
             'ca_cert' => ->(_, value) {
               return nil if value.to_s == ''
-              ssl_ca_file_path = File.join(Dir.mktmpdir, 'cacert.pem')
+              ssl_ca_file_path = @@cacert_path
               File.write(ssl_ca_file_path, value)
               ['ssl_ca_file', ssl_ca_file_path]
             }
