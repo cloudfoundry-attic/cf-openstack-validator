@@ -58,12 +58,8 @@ module Validator
       request_json = JSON.dump(request(method_name, arguments, context))
       redacted_request = request(method_name, redact_arguments(method_name, arguments), redact_context(context))
 
+      env = {'PATH' => '/usr/sbin:/usr/bin:/sbin:/bin', 'TMPDIR' => ENV['TMPDIR']}
       cpi_exec_path = checked_cpi_exec_path
-      env = {
-        'PATH' => '/usr/sbin:/usr/bin:/sbin:/bin', 'TMPDIR' => ENV['TMPDIR'],
-        'BOSH_PACKAGES_DIR' => File.join(File.dirname(cpi_exec_path), 'packages'),
-        'BOSH_JOBS_DIR' => File.join(File.dirname(cpi_exec_path), 'jobs')
-      }
 
       @logger.debug("External CPI sending request: #{JSON.dump(redacted_request)} with command: #{cpi_exec_path}")
       cpi_response, stderr, exit_status = nil, nil, nil

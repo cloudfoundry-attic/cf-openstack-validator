@@ -137,16 +137,16 @@ describe Validator::Converter do
       end
 
       context 'when connection_options' do
-        let(:tmpdir) { Dir.mktmpdir }
-        let(:config_dir) { File.join(tmpdir, 'jobs', 'openstack_cpi', 'config') }
+        let(:tmpdir) do
+          Dir.mktmpdir
+        end
 
         before(:each) do
-          subject.class.cacert_path = File.join(config_dir, 'cacert.pem')
-          FileUtils.mkdir_p(config_dir)
+          allow(Dir).to receive(:mktmpdir).and_return(tmpdir)
         end
 
         after(:each) do
-          FileUtils.rm_r(tmpdir)
+          FileUtils.rmdir(tmpdir)
         end
 
         context '.ca_cert is given' do
@@ -161,7 +161,7 @@ describe Validator::Converter do
           it "replaces 'ca_cert' with 'ssl_ca_file'" do
             rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(config_with_ca_cert)
 
-            expect(rendered_cpi_config['connection_options']['ssl_ca_file']).to eq("#{config_dir}/cacert.pem")
+            expect(rendered_cpi_config['connection_options']['ssl_ca_file']).to eq("#{tmpdir}/cacert.pem")
             expect(rendered_cpi_config['connection_options']['ca_cert']).to be_nil
           end
         end
