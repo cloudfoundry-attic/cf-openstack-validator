@@ -1,4 +1,5 @@
 require_relative '../../spec_helper'
+require 'tempfile'
 
 module Validator::Cli
   describe CfOpenstackValidator do
@@ -59,11 +60,12 @@ module Validator::Cli
      end
 
     describe '#deep_extract_release' do
-      it 'extracts the release and its packages' do
+      it 'extracts the release and its packages and jobs' do
         subject.deep_extract_release(expand_project_path('spec/assets/cpi-release.tgz'))
 
         expect(File.exists?(File.join(working_dir, 'cpi-release/packages/bosh_openstack_cpi/bosh_openstack_cpi/dummy_bosh_openstack_cpi'))).to be(true)
         expect(File.exists?(File.join(working_dir, 'cpi-release/packages/ruby_openstack_cpi/ruby_openstack_cpi/dummy_ruby_openstack_cpi'))).to be(true)
+        expect(File.exists?(File.join(working_dir, 'cpi-release/jobs/openstack_cpi/templates/cpi.erb'))).to be(true)
       end
     end
 
@@ -186,19 +188,30 @@ module Validator::Cli
         expect(File.exists?(rendered_cpi_executable)).to be(true)
         expect(File.executable?(rendered_cpi_executable)).to be(true)
         expect(File.read(rendered_cpi_executable)).to eq <<EOF
-#!/usr/bin/env bash
+#!/bin/bash
 
-BOSH_PACKAGES_DIR=\${BOSH_PACKAGES_DIR:-#{File.join(working_dir, 'packages')}}
+set -e
 
-PATH=\$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin:\$PATH
+
+
+
+
+
+
+BOSH_PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
+BOSH_JOBS_DIR=${BOSH_JOBS_DIR:-/var/vcap/jobs}
+
+PATH=$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin:$PATH
 export PATH
 export HOME=~
 
-export BUNDLE_GEMFILE=\$BOSH_PACKAGES_DIR/bosh_openstack_cpi/Gemfile
+export BUNDLE_GEMFILE=$BOSH_PACKAGES_DIR/bosh_openstack_cpi/Gemfile
 
-bundle_cmd="\$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin/bundle"
-read -r INPUT
-echo \$INPUT | \$bundle_cmd exec \$BOSH_PACKAGES_DIR/bosh_openstack_cpi/bin/openstack_cpi #{File.join(working_dir, 'cpi.json')}
+bundle_cmd="$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin/bundle"
+
+exec $bundle_cmd exec $BOSH_PACKAGES_DIR/bosh_openstack_cpi/bin/openstack_cpi \\
+  $BOSH_JOBS_DIR/openstack_cpi/config/cpi.json \\
+  $BOSH_JOBS_DIR/openstack_cpi/config/cacert.pem
 EOF
       end
     end
@@ -302,13 +315,16 @@ EOF
 
       let(:options) {{cpi_release: release_archive_path, config_path: validator_config_path}}
 
+      let(:cpi_config_path) { File.join(working_dir, 'jobs/openstack_cpi/config/cpi.json') }
+
       it 'should generate cpi config and print out' do
         allow(Validator::Converter).to receive(:to_cpi_json).and_return({})
 
-        expect{ subject.generate_cpi_config
+        expect {
+          subject.generate_cpi_config
         }.to output(/CPI will use the following configuration/).to_stdout
 
-        expect(File.exist?(File.join(working_dir, 'cpi.json'))).to eq(true)
+        expect(File.exist?(cpi_config_path)).to eq(true)
         expect(Validator::Converter).to have_received(:to_cpi_json).with(Validator::Api::Configuration.new(validator_config_path).openstack).twice
       end
 
@@ -317,8 +333,6 @@ EOF
           subject.generate_cpi_config
         }.to output(/"api_key": "<redacted>"/).to_stdout
 
-        cpi_config_path = File.join(working_dir, 'cpi.json')
-        expect(File.exist?(cpi_config_path)).to eq(true)
         cpi_config = JSON.parse(File.read(cpi_config_path))
 
         expect(cpi_config['cloud']['properties']['openstack']['api_key']).to eq('password')

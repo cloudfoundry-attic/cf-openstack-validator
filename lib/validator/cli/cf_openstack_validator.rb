@@ -1,3 +1,5 @@
+require 'erb'
+
 module Validator::Cli
   class CfOpenstackValidator
 
@@ -9,6 +11,9 @@ module Validator::Cli
 
     def initialize(context)
       @context = context
+      @config_path = File.join(@context.working_dir, 'jobs/openstack_cpi/config')
+      FileUtils.mkdir_p(@config_path)
+      Validator::Converter.cacert_path = File.join(@config_path, 'cacert.pem')
     end
 
     def run
@@ -84,6 +89,10 @@ module Validator::Cli
       packages_path = File.join(@context.extracted_cpi_release_dir, 'packages')
       Dir.glob(File.join(packages_path, '*')).each do |package|
         Untar.extract_archive(package, File.join(packages_path, File.basename(package, '.tgz')))
+      end
+      jobs_path = File.join(@context.extracted_cpi_release_dir, 'jobs')
+      Dir.glob(File.join(jobs_path, '*')).each do |job|
+        Untar.extract_archive(job, File.join(jobs_path, File.basename(job, '.tgz')))
       end
     end
 
@@ -165,7 +174,7 @@ module Validator::Cli
     def generate_cpi_config
       cpi_config_content = Validator::Converter.to_cpi_json(@context.config.openstack)
       puts "CPI will use the following configuration: \n#{JSON.pretty_generate(Validator::Redactor.redact(cpi_config_content, 'cloud.properties.openstack.api_key'))}"
-      File.write(File.join(@context.working_dir, 'cpi.json'), JSON.pretty_generate(Validator::Converter.to_cpi_json(@context.config.openstack)))
+      File.write(File.join(@config_path, 'cpi.json'), JSON.pretty_generate(Validator::Converter.to_cpi_json(@context.config.openstack)))
     end
 
     def execute_specs
@@ -268,22 +277,21 @@ module Validator::Cli
       FileUtils.mkdir_p(File.join(@context.working_dir, 'logs')).first
     end
 
+    class MinimalBinding
+      def if_p(*args)
+        false
+      end
+
+      def get_binding
+        binding
+      end
+    end
+
     def render_cpi_executable
-      cpi_content = <<EOF
-#!/usr/bin/env bash
+      cpi_erb = File.read(File.join(@context.extracted_cpi_release_dir, 'jobs', 'openstack_cpi', 'templates', 'cpi.erb'))
+      erb = ERB.new(cpi_erb, safe_level = nil, trim_mode = '-')
+      cpi_content = erb.result(MinimalBinding.new.get_binding)
 
-BOSH_PACKAGES_DIR=\${BOSH_PACKAGES_DIR:-#{@context.packages_path}}
-
-PATH=\$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin:\$PATH
-export PATH
-export HOME=~
-
-export BUNDLE_GEMFILE=\$BOSH_PACKAGES_DIR/bosh_openstack_cpi/Gemfile
-
-bundle_cmd="\$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin/bundle"
-read -r INPUT
-echo \$INPUT | \$bundle_cmd exec \$BOSH_PACKAGES_DIR/bosh_openstack_cpi/bin/openstack_cpi #{File.join(@context.working_dir, 'cpi.json')}
-EOF
       File.write(@context.cpi_bin_path, cpi_content)
       FileUtils.chmod('+x', @context.cpi_bin_path)
     end
