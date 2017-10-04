@@ -122,10 +122,11 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
 
     it 'can take a snapshot' do
       disk_cid = @resource_tracker.consumes(:disk_cid, 'No disk to create snapshot from')
+      metadata = {'director_name' => 'validator-test', 'job' => 'validator-test', 'instance_id' => 'validator-test'}
 
       snapshot_cid = with_cpi("Snapshot for disk '#{disk_cid}' could not be taken.") {
         @resource_tracker.produce(:snapshots, provide_as: :snapshot_cid) {
-          @cpi.snapshot_disk(disk_cid, {})
+          @cpi.snapshot_disk(disk_cid, metadata)
         }
       }
 
