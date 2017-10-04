@@ -38,6 +38,7 @@ module Validator
     def reboot_vm(*arguments); invoke_cpi_method(__method__.to_s, *arguments); end
     def set_vm_metadata(*arguments); invoke_cpi_method(__method__.to_s, *arguments); end
     def create_disk(*arguments); invoke_cpi_method(__method__.to_s, *arguments); end
+    def set_disk_metadata(*arguments); invoke_cpi_method(__method__.to_s, *arguments); end
     def has_disk(*arguments); invoke_cpi_method(__method__.to_s, *arguments); end
     def delete_disk(*arguments); invoke_cpi_method(__method__.to_s, *arguments); end
     def attach_disk(*arguments); invoke_cpi_method(__method__.to_s, *arguments); end

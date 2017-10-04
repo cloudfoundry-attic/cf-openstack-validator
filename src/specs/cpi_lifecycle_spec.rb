@@ -102,6 +102,14 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
       expect(has_disk).to be true
     end
 
+    it 'can set disk metadata' do
+      disk_cid = @resource_tracker.consumes(:disk_cid, 'No disk to check')
+
+      with_cpi('CPI failed to set disk metadata.') {
+        @cpi.set_disk_metadata(disk_cid, {'validator-test' => 'test-disk-tagging'})
+      }
+    end
+
     it 'can attach the disk to the VM' do
       vm_cid = @resource_tracker.consumes(:vm_cid, 'No VM to attach disk to')
       disk_cid = @resource_tracker.consumes(:disk_cid, 'No disk to attach')
