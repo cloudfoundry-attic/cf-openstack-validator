@@ -46,11 +46,11 @@ bundle install --path .bundle
 
 ./validate -s ~/stemcell.tgz -c validator.yml
 
-#report_performance_stats
+report_performance_stats
 
 CONFIG_DRIVE='disk' ci/assets/config_renderer/render validator.template.yml > validator.yml
 cat validator.yml
 
 ./validate -s ~/stemcell.tgz -c validator.yml
 
-#report_performance_stats
+report_performance_stats
