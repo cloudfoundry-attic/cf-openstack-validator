@@ -4,12 +4,19 @@ describe Validator::Instrumentor do
     let(:name) { 'foo' }
     let(:params) { { foo: 'bar'} }
     let(:logger) { instance_double(Logger) }
+    let(:log_path) { Dir.mktmpdir }
+    let(:options) { instance_double('options', log_path: log_path) }
 
     subject { Validator::Instrumentor }
 
     before(:each) do
+      allow_any_instance_of(RSpec::Core::Configuration).to receive(:options).and_return(options)
       allow(Validator::Instrumentor).to receive(:logger).and_return(logger)
       allow(logger).to receive(:debug)
+    end
+
+    after(:each) do
+      FileUtils.rm_rf(log_path)
     end
 
     it 'logs requests' do
@@ -18,8 +25,14 @@ describe Validator::Instrumentor do
       expect(logger).to have_received(:debug).with("#{name} #{params}")
     end
 
+    it 'logs performance' do
+      subject.instrument(name, params)
+
+      expect(File.readable?(File.join(log_path, 'fog_stats.log'))).to be_truthy
+    end
+
     it 'does not manipulate the original hash' do
-      params_with_body = { body: '{}'}
+      params_with_body = { body: '{}' }
       old_body = params_with_body.fetch(:body)
 
       subject.instrument(name, params_with_body)

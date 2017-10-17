@@ -143,12 +143,7 @@ module Validator
     end
 
     def save_stats_log(request, measure)
-      File.open(@stats_log_path, 'a') do |f|
-        f.puts(JSON.dump({
-            'request' => request,
-            'duration' => measure.real
-        }))
-      end
+      StatsLog.new(@stats_log_path).append(request, measure)
     end
 
     def parsed_response(input)
