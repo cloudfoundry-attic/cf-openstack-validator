@@ -25,10 +25,20 @@ describe Validator::Instrumentor do
       expect(logger).to have_received(:debug).with("#{name} #{params}")
     end
 
-    it 'logs performance' do
-      subject.instrument(name, params)
+    context 'with a block' do
+      it 'logs performance when given a block' do
+        subject.instrument(name, params) { 'this is a block' }
 
-      expect(File.readable?(File.join(log_path, 'fog_stats.log'))).to be_truthy
+        expect(File.readable?(File.join(log_path, 'fog_stats.log'))).to be_truthy
+      end
+    end
+
+    context 'without a block' do
+      it 'logs performance when given a block' do
+        subject.instrument(name, params)
+
+        expect(File.readable?(File.join(log_path, 'fog_stats.log'))).to be_falsy
+      end
     end
 
     it 'does not manipulate the original hash' do

@@ -11,11 +11,14 @@ module Validator
     def self.instrument(name, params = {})
       redacted_params = redact(params)
       logger.debug("#{name} #{redacted_params}")
-      measure = Benchmark.measure do
-        yield if block_given?
+
+      evaluated_block = nil
+      if block_given?
+        measure = Benchmark.measure { evaluated_block = yield }
+        stats_log_path = File.join(RSpec::configuration.options.log_path, 'fog_stats.log')
+        StatsLog.new(stats_log_path).append({ method: name, arguments: redacted_params }, measure)
+        evaluated_block
       end
-      stats_log_path = File.join(RSpec::configuration.options.log_path, 'fog_stats.log')
-      StatsLog.new(stats_log_path).append({ method: name, arguments: redacted_params }, measure)
     end
 
     def self.redact(params)
