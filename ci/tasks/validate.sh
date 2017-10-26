@@ -21,6 +21,7 @@ set -e -x
 : ${EXPECTED_FLAVORS:?}
 : ${EXPECTED_QUOTAS:?}
 : ${EXPECTED_ENDPOINTS:?}
+: ${MTU:?}
 
 report_performance_stats(){
   echo 'Stats:'

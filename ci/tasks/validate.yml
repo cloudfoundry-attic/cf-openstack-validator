@@ -36,6 +36,7 @@ params:
   INFLUXDB_USER:      ""
   INFLUXDB_PASSWORD:  ""
   PIPELINE_NAME:      ""
+  MTU:                1500
 
 run:
   path: validator-src/ci/tasks/validate.sh

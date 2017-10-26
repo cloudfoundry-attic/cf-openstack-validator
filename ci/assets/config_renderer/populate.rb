@@ -51,6 +51,10 @@ def populate(working_directory, config, context)
     config['validator']['ntp'] = to_array(context['NTP_SERVER'])
   end
 
+  if check(context['MTU'])
+    config['validator']['mtu'] = context['MTU']
+  end
+
   if check(context['INSTANCE_TYPE'])
     config['cloud_config']['vm_types'][0]['cloud_properties']['instance_type'] = context['INSTANCE_TYPE']
   end
