@@ -51,8 +51,8 @@ def populate(working_directory, config, context)
     config['validator']['ntp'] = to_array(context['NTP_SERVER'])
   end
 
-  if check(context['MTU'])
-    config['validator']['mtu'] = context['MTU']
+  if check(context['MTU_SIZE'])
+    config['validator']['mtu_size'] = context['MTU_SIZE']
   end
 
   if check(context['INSTANCE_TYPE'])
