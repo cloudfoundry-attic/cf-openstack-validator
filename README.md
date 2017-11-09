@@ -31,7 +31,7 @@ The validator runs on Mac and Linux. Please ensure that the following packages a
 
 **Linux Requirements**
 
-* ruby 2.1.x or newer
+* ruby 2.3.x or newer
 * make
 * gcc
 * zlib1g-dev
