@@ -82,11 +82,11 @@ variable "availability_zone" {
 variable "openstack_default_key_public_key" {
 }
 
-output "net id:   validator_net_id" {
+output "validator_net_id" {
   value = "${openstack_networking_network_v2.validator_net.id}"
 }
 
-output "floating ip:   validator_floating_ip" {
+output "validator_floating_ip" {
   value = "${openstack_compute_floatingip_v2.validator_floating_ip.address}"
 }
 
