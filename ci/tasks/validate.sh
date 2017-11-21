@@ -8,8 +8,6 @@ set -e -x
 : ${PROJECT:?}
 : ${PROJECT_ID:?}
 : ${DEFAULT_KEY_NAME:?}
-: ${NETWORK_ID:?}
-: ${FLOATING_IP:?}
 : ${STATIC_IP:?}
 : ${PUBLIC_IMAGE_ID:?}
 : ${PRIVATE_KEY:?}
@@ -22,6 +20,11 @@ set -e -x
 : ${EXPECTED_QUOTAS:?}
 : ${EXPECTED_ENDPOINTS:?}
 : ${MTU_SIZE:?}
+
+# terraform output variables
+metadata=terraform-validator/metadata
+export NETWORK_ID=$(cat ${metadata} | python -c "import sys, json; print json.load(sys.stdin)['validator_net_id']")
+export FLOATING_IP=$(cat ${metadata} | python -c "import sys, json; print json.load(sys.stdin)['validator_floating_ip']")
 
 report_performance_stats(){
   echo 'Stats:'

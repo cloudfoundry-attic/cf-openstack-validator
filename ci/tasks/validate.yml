@@ -9,6 +9,7 @@ image_resource:
 
 inputs:
 - name: validator-src
+- name: terraform-validator
 
 params:
   AUTH_URL:           ""
