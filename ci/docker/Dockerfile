@@ -6,7 +6,7 @@ ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 
 RUN apt-get update; apt-get -y upgrade; apt-get clean
-RUN apt-get install -y ssh curl wget make libssl-dev; apt-get clean
+RUN apt-get install -y ssh curl wget make libssl-dev jq; apt-get clean
 
 RUN mkdir /tmp/ruby-install && \
     cd /tmp && \
