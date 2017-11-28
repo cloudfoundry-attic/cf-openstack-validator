@@ -23,8 +23,8 @@ set -e -x
 
 # terraform output variables
 metadata=terraform-validator/metadata
-export NETWORK_ID=$(cat ${metadata} | python -c "import sys, json; print json.load(sys.stdin)['validator_net_id']")
-export FLOATING_IP=$(cat ${metadata} | python -c "import sys, json; print json.load(sys.stdin)['validator_floating_ip']")
+export NETWORK_ID=$(cat ${metadata} | jq --raw-output ".validator_net_id")
+export FLOATING_IP=$(cat ${metadata} | jq --raw-output ".validator_floating_ip")
 
 report_performance_stats(){
   echo 'Stats:'
