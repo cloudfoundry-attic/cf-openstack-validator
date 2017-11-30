@@ -68,7 +68,7 @@ $ bundle install
 ```
 * Start validation
 ```bash
-$ ./validate --stemcell bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz --config validator.yml
+$ ./validate --stemcell bosh-openstack-kvm-ubuntu-trusty-go_agent --config validator.yml
 ```
 
 ## Configure CPI used by validator
