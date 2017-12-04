@@ -59,7 +59,7 @@ $ cp validator.template.yml validator.yml
 ```
 * Download a stemcell from [OpenStack stemcells bosh.io](https://bosh.io/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent)
 ```
-$ curl -L -J -O https://bosh.io/d/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent
+$ wget --content-disposition https://bosh.io/d/stemcells/bosh-openstack-kvm-ubuntu-trusty-go_agent
 ```
 * Install dependencies
 ```bash
