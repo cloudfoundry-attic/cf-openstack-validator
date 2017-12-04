@@ -10,9 +10,9 @@ This is a step-by-step guide to implement an extension.
 
 ### Create Extensions File
 
-You can configure a directory from which extensions are read. Create a directory `validator_extensions` for example in your home directory and add a `my_extension_spec.rb` file. Extensions are in fact [RSpec](http://rspec.info/) tests. That's why they have to be called `*._spec.rb`. An [example extension](/extensions/dummy_extension_spec.sample.rb) comes with the validator.
+You can configure a directory from which extensions are read. Create a directory `validator_extensions` for example in your home directory and add a `my_extension_spec.rb` file. Extensions are in fact [RSpec](http://rspec.info/) tests. That's why they have to be called `*_spec.rb`. An [example extension](/extensions/dummy_extension_spec.rb) comes with the validator.
 
-Add the path to your `validator.yml` under the `extensions` section. You can also configure multiple paths if you have multiple extensions:
+Add the path of your `validator_extensions` directory into your `validator.yml` under the `extensions` section. You can also configure multiple paths if you have multiple extensions:
 ```yaml
 extensions:
   paths: [extensions/, /home/my-user/validator-extensions/]
@@ -79,7 +79,7 @@ If our test would fail, it would leak resources: Nobody is cleaning up the secur
 
 The resource tracking API supports automatic cleanup of OpenStack resources. For debugging, cleanup can be skipped by setting the cli option `--skip-cleanup`.
 
-To use the resource tracking add a statement as follows:
+To use the resource tracking, add a statement as follows:
 
 ```ruby
 fdescribe 'My extension' do
@@ -122,7 +122,7 @@ Resources: The following resources might not have been cleaned up:
       Created by test: Your OpenStack Extensions My extension can create a security group allowing SSH
 ```
 
-Note that you have to manually clean up the security group in the OpenStack UI or with the openstack command line client in this case.
+Note that you have to manually clean up the security group in the OpenStack UI or with the OpenStack command line client in this case.
 
 ### Share Resources Between Tests
 
@@ -296,10 +296,11 @@ Each resource tracker is responsible for its own set of resources. Checkout the 
 
 **Remark**: Only the following collections are supported:
 
-* **compute**: flavors, key_pairs, servers
+* **compute**: flavors, key_pairs, servers, server_groups
 * **network**: networks, ports, subnets, floating_ips, routers, security_groups, security_group_rules
 * **image**: images
 * **volume**: volumes, snapshots
+* **storage**: files, directories
 
 This means one can still use other collections the Fog Api offers, but the resource tracker cannot track and clean them up.
 This would then have to be done manually.

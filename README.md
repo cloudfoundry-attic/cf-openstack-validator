@@ -79,7 +79,7 @@ If you already have a CPI compiled, you can specify the path to the executable i
 
 ## Command line help
 
-* To learn about available options run
+To learn about available options run
 ```bash
 $ ./validate --help
 ```
@@ -88,7 +88,7 @@ $ ./validate --help
 
 You can extend the validator with custom tests. For a detailed description and examples, please have a look at the [extension documentation](./docs/extensions.md).
 
-This repository already contains some [extensions](./extensions). Each extension has its own documentation which can be found in the extension folder.
+This repository already contains some [extensions](./extensions). Each extension has its own documentation which can be found in the corresponding extension folder.
 
 ## Troubleshooting
 The validator does not run on your OpenStack? See [additional OpenStack related configuration options](docs/openstack_configurations.md) for possible solutions.

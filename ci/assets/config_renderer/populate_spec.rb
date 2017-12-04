@@ -1,5 +1,6 @@
 require_relative 'populate'
 require 'yaml'
+require 'tmpdir'
 
 describe 'populate' do
 
@@ -86,7 +87,8 @@ describe 'populate' do
           'host' => 'host',
           'port' => 20
         }
-      ])
+      ]),
+      'AUTO_ANTI_AFFINITY' => 'true'
     }
   }
 
@@ -128,7 +130,8 @@ describe 'populate' do
                 'name' => 'bosh-openstack-cpi',
                 'url' => 'https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=28',
                 'sha1' => 'beae72c7a105923ee74e7dfd6930e9aa75d86e05'
-            }]
+            }],
+            'use_external_ip' => true
         },
         'cloud_config' => {
             'vm_types' => [{
@@ -140,18 +143,21 @@ describe 'populate' do
             }]
         },
         'extensions' => {
-            'paths' => ['./extensions/external_endpoints', './extensions/quotas', './extensions/flavors', './sample_extensions/'],
+            'paths' => ['./extensions/auto_anti_affinity', './extensions/external_endpoints', './extensions/quotas', './extensions/flavors', './sample_extensions/'],
             'config' => {
                 'custom-config-key' => 'custom-config-value',
                 'flavors' => {
-                  'expected_flavors' => File.join(@tmpdir, 'flavors.yml')
+                    'expected_flavors' => File.join(@tmpdir, 'flavors.yml')
                 },
                 'quotas' => {
-                  'project_id' => 'PROJECT_ID',
-                  'expected_quotas' => File.join(@tmpdir, 'quotas.yml')
+                    'project_id' => 'PROJECT_ID',
+                    'expected_quotas' => File.join(@tmpdir, 'quotas.yml')
                 },
                 'external_endpoints' => {
-                  'expected_endpoints' => File.join(@tmpdir, 'endpoints.yml')
+                    'expected_endpoints' => File.join(@tmpdir, 'endpoints.yml')
+                },
+                'auto_anti_affinity' => {
+                    'project_id' => 'PROJECT_ID'
                 }
             }
         }

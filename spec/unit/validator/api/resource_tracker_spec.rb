@@ -1,11 +1,12 @@
 require_relative '../../spec_helper'
 require 'fog/volume/openstack/v1/models/volume'
 require 'fog/volume/openstack/v2/models/volume'
+require 'fog/compute/openstack/models/server_group'
 
 module Validator::Api
   describe ResourceTracker do
 
-    let(:compute) { double('compute', servers: resources, key_pairs: resources, flavors: resources) }
+    let(:compute) { double('compute', servers: resources, key_pairs: resources, flavors: resources, server_groups: resources, delete_server_group: double('delete_server_groups_request')) }
     let(:network) { double('network', networks: resources, routers: resources, subnets: resources, floating_ips: resources, security_groups: resources, security_group_rules: resources, ports: resources) }
     let(:image) { double('image', images: resources) }
     let(:volume) { double('volume', volumes: resources, snapshots: resources) }
@@ -108,6 +109,16 @@ module Validator::Api
             expect(volume).to_not be_nil
             expect(volume[:name]).to eq('my-volume')
           end
+        end
+      end
+
+      context "when ':server_group' resource" do
+        let(:resource) { double('server_group_resource', name: nil, wait_for: nil) }
+
+        it 'stores the resource id' do
+          subject.produce(:server_groups, provide_as: :my_group) { 'server_group_id' }
+
+          expect(subject.consumes(:my_group)).to eq('server_group_id')
         end
       end
 
@@ -283,6 +294,18 @@ module Validator::Api
         end
       end
 
+      context 'when server group' do
+        let(:resource) { instance_double(Fog::Compute::OpenStack::ServerGroup, wait_for: nil, name: nil) }
+        it 'deletes the server group' do
+          subject.produce(:server_groups) { 'id' }
+
+          subject.cleanup
+
+          expect(resource).to_not have_received(:destroy)
+          expect(compute).to have_received(:delete_server_group).exactly(1).times
+        end
+      end
+
       context 'when a resource cannot be destroyed' do
         before do
           allow(resource).to receive(:destroy).and_return(false)
@@ -366,7 +389,7 @@ module Validator::Api
           end
         end
 
-        expect(subject.resources.length).to eq(15)
+        expect(subject.resources.length).to eq(16)
       end
 
       it 'returns all resources existing in openstack' do

@@ -104,6 +104,13 @@ def populate(working_directory, config, context)
     'expected_endpoints' => File.join(working_directory, 'endpoints.yml')
   }
 
+  if to_bool(context['AUTO_ANTI_AFFINITY']) && check(context['PROJECT_ID'])
+    config['extensions']['paths'].unshift('./extensions/auto_anti_affinity')
+    config['extensions']['config']['auto_anti_affinity'] = {
+      'project_id' => context['PROJECT_ID'],
+    }
+  end
+
   config['validator']['use_external_ip'] = true
 
   config

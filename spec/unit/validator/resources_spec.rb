@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 module Validator
 
   describe Resources do
-    let(:compute) { double('compute', servers: servers, key_pairs: key_pairs) }
+    let(:compute) { double('compute', servers: servers, key_pairs: key_pairs, delete_server_group: double('delete_server_group_request')) }
     let(:network) { double('network', networks: networks) }
     let(:image) { double('image', images: images) }
     let(:volume) { double('volume', volumes: volumes) }

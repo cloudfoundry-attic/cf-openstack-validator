@@ -3,7 +3,7 @@ module Validator
     class ResourceTracker
 
       RESOURCE_SERVICES = {
-          compute: [:flavors, :key_pairs, :servers],
+          compute: [:flavors, :key_pairs, :servers, :server_groups],
           network: [:networks, :ports, :subnets, :floating_ips, :routers, :security_groups, :security_group_rules],
           image:   [:images],
           volume:  [:volumes, :snapshots],
@@ -118,6 +118,12 @@ module Validator
         end
       end
 
+      class ServerGroups < Base
+        def destroy(type, id)
+          FogOpenStack.send(:compute).delete_server_group(id)
+        end
+      end
+
       RESOURCE_HANDLER = {
         images: Images.new(wait_for: Proc.new { status == 'active' } ),
         servers: Servers.new(wait_for: Proc.new { ready? }),
@@ -127,7 +133,8 @@ module Validator
         ports: Base.new(wait_for: Proc.new { status == 'ACTIVE' }),
         routers: Base.new(wait_for: Proc.new { status == 'ACTIVE' }),
         directories: Directories.new,
-        files: Files.new
+        files: Files.new,
+        server_groups: ServerGroups.new
       }
 
       ##

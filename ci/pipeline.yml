@@ -120,6 +120,7 @@ jobs:
       INFLUXDB_PASSWORD:              {{influxdb_password}}
       PIPELINE_NAME:                  {{pipeline_name}}
       MTU_SIZE:                       {{mtu_size}}
+      AUTO_ANTI_AFFINITY:             {{auto_anti_affinity}}
 
 - name: release
   build_logs_to_retain: *build_logs_to_retain

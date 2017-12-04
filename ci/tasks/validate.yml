@@ -38,6 +38,7 @@ params:
   INFLUXDB_PASSWORD:  ""
   PIPELINE_NAME:      ""
   MTU_SIZE:           ""
+  AUTO_ANTI_AFFINITY: ""
 
 run:
   path: validator-src/ci/tasks/validate.sh

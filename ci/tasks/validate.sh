@@ -20,6 +20,7 @@ set -e -x
 : ${EXPECTED_QUOTAS:?}
 : ${EXPECTED_ENDPOINTS:?}
 : ${MTU_SIZE:?}
+: ${AUTO_ANTI_AFFINITY:-"false"}
 
 # terraform output variables
 metadata=terraform-validator/metadata
@@ -46,7 +47,7 @@ chmod 400 cf-validator.rsa_id
 ci/assets/config_renderer/render validator.template.yml > validator.yml
 cat validator.yml
 
-bundle install --path .bundle
+BUNDLE_CACHE_PATH="vendor/package" bundle install --local --deployment --path .bundle
 
 ./validate -s ~/stemcell.tgz -c validator.yml
 
