@@ -386,7 +386,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global do
       @resource_tracker.consumes(:vm_cid_static_ip, 'No VM with static IP to use')
 
       sudo = "echo 'c1oudc0w' | sudo --prompt \"\" --stdin"
-      command = "#{sudo} traceroute -M raw -m 1 --mtu #{@config.validator['static_ip']}"
+      command = "#{sudo} traceroute -m 1 --mtu #{@config.validator['static_ip']}"
 
       output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, command)
 
