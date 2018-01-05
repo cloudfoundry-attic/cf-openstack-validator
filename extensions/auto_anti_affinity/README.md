@@ -11,6 +11,7 @@ Add the extension to your `validator.yml`:
 ```yaml
 extensions:
   paths: [./extensions/auto_anti_affinity]
+  config:
     auto_anti_affinity:
       project_id: <project_id>
 ```
