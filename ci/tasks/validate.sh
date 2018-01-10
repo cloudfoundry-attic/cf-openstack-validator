@@ -20,7 +20,7 @@ set -e -x
 : ${EXPECTED_QUOTAS:?}
 : ${EXPECTED_ENDPOINTS:?}
 : ${MTU_SIZE:?}
-: ${AUTO_ANTI_AFFINITY:-"false"}
+: ${AUTO_ANTI_AFFINITY:-""}
 
 # terraform output variables
 metadata=terraform-validator/metadata

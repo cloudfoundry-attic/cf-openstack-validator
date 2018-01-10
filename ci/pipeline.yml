@@ -1,18 +1,11 @@
 ---
 custom:
-  tags:
-    default: &tags []
-    suse-liberty: ['suse-liberty']
-    suse-mitaka: ['suse-mitaka']
-    suse-newton: ['suse-newton']
-    blue-box: ['blue-box']
-    suse-cloud7: ['suse-cloud7']
   timeouts:
     long: &timeouts-long 2h
   build_logs_to_retain: &build_logs_to_retain 500
 
 groups:
-- name: {{pipeline_name}}
+- name: ((pipeline_name))
   jobs:
   - cleanup
   - test
@@ -26,34 +19,34 @@ jobs:
   build_logs_to_retain: *build_logs_to_retain
   plan:
     - aggregate:
-      - {trigger: true, get: validator-src,   tags: *tags, timeout: *timeouts-long}
-      - {trigger: true, get: pipeline-time-trigger,   tags: *tags, timeout: *timeouts-long}
+      - {trigger: true, get: validator-src,   tags: ((worker_tags)), timeout: *timeouts-long}
+      - {trigger: true, get: pipeline-time-trigger,   tags: ((worker_tags)), timeout: *timeouts-long}
 
     - task: cleanup
-      tags: *tags
+      tags: ((worker_tags))
       timeout: *timeouts-long
       file: validator-src/ci/tasks/cleanup.yml
       params:
-        BOSH_OPENSTACK_DOMAIN_NAME:          {{domain}}
-        BOSH_OPENSTACK_AUTH_URL:             {{auth_url}}
-        BOSH_OPENSTACK_USERNAME:             {{username}}
-        BOSH_OPENSTACK_API_KEY:              {{api_key}}
-        BOSH_OPENSTACK_PROJECT:              {{project}}
-        BOSH_OPENSTACK_CA_CERT:              {{ca_cert}}
+        BOSH_OPENSTACK_DOMAIN_NAME:          ((domain))
+        BOSH_OPENSTACK_AUTH_URL:             ((auth_url))
+        BOSH_OPENSTACK_USERNAME:             ((username))
+        BOSH_OPENSTACK_API_KEY:              ((api_key))
+        BOSH_OPENSTACK_PROJECT:              ((project))
+        BOSH_OPENSTACK_CA_CERT:              ((ca_cert))
 
 - name: test
   build_logs_to_retain: *build_logs_to_retain
   plan:
   - get: pipeline-time-trigger
     trigger: true
-    tags: *tags
+    tags: ((worker_tags))
     timeout: *timeouts-long
   - get: validator-src
     trigger: true
-    tags: *tags
+    tags: ((worker_tags))
     timeout: *timeouts-long
   - task: validate
-    tags: *tags
+    tags: ((worker_tags))
     timeout: *timeouts-long
     file: validator-src/ci/tasks/test.yml
 
@@ -65,72 +58,73 @@ jobs:
   - get: validator-src
     passed: [cleanup, test]
     trigger: true
-    tags: *tags
+    tags: ((worker_tags))
     timeout: *timeouts-long
   - get: pipeline-time-trigger
     passed: [cleanup, test]
     trigger: true
-    tags: *tags
+    tags: ((worker_tags))
     timeout: *timeouts-long
   - put: terraform-validator
-    tags: *tags
+    tags: ((worker_tags))
     timeout: *timeouts-long
     params:
+      terraform_source: validator-src/ci/terraform/
       env_name: validator
       vars:
-        auth_url: {{auth_url}}
-        user_name: {{username}}
-        password: {{api_key}}
-        tenant_name: {{project}}
-        domain_name: {{domain}}
-        region_name: {{tf_region_name}}
-        cacert_file: {{ca_cert}}
-        openstack_default_key_public_key: {{tf_default_public_key}}
-        ext_net_id: {{ext_net_id}}
-        ext_net_name: {{ext_net_name}}
-        availability_zone: {{availability_zone}}
-        dns_nameservers: {{dns_nameservers}}
+        auth_url: ((auth_url))
+        user_name: ((username))
+        password: ((api_key))
+        tenant_name: ((project))
+        domain_name: ((domain))
+        region_name: ((tf_region_name))
+        cacert_file: ((ca_cert))
+        openstack_default_key_public_key: ((tf_default_public_key))
+        ext_net_id: ((ext_net_id))
+        ext_net_name: ((ext_net_name))
+        availability_zone: ((availability_zone))
+        dns_nameservers: ((dns_nameservers))
   - task: validate
-    tags: *tags
+    tags: ((worker_tags))
     timeout: *timeouts-long
     file: validator-src/ci/tasks/validate.yml
     params:
-      USERNAME:                       {{username}}
-      AUTH_URL:                       {{auth_url}}
-      API_KEY:                        {{api_key}}
-      DOMAIN:                         {{domain}}
-      PROJECT:                        {{project}}
-      PROJECT_ID:                     {{project_id}}
-      DEFAULT_KEY_NAME:               {{default_key_name}}
-      STATIC_IP:                      {{static_ip}}
-      PUBLIC_IMAGE_ID:                {{public_image_id}}
-      PRIVATE_KEY:                    {{private_key}}
-      INSTANCE_TYPE:                  {{instance_type}}
-      NTP_SERVER:                     {{ntp_server}}
-      CA_CERT:                        {{ca_cert}}
-      AVAILABILITY_ZONE:              {{availability_zone}}
-      OBJECT_STORAGE:                 {{object_storage}}
-      OBJECT_STORAGE_TEMP_URL_KEY:    {{object_storage_temp_url_key}}
-      EXPECTED_FLAVORS:               {{expected_flavors}}
-      EXPECTED_QUOTAS:                {{expected_quotas}}
-      EXPECTED_ENDPOINTS:             {{expected_endpoints}}
-      INFLUXDB_IP:                    {{influxdb_ip}}
+      USERNAME:                       ((username))
+      AUTH_URL:                       ((auth_url))
+      API_KEY:                        ((api_key))
+      DOMAIN:                         ((domain))
+      PROJECT:                        ((project))
+      PROJECT_ID:                     ((project_id))
+      DEFAULT_KEY_NAME:               ((default_key_name))
+      STATIC_IP:                      ((static_ip))
+      PUBLIC_IMAGE_ID:                ((public_image_id))
+      PRIVATE_KEY:                    ((private_key))
+      INSTANCE_TYPE:                  ((instance_type))
+      NTP_SERVER:                     ((ntp_server))
+      CA_CERT:                        ((ca_cert))
+      AVAILABILITY_ZONE:              ((availability_zone))
+      OBJECT_STORAGE:                 ((object_storage))
+      OBJECT_STORAGE_TEMP_URL_KEY:    ((object_storage_temp_url_key))
+      EXPECTED_FLAVORS:               ((expected_flavors))
+      EXPECTED_QUOTAS:                ((expected_quotas))
+      EXPECTED_ENDPOINTS:             ((expected_endpoints))
+      INFLUXDB_IP:                    ((influxdb_ip))
       INFLUXDB_PORT:                  8086
       INFLUXDB_USER:                  admin
-      INFLUXDB_PASSWORD:              {{influxdb_password}}
-      PIPELINE_NAME:                  {{pipeline_name}}
-      MTU_SIZE:                       {{mtu_size}}
-      AUTO_ANTI_AFFINITY:             {{auto_anti_affinity}}
+      INFLUXDB_PASSWORD:              ((influxdb_password))
+      PIPELINE_NAME:                  ((pipeline_name))
+      MTU_SIZE:                       ((mtu_size))
+      AUTO_ANTI_AFFINITY:             ((auto_anti_affinity))
 
 - name: release
   build_logs_to_retain: *build_logs_to_retain
   plan:
   - aggregate:
-    - {get: validator-src, passed: [validate], tags: *tags, timeout: *timeouts-long }
-    - {get: release-semver, tags: *tags, timeout: *timeouts-long }
+    - {get: validator-src, passed: [validate], tags: ((worker_tags)), timeout: *timeouts-long }
+    - {get: release-semver, tags: ((worker_tags)), timeout: *timeouts-long }
 
   - task: generate-commitish
-    tags: *tags
+    tags: ((worker_tags))
     timeout: *timeouts-long
     config:
       platform: linux
@@ -148,7 +142,7 @@ jobs:
         - "git -C validator-src rev-parse HEAD > generated-commitish/commitish && echo 'Commitish to release:' $(cat generated-commitish/commitish)"
 
   - put: gh-release
-    tags: *tags
+    tags: ((worker_tags))
     timeout: *timeouts-long
     params:
       name: release-semver/version
@@ -157,7 +151,7 @@ jobs:
       commitish: generated-commitish/commitish
 
   - put: release-semver
-    tags: *tags
+    tags: ((worker_tags))
     timeout: *timeouts-long
     params: { bump: minor }
 
@@ -166,44 +160,42 @@ resource_types:
   type: docker-image
   source:
     repository: ljfranklin/terraform-resource
-    tag: 0.9.11
 resources:
 - name: validator-src
   type: git
-  tags: *tags
+  tags: ((worker_tags))
   source:
     uri: https://github.com/cloudfoundry-incubator/cf-openstack-validator
     branch: master
 - name: gh-release
   type: github-release
-  tags: *tags
+  tags: ((worker_tags))
   source:
     user: cloudfoundry-incubator
     repository: cf-openstack-validator
-    access_token: {{github_release_access_token}}
+    access_token: ((github_release_access_token))
 - name: release-semver
   type: semver
-  tags: *tags
+  tags: ((worker_tags))
   source:
     initial_version: 1.0.0
     driver: git
     uri: git@github.com:cloudfoundry-incubator/cf-openstack-validator.git
     branch: release-semver
     file: VERSION
-    private_key: {{validator_github_private_key}}
+    private_key: ((validator_github_private_key))
 - name: pipeline-time-trigger
   type: time
-  tags: *tags
+  tags: ((worker_tags))
   source:
     interval: 1h
 - name: terraform-validator
   type: terraform
-  tags: *tags
+  tags: ((worker_tags))
   source:
     storage:
-      bucket: {{s3_openstack_cpi_pipeline_bucket_name}}
+      bucket: ((s3_openstack_cpi_pipeline_bucket_name))
       bucket_path: terraform-validator/
-      access_key_id: {{s3_openstack_cpi_pipeline_access_key}}
-      secret_access_key: {{s3_openstack_cpi_pipeline_secret_key}}
-      region_name: {{s3_openstack_cpi_pipeline_bucket_region}}
-    terraform_source: github.com/cloudfoundry-incubator/cf-openstack-validator//ci/terraform/
+      access_key_id: ((s3_openstack_cpi_pipeline_access_key))
+      secret_access_key: ((s3_openstack_cpi_pipeline_secret_key))
+      region_name: ((s3_openstack_cpi_pipeline_bucket_region))
