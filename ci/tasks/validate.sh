@@ -47,7 +47,7 @@ chmod 400 cf-validator.rsa_id
 ci/assets/config_renderer/render validator.template.yml > validator.yml
 cat validator.yml
 
-BUNDLE_CACHE_PATH="vendor/package" bundle install --local --deployment --path .bundle
+bundle install --path .bundle
 
 ./validate -s ~/stemcell.tgz -c validator.yml
 
