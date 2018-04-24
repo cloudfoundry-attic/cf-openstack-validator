@@ -14,7 +14,7 @@ Usage: cf-openstack-validator [options]
     -r, --cpi-release RELEASE        CPI release .tgz path. Latest version will be downloaded if not specified (optional)
     -s, --stemcell STEMCELL          Stemcell path
     -c, --config CONFIG_FILE         Configuration YAML file path
-    -t, --tag TAG                    Run tests that match a specified RSpec tag (optional)
+    -t, --tag TAG                    Run tests that match a specified RSpec tag. To run only CPI API tests use "cpi_api" as the tag (optional)
     -k, --skip-cleanup               Skip cleanup of OpenStack resources (optional)
     -v, --verbose                    Print more output for failing tests (optional)
     -f, --fail-fast                  Stop execution after the first test failure (optional)

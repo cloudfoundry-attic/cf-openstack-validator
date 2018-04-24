@@ -25,7 +25,7 @@ option_parser = OptionParser.new do |parser|
     cli_options[:config_path] = config_path
   end
 
-  parser.on('-t', '--tag TAG', 'Run tests that match a specified RSpec tag (optional)') do |tag|
+  parser.on('-t', '--tag TAG', 'Run tests that match a specified RSpec tag. To run only CPI API tests use "cpi_api" as the tag (optional)') do |tag|
     cli_options[:tag] = tag
   end
 

@@ -8,7 +8,7 @@ rescue => e
   fail("#{error_message} OpenStack error: #{e.message}")
 end
 
-openstack_suite.context 'using the CPI', position: 2, order: :global do
+openstack_suite.context 'using the CPI', position: 2, order: :global, cpi_api: true do
 
   before(:all) {
     options = RSpec.configuration.options
