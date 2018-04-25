@@ -82,27 +82,30 @@ def populate(working_directory, config, context)
 
   config['extensions']['paths'].unshift('./sample_extensions/')
 
-  config['extensions']['paths'].unshift('./extensions/flavors')
+  if check(context['EXPECTED_FLAVORS'])
+    config['extensions']['paths'].unshift('./extensions/flavors')
+    File.write(File.join(working_directory, 'flavors.yml'), context['EXPECTED_FLAVORS'])
+    config['extensions']['config']['flavors'] = {
+      'expected_flavors' => File.join(working_directory, 'flavors.yml')
+    }
+  end
 
-  File.write(File.join(working_directory, 'flavors.yml'), context['EXPECTED_FLAVORS'])
-  config['extensions']['config']['flavors'] = {
-    'expected_flavors' => File.join(working_directory, 'flavors.yml')
-  }
+  if check(context['EXPECTED_QUOTAS'])
+    config['extensions']['paths'].unshift('./extensions/quotas')
+    File.write(File.join(working_directory, 'quotas.yml'), context['EXPECTED_QUOTAS'])
+    config['extensions']['config']['quotas'] = {
+      'project_id' => context['PROJECT_ID'],
+      'expected_quotas' => File.join(working_directory, 'quotas.yml')
+    }
+  end
 
-  config['extensions']['paths'].unshift('./extensions/quotas')
-
-  File.write(File.join(working_directory, 'quotas.yml'), context['EXPECTED_QUOTAS'])
-  config['extensions']['config']['quotas'] = {
-    'project_id' => context['PROJECT_ID'],
-    'expected_quotas' => File.join(working_directory, 'quotas.yml')
-  }
-
-  config['extensions']['paths'].unshift('./extensions/external_endpoints')
-
-  File.write(File.join(working_directory, 'endpoints.yml'), context['EXPECTED_ENDPOINTS'])
-  config['extensions']['config']['external_endpoints'] = {
-    'expected_endpoints' => File.join(working_directory, 'endpoints.yml')
-  }
+  if check(context['EXPECTED_ENDPOINTS'])
+    config['extensions']['paths'].unshift('./extensions/external_endpoints')
+    File.write(File.join(working_directory, 'endpoints.yml'), context['EXPECTED_ENDPOINTS'])
+    config['extensions']['config']['external_endpoints'] = {
+      'expected_endpoints' => File.join(working_directory, 'endpoints.yml')
+    }
+  end
 
   if to_bool(context['AUTO_ANTI_AFFINITY']) && check(context['PROJECT_ID'])
     config['extensions']['paths'].unshift('./extensions/auto_anti_affinity')

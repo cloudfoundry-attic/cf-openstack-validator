@@ -1,0 +1,145 @@
+---
+custom:
+  timeouts:
+    long: &timeouts-long 2h
+  build_logs_to_retain: &build_logs_to_retain 500
+
+groups:
+- name: ((pipeline_name))
+  jobs:
+  - cleanup
+  - validate
+
+jobs:
+- name: cleanup
+  serial: true
+  serial_groups: [openstack-project]
+  build_logs_to_retain: *build_logs_to_retain
+  plan:
+    - aggregate:
+      - {trigger: true, get: validator-src,   tags: ((worker_tags)), timeout: *timeouts-long}
+      - {trigger: true, get: pipeline-time-trigger,   tags: ((worker_tags)), timeout: *timeouts-long}
+      - {trigger: true, get: openstack-cpi-src,   tags: ((worker_tags)), timeout: *timeouts-long}
+
+    - task: cleanup
+      tags: ((worker_tags))
+      timeout: *timeouts-long
+      file: validator-src/ci/tasks/cleanup.yml
+      params:
+        BOSH_OPENSTACK_DOMAIN_NAME:          ((domain))
+        BOSH_OPENSTACK_AUTH_URL:             ((auth_url))
+        BOSH_OPENSTACK_USERNAME:             ((username))
+        BOSH_OPENSTACK_API_KEY:              ((api_key))
+        BOSH_OPENSTACK_PROJECT:              ((project))
+        BOSH_OPENSTACK_CA_CERT:              ((ca_cert))
+
+- name: validate
+  serial: true
+  serial_groups: [openstack-project]
+  build_logs_to_retain: *build_logs_to_retain
+  plan:
+  - get: validator-src
+    passed: [cleanup]
+    trigger: true
+    tags: ((worker_tags))
+    timeout: *timeouts-long
+  - get: bosh-cli
+    tags: ((worker_tags))
+    timeout: *timeouts-long
+  - get: openstack-cpi-src
+    passed: [cleanup]
+    trigger: true
+    tags: ((worker_tags))
+    timeout: *timeouts-long
+  - get: pipeline-time-trigger
+    passed: [cleanup]
+    trigger: true
+    tags: ((worker_tags))
+    timeout: *timeouts-long
+
+  - put: terraform-validator
+    tags: ((worker_tags))
+    timeout: *timeouts-long
+    params:
+      terraform_source: validator-src/ci/terraform/
+      env_name: validator
+      vars:
+        auth_url: ((auth_url))
+        user_name: ((username))
+        password: ((api_key))
+        tenant_name: ((project))
+        domain_name: ((domain))
+        region_name: ((tf_region_name))
+        cacert_file: ((ca_cert))
+        openstack_default_key_public_key: ((tf_default_public_key))
+        ext_net_id: ((ext_net_id))
+        ext_net_name: ((ext_net_name))
+        availability_zone: ((availability_zone))
+        dns_nameservers: ((dns_nameservers))
+  - task: validate
+    tags: ((worker_tags))
+    timeout: *timeouts-long
+    file: validator-src/ci/cpi-openstack-compatibility/tasks/validate.yml
+    params:
+      USERNAME:                       ((username))
+      AUTH_URL:                       ((auth_url))
+      API_KEY:                        ((api_key))
+      DOMAIN:                         ((domain))
+      PROJECT:                        ((project))
+      PROJECT_ID:                     ((project_id))
+      DEFAULT_KEY_NAME:               ((default_key_name))
+      STATIC_IP:                      ((static_ip))
+      PUBLIC_IMAGE_ID:                ((public_image_id))
+      PRIVATE_KEY:                    ((private_key))
+      INSTANCE_TYPE:                  ((instance_type))
+      NTP_SERVER:                     ((ntp_server))
+      CA_CERT:                        ((ca_cert))
+      AVAILABILITY_ZONE:              ((availability_zone))
+      OBJECT_STORAGE:                 ((object_storage))
+      OBJECT_STORAGE_TEMP_URL_KEY:    ((object_storage_temp_url_key))
+      PIPELINE_NAME:                  ((pipeline_name))
+      MTU_SIZE:                       ((mtu_size))
+      AUTO_ANTI_AFFINITY:             ((auto_anti_affinity))
+
+resource_types:
+- name: terraform
+  type: docker-image
+  source:
+    repository: ljfranklin/terraform-resource
+
+resources:
+- name: validator-src
+  type: git
+  tags: ((worker_tags))
+  source:
+    uri: https://github.com/cloudfoundry-incubator/cf-openstack-validator
+    branch: master
+- name: openstack-cpi-src
+  type: git
+  tags: ((worker_tags))
+  source:
+    uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
+    branch: master
+- name: bosh-cli
+  type: s3
+  tags: ((worker_tags))
+  source:
+    regexp: bosh-cli-([0-9.]+)-linux-amd64
+    bucket: bosh-cli-artifacts
+    region_name: us-east-1
+
+- name: pipeline-time-trigger
+  type: time
+  tags: ((worker_tags))
+  source:
+    interval: 1h
+- name: terraform-validator
+  type: terraform
+  tags: ((worker_tags))
+  source:
+    storage:
+      bucket: ((s3_openstack_cpi_pipeline_bucket_name))
+      bucket_path: terraform-cpi-openstack-compatibility/
+      access_key_id: ((s3_openstack_cpi_pipeline_access_key))
+      secret_access_key: ((s3_openstack_cpi_pipeline_secret_key))
+      region_name: ((s3_openstack_cpi_pipeline_bucket_region))
