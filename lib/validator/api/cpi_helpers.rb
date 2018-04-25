@@ -14,6 +14,12 @@ module Validator
         RSpec.configuration.options.cpi_bin_path
       end
 
+      def with_cpi(error_message)
+        yield if block_given?
+      rescue => e
+        fail("#{error_message} OpenStack error: #{e.message}")
+      end
+
       def execute_ssh_command_on_vm_with_retry(private_key_path, ip, command, time_in_seconds = 60, frequency = 3)
         output, err, status = retry_command(time_in_seconds, frequency){ execute_ssh(private_key_path, ip, command) }
 

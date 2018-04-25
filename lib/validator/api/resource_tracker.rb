@@ -187,7 +187,7 @@ module Validator
               id: resource_id,
               provide_as: provide_as,
               name: resource_handler.name(resource),
-              test_description: RSpec.current_example.full_description
+              test_description: RSpec.current_example&.full_description
           }
           resource_id
         end
