@@ -1,9 +1,6 @@
 module Validator
   module Api
     module Helpers
-      def red(string)
-        "\e[31m#{string}\e[0m"
-      end
 
       def registry_port
         endpoint = YAML.load_file(RSpec::configuration.options.cpi_config)['cloud']['properties']['registry']['endpoint']
