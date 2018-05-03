@@ -5,7 +5,6 @@ validator:
   floating_ip: some_floating_ip
   static_ip: some_static_ip
   private_key_path: cf-validator.rsa_id
-  public_image_id: some_public_image_id
   releases:
   - name: bosh-openstack-cpi
     url: cpi-download-url

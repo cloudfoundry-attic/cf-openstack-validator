@@ -18,7 +18,6 @@ describe 'ValidatorConfig' do
         'floating_ip' => '',
         'static_ip' => '',
         'private_key_path' => '',
-        'public_image_id' => '',
         'releases' => [{
           'name' => 'bosh-openstack-cpi',
           'url' => 'String',
@@ -88,7 +87,7 @@ describe 'ValidatorConfig' do
 
   {
     'openstack' => ['auth_url', 'username', 'password', 'domain', 'project'],
-    'validator' => ['network_id', 'floating_ip', 'static_ip', 'public_image_id']
+    'validator' => ['network_id', 'floating_ip', 'static_ip']
   }.each do |outer_key, inner_keys|
     inner_keys.each do |inner_key|
       context "when value '#{outer_key}.#{inner_key}' is '<replace-me>'" do

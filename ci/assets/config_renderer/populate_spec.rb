@@ -26,7 +26,6 @@ describe 'populate' do
             'floating_ip' => '<replace-me>',
             'static_ip' => '<replace-me>',
             'private_key_path' => 'cf-validator.rsa_id',
-            'public_image_id' => '<replace-me>',
             'ntp' => ['0.pool.ntp.org', '1.pool.ntp.org'],
             'releases' => [{
                 'name' => 'bosh-openstack-cpi',
@@ -63,7 +62,6 @@ describe 'populate' do
       'NETWORK_ID' => 'NETWORK_ID',
       'FLOATING_IP' => 'FLOATING_IP',
       'STATIC_IP' => 'STATIC_IP',
-      'PUBLIC_IMAGE_ID' => 'PUBLIC_IMAGE_ID',
       'PRIVATE_KEY' => 'PRIVATE_KEY',
       'INSTANCE_TYPE' => 'INSTANCE_TYPE',
       'NTP_SERVER' => 'NTP_SERVER1,NTP_SERVER2, NTP_SERVER3',
@@ -124,7 +122,6 @@ describe 'populate' do
             'floating_ip' => 'FLOATING_IP',
             'static_ip' => 'STATIC_IP',
             'private_key_path' => 'cf-validator.rsa_id',
-            'public_image_id' => 'PUBLIC_IMAGE_ID',
             'ntp' => ['NTP_SERVER1', 'NTP_SERVER2', 'NTP_SERVER3'],
             'releases' => [{
                 'name' => 'bosh-openstack-cpi',

@@ -89,16 +89,13 @@ jobs:
       PROJECT_ID:                     ((project_id))
       DEFAULT_KEY_NAME:               ((default_key_name))
       STATIC_IP:                      ((static_ip))
-      PUBLIC_IMAGE_ID:                ((public_image_id))
       PRIVATE_KEY:                    ((private_key))
       INSTANCE_TYPE:                  ((instance_type))
-      NTP_SERVER:                     ((ntp_server))
       CA_CERT:                        ((ca_cert))
       AVAILABILITY_ZONE:              ((availability_zone))
       OBJECT_STORAGE:                 ((object_storage))
       OBJECT_STORAGE_TEMP_URL_KEY:    ((object_storage_temp_url_key))
       PIPELINE_NAME:                  ((pipeline_name))
-      MTU_SIZE:                       ((mtu_size))
       AUTO_ANTI_AFFINITY:             ((auto_anti_affinity))
 
 resource_types:

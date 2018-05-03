@@ -97,7 +97,6 @@ jobs:
       PROJECT_ID:                     ((project_id))
       DEFAULT_KEY_NAME:               ((default_key_name))
       STATIC_IP:                      ((static_ip))
-      PUBLIC_IMAGE_ID:                ((public_image_id))
       PRIVATE_KEY:                    ((private_key))
       INSTANCE_TYPE:                  ((instance_type))
       NTP_SERVER:                     ((ntp_server))
