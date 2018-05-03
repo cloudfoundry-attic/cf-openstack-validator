@@ -9,7 +9,6 @@ set -e -x
 : ${PROJECT_ID:?}
 : ${DEFAULT_KEY_NAME:?}
 : ${STATIC_IP:?}
-: ${PUBLIC_IMAGE_ID:?}
 : ${PRIVATE_KEY:?}
 : ${INSTANCE_TYPE:?}
 : ${NTP_SERVER:?}

@@ -43,10 +43,6 @@ def populate(working_directory, config, context)
     config['validator']['static_ip'] = context['STATIC_IP']
   end
 
-  if check(context['PUBLIC_IMAGE_ID'])
-    config['validator']['public_image_id'] = context['PUBLIC_IMAGE_ID']
-  end
-
   if check(context['NTP_SERVER'])
     config['validator']['ntp'] = to_array(context['NTP_SERVER'])
   end

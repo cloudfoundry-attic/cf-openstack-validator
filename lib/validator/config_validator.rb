@@ -41,7 +41,6 @@ module Validator
               'floating_ip' => ReplacedString.new,
               'static_ip' => ReplacedString.new,
               'private_key_path' => String,
-              'public_image_id' => ReplacedString.new,
               'releases' => [{
                 'name' => 'bosh-openstack-cpi',
                 'url' => String,
