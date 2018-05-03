@@ -26,12 +26,10 @@ params:
   STATIC_IP:          ""
   PRIVATE_KEY:        ""
   INSTANCE_TYPE:      ""
-  NTP_SERVER:         ""
   CA_CERT:            ""
   AVAILABILITY_ZONE:  ""
   OBJECT_STORAGE:     ""
   PIPELINE_NAME:      ""
-  MTU_SIZE:           ""
   AUTO_ANTI_AFFINITY: ""
 
 run:

@@ -11,11 +11,9 @@ set -e -x
 : ${STATIC_IP:?}
 : ${PRIVATE_KEY:?}
 : ${INSTANCE_TYPE:?}
-: ${NTP_SERVER:?}
 : ${CA_CERT:-""}
 : ${AVAILABILITY_ZONE:-""}
 : ${OBJECT_STORAGE:?}
-: ${MTU_SIZE:?}
 : ${AUTO_ANTI_AFFINITY:-""}
 
 # terraform output variables
