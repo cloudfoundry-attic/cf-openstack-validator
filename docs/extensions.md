@@ -1,5 +1,5 @@
 # Extensions
-> Note: This feature is available in versions >=1.2. 
+> Note: This feature is available in versions >=1.2.
 > Please keep in mind that the extension API is still under heavy development and subject to change!
 
 In case you have custom validations that you need to run against OpenStack you can create extensions to the validator.
@@ -84,8 +84,9 @@ To use the resource tracking, add a statement as follows:
 ```ruby
 fdescribe 'My extension' do
 
+  include_context "resource tracker"
+
   before(:all) do
-    @resource_tracker = Validator::Api::ResourceTracker.create
     @compute = Validator::Api::FogOpenStack.compute
   end
 
@@ -151,14 +152,14 @@ The complete hash at `config` can be retrieved from your test by calling `Valida
 
 ```ruby
 fdescribe 'My extension' do
+  include_context "resource tracker"
 
   before(:all) do
-    @resource_tracker = Validator::Api::ResourceTracker.create
     @compute = Validator::Api::FogOpenStack.compute
   end
 
   let(:config) { Validator::Api.configuration.extensions }
-  
+
   it 'can create a security group allowing SSH' do
     ssh_security_group = nil
     ssh_security_group_id = @resource_tracker.produce(:security_groups, provide_as: :my_security_group_id) do
@@ -201,15 +202,15 @@ Access your own config parameters by loading the file in your spec:
 
 ```ruby
 fdescribe 'My extension' do
+  include_context "resource tracker"
 
   before(:all) do
-    @resource_tracker = Validator::Api::ResourceTracker.create
     @compute = Validator::Api::FogOpenStack.compute
   end
 
   let(:config) { Validator::Api.configuration.extensions }
   let(:my_config) { YAML.load_file(config['my_extension']['path']) }
-  
+
   it 'can create a security group allowing SSH' do
     ssh_security_group = nil
     ssh_security_group_id = @resource_tracker.produce(:security_groups, provide_as: :my_security_group_id) do
@@ -239,14 +240,14 @@ of `describe`, `context` or `it` steps, so that the whole test suite is executed
 
 If you publish your extension, make sure to include a README that describes all available configuration options.
 For an example, have a look at [Flavors Extension](../extensions/flavors/).
- 
+
 ## Extension API Details
 
 ### Interact with OpenStack
 
 To interact with OpenStack the validator provides access via an API. Currently the API exposes
-`compute`/`nova`, `image`/`glance`, `volume`/`cinder` and `network`/`neutron` instances using `Fog`. 
-`Fog` is a Ruby library that offers bindings for different IaaS platforms, including OpenStack. 
+`compute`/`nova`, `image`/`glance`, `volume`/`cinder` and `network`/`neutron` instances using `Fog`.
+`Fog` is a Ruby library that offers bindings for different IaaS platforms, including OpenStack.
 To create instances do:
 
 ```ruby
@@ -279,7 +280,7 @@ the `validator.yml` the user provided.
 
 To learn more about the usage of `Fog OpenStack` please have a look at its [documentation](https://github.com/fog/fog-openstack).
 
-### Track OpenStack Resources
+### The OpenStack Resource Tracker
 
 The validator offers a central handling of OpenStack resources that are created during test runs. It takes care of
 cleaning up all resources at the end of a test run. The user can configure to skip this cleanup for debugging purposes (`--skip-cleanup`).

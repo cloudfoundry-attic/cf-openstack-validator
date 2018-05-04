@@ -3,62 +3,48 @@ require_relative 'spec_helper'
 include Validator::Api::CpiHelpers
 
 openstack_suite.context 'validating configuration', position: 1, order: :global, configuration: true do
+  include_context "resource tracker"
+
   before(:all) do
     options = RSpec.configuration.options
     @stemcell_path = options.stemcell_path
     @cpi = cpi(options.cpi_bin_path, options.log_path)
 
     @config = Validator::Api.configuration
-    @resource_tracker = Validator::Api::ResourceTracker.create
     @compute = Validator::Api::FogOpenStack.compute
     stemcell_manifest = YAML.load_file(File.join(@stemcell_path, 'stemcell.MF'))
-    with_cpi('Stemcell could not be uploaded') {
+    stemcell_cid = with_cpi('Stemcell could not be uploaded') {
       @resource_tracker.produce(:images, provide_as: :stemcell_cid) {
         @cpi.create_stemcell(File.join(@stemcell_path, 'image'), stemcell_manifest['cloud_properties'])
+      }
+    }
+    with_cpi('VM with floating IP could not be created.') {
+      @resource_tracker.produce(:servers, provide_as: :vm_cid_with_floating_ip) {
+        @cpi.create_vm(
+          'agent-id',
+          stemcell_cid,
+          @config.default_vm_type_cloud_properties,
+          network_spec_with_floating_ip,
+          [],
+          {}
+        )
+      }
+    }
+    with_cpi('VM with static IP could not be created.') {
+      @resource_tracker.produce(:servers, provide_as: :vm_cid_static_ip) {
+        @cpi.create_vm(
+          'agent-id',
+          stemcell_cid,
+          @config.default_vm_type_cloud_properties,
+          network_spec_with_static_ip,
+          [],
+          {}
+        )
       }
     }
   end
 
   describe 'cpi' do
-    it 'can attach floating IP to a VM' do
-      stemcell_cid = @resource_tracker.consumes(:stemcell_cid, 'No stemcell to create VM from')
-
-      vm_cid = with_cpi('Floating IP could not be attached.') {
-        @resource_tracker.produce(:servers, provide_as: :vm_cid_with_floating_ip) {
-          @cpi.create_vm(
-            'agent-id',
-            stemcell_cid,
-            @config.default_vm_type_cloud_properties,
-            network_spec_with_floating_ip,
-            [],
-            {}
-          )
-        }
-      }
-
-      vm = @compute.servers.get(vm_cid)
-      vm.wait_for { ready? }
-    end
-
-    it 'can create a VM with static IP' do
-      stemcell_cid = @resource_tracker.consumes(:stemcell_cid, 'No stemcell to create VM from')
-
-      vm_cid_static_ip = with_cpi('VM with static IP could not be created.') {
-        @resource_tracker.produce(:servers, provide_as: :vm_cid_static_ip) {
-          @cpi.create_vm(
-            'agent-id',
-            stemcell_cid,
-            @config.default_vm_type_cloud_properties,
-            network_spec_with_static_ip,
-            [],
-            {}
-          )
-        }
-      }
-
-      expect(vm_cid_static_ip).to be
-    end
-
     it 'can create large disk' do
       large_disk_cid = with_cpi("Large disk could not be created.\n" +
                                 'Hint: If you are using DevStack, you need to manually set a ' +

@@ -19,7 +19,6 @@ validator:
   floating_ip: <replace-me> # String IP
   static_ip: <replace-me> # String IP. This IP is used to create a VM with a static IP.
   private_key_path: cf-validator.rsa_id # relative to validator.yml, or absolute path
-  public_image_id: <replace-me> # String UUID
   ntp: [0.pool.ntp.org, 1.pool.ntp.org] # List of String
   mtu_size: 1500 # expected network MTU size in byte
   releases:

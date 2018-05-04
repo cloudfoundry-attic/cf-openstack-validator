@@ -63,7 +63,7 @@ def populate(working_directory, config, context)
     config['openstack']['connection_options']['ca_cert'] = context['CA_CERT']
   end
 
-  if context['OBJECT_STORAGE'] == 'true' && check(context['OBJECT_STORAGE_TEMP_URL_KEY'])
+  if to_bool(context['OBJECT_STORAGE']) && check(context['OBJECT_STORAGE_TEMP_URL_KEY'])
     config['extensions']['paths'].unshift('./extensions/object_storage/')
     config['extensions']['config']['object_storage'] = {
           'openstack' => {

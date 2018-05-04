@@ -20,7 +20,7 @@ describe 'Auto-anti-affinity' do
     expect(quota_members).to eq(-1), "Quota for server_groups should be '-1' but is '#{quota_members}'"
   end
 
-  it "can create a server group with 'soft-anti-affinity'" do
+  it "can create a server group with 'soft-anti-affinity'", cpi_api: true do
     begin
       server_group = @resource_tracker.produce(:server_groups) {
         Validator::Api::FogOpenStack.compute.server_groups.create('validator-test', 'soft-anti-affinity').id

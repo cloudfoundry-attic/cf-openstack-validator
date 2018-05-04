@@ -1,6 +1,6 @@
 require 'fileutils'
 
-describe 'Cloud Controller using Swift as blobstore' do
+describe 'Cloud Controller using Swift as blobstore', cpi_api: true do
   let(:storage) {
     storage_config = {:openstack_temp_url_key => Validator::Api.configuration.extensions['object_storage']['openstack']['openstack_temp_url_key']}
     Validator::Api::FogOpenStack.storage(storage_config)

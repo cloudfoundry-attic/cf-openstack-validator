@@ -49,7 +49,6 @@ module Validator
           end
 
           after(:all) do
-            RSpec::configuration.validator_resources.cleanup unless RSpec::configuration.options.skip_cleanup?
             kill_server(@server_thread)
           end
 
