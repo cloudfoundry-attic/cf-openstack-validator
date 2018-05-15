@@ -58,6 +58,6 @@ unless missing_required_options.empty?
   exit 1
 end
 
-context = Validator::Cli::Context.new(cli_options, working_dir)
+context = Validator::Cli::Context.new(cli_options)
 validator = Validator::Cli::CfOpenstackValidator.create(context)
 validator.run
