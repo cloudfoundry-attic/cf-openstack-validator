@@ -42,10 +42,9 @@ option_parser = OptionParser.new do |parser|
     cli_options[:fail_fast] = true
   end
 
-  parser.on('-w', "--working-dir WORKING_DIR", 'Working directory for running the tests') do |workdir|
-    working_dir = workdir
+  parser.on('-w', "--working-dir WORKING_DIR", 'Working directory for running the tests (optional)') do |workdir|
+    cli_options[:working_dir] = workdir
   end
-
 end
 option_parser.parse!
 

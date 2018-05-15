@@ -7,10 +7,10 @@ module Validator::Cli
 
     attr_accessor :cpi_bin_path, :cpi_release_path
 
-    def initialize(cli_options, working_dir = "#{ENV['HOME']}/.cf-openstack-validator")
+    def initialize(cli_options)
       @cli_options = cli_options
       @cpi_release_path = @cli_options[:cpi_release]
-      @working_dir = working_dir
+      @working_dir = @cli_options[:working_dir] || "#{ENV['HOME']}/.cf-openstack-validator"
       ensure_working_directory(@working_dir)
       @path_from_env = ENV['PATH']
       @openstack_cpi_bin_from_env = ENV['OPENSTACK_CPI_BIN']
@@ -22,7 +22,7 @@ module Validator::Cli
     end
 
     def tag
-     @cli_options[:tag]
+      @cli_options[:tag]
     end
 
     def skip_cleanup?

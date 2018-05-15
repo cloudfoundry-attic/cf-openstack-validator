@@ -7,7 +7,8 @@ module Validator::Cli
     let(:jobs_config_path) { File.join(working_dir, 'jobs', 'openstack_cpi', 'config') }
 
     let(:options) {{cpi_release: release_archive_path, stemcell: expand_project_path('spec/assets/dummy.tgz')}}
-    let(:context) { Context.new(options, working_dir) }
+    let(:default_options) {{working_dir: working_dir}}
+    let(:context) { Context.new(options.merge(default_options)) }
     subject { CfOpenstackValidator.new(context) }
 
     let(:release_archive_path) { expand_project_path('spec/assets/cpi-release.tgz') }
