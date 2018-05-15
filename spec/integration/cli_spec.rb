@@ -18,6 +18,7 @@ Usage: cf-openstack-validator [options]
     -k, --skip-cleanup               Skip cleanup of OpenStack resources (optional)
     -v, --verbose                    Print more output for failing tests (optional)
     -f, --fail-fast                  Stop execution after the first test failure (optional)
+    -w, --working-dir WORKING_DIR    Working directory for running the tests (optional)
 EOT
 end
 

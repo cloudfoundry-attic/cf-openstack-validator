@@ -2,9 +2,14 @@ require_relative '../../spec_helper'
 
 module Validator::Cli
   describe Context do
-    let(:cli_options) { {} }
-    let(:subject) { Context.new(cli_options, working_directory) }
     let(:working_directory) { Dir.mktmpdir }
+    let(:default_options) {
+      {working_dir: working_directory}
+    }
+    let(:cli_options) { {} }
+    let(:subject) {
+      Context.new(cli_options.merge(default_options))
+    }
 
     after(:each) do
       if File.exists?(working_directory)
@@ -56,7 +61,7 @@ module Validator::Cli
           FileUtils.touch(path)
 
           expect {
-            Context.new(cli_options, path)
+            Context.new(cli_options.merge({working_dir: path}))
           }.to raise_error Errno::EEXIST
         end
       end
