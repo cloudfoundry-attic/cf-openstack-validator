@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'securerandom'
 
 describe 'Cloud Controller using Swift as blobstore', cpi_api: true do
   let(:storage) {
@@ -8,7 +9,7 @@ describe 'Cloud Controller using Swift as blobstore', cpi_api: true do
 
   before(:all) do
     @resource_tracker = Validator::Api::ResourceTracker.create
-    @validator_dirname = Validator::Api.configuration.extensions['object_storage']['openstack']['openstack_validator_dirname'] || 'validator-key'
+    @validator_dirname = "validator-key-#{SecureRandom.uuid}"
   end
 
   it 'can create a directory' do
