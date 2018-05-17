@@ -63,7 +63,7 @@ $ wget --content-disposition https://bosh.io/d/stemcells/bosh-openstack-kvm-ubun
 ```
 * Install dependencies
 ```bash
-$ sudo gem install bundler
+$ gem install bundler
 $ bundle install
 ```
 * Start validation
