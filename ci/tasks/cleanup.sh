@@ -24,7 +24,7 @@ openstack_delete_entities() {
 }
 
 openstack_delete_ports() {
-  for port in $(neutron port-list -c id --project_id=$OPENSTACK_PROJECT_ID -f value)
+  for port in $(openstack port list --project=$OPENSTACK_PROJECT_ID -c ID -f value)
   do
 
   # don't delete ports that are:
