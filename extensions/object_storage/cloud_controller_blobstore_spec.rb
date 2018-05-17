@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'securerandom'
 
 describe 'Cloud Controller using Swift as blobstore', cpi_api: true do
   let(:storage) {
@@ -8,13 +9,14 @@ describe 'Cloud Controller using Swift as blobstore', cpi_api: true do
 
   before(:all) do
     @resource_tracker = Validator::Api::ResourceTracker.create
+    @validator_dirname = "validator-key-#{SecureRandom.uuid}"
   end
 
   it 'can create a directory' do
     directory_id = Validator::Api::FogOpenStack.with_openstack('Directory could not be created') do
       @resource_tracker.produce(:directories, provide_as: :root) {
         storage.directories.create({
-            key: 'validator-key',
+            key: @validator_dirname,
             public: false
         }).key
       }
@@ -24,7 +26,7 @@ describe 'Cloud Controller using Swift as blobstore', cpi_api: true do
   end
 
   it 'can get a directory' do
-    expect(test_directory.key).to eq('validator-key')
+    expect(test_directory.key).to eq(@validator_dirname)
   end
 
   it 'can upload a blob' do
