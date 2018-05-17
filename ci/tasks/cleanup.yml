@@ -15,3 +15,4 @@ params:
   BOSH_OPENSTACK_API_KEY:              replace-me
   BOSH_OPENSTACK_PROJECT:              replace-me
   BOSH_OPENSTACK_CA_CERT:              replace-me
+  BOSH_OPENSTACK_INTERFACE:            replace-me
