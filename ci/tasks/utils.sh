@@ -15,6 +15,7 @@ init_openstack_cli_env(){
     : ${BOSH_OPENSTACK_API_KEY:?}
     : ${BOSH_OPENSTACK_PROJECT:?}
     : ${BOSH_OPENSTACK_DOMAIN_NAME:?}
+    : ${BOSH_OPENSTACK_INTERFACE:?}
     optional_value BOSH_OPENSTACK_CA_CERT
 
     export OS_DEFAULT_DOMAIN=$BOSH_OPENSTACK_DOMAIN_NAME
@@ -25,6 +26,7 @@ init_openstack_cli_env(){
     export OS_VOLUME_API_VERSION=1
     export OS_DOMAIN_NAME=$BOSH_OPENSTACK_DOMAIN_NAME
     export OS_IDENTITY_API_VERSION=3
+    export OS_INTERFACE=$BOSH_OPENSTACK_INTERFACE
 
     if [ -n "$BOSH_OPENSTACK_CA_CERT" ]; then
       tmpdir=$(mktemp -dt "$(basename $0).XXXXXXXXXX")

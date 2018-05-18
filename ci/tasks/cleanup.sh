@@ -6,6 +6,8 @@ source validator-src/ci/tasks/utils.sh
 
 init_openstack_cli_env
 
+OPENSTACK_PROJECT_ID=$(openstack project show $BOSH_OPENSTACK_PROJECT -c id -f value)
+
 exit_code=0
 
 openstack_delete_entities() {
@@ -22,7 +24,7 @@ openstack_delete_entities() {
 }
 
 openstack_delete_ports() {
-  for port in $(openstack port list --format json | jq --raw-output '.[].ID')
+  for port in $(openstack port list --project=$OPENSTACK_PROJECT_ID -c ID -f value)
   do
 
   # don't delete ports that are:
@@ -48,7 +50,7 @@ openstack --version
 echo "Deleting servers #########################"
 openstack_delete_entities "server"
 echo "Deleting images #########################"
-openstack_delete_entities "image" "--private --limit 1000"
+openstack_delete_entities "image" "--private --limit 1000 --property owner=$OPENSTACK_PROJECT_ID"
 echo "Deleting snapshots #########################"
 openstack_delete_entities "snapshot"
 echo "Deleting volumes #########################"
