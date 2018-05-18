@@ -6,7 +6,7 @@ source validator-src/ci/tasks/utils.sh
 
 init_openstack_cli_env
 
-OPENSTACK_PROJECT_ID=$(openstack project show $BOSH_OPENSTACK_PROJECT -c id -f value)
+OPENSTACK_PROJECT_ID=$(openstack project list --format json | jq --raw-output --arg project $BOSH_OPENSTACK_PROJECT '.[] | select(.Name == $project) | .ID')
 
 exit_code=0
 
@@ -52,7 +52,7 @@ openstack_delete_entities "server"
 echo "Deleting images #########################"
 openstack_delete_entities "image" "--private --limit 1000 --property owner=$OPENSTACK_PROJECT_ID"
 echo "Deleting snapshots #########################"
-openstack_delete_entities "snapshot"
+openstack_delete_entities "volume snapshot"
 echo "Deleting volumes #########################"
 openstack_delete_entities "volume"
 echo "Deleting ports #########################"
