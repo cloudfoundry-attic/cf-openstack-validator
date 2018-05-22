@@ -4,7 +4,7 @@ This extension verifies that the Object Storage of your OpenStack can be used by
 
 ## Configuration
 
-Configure a `Temp-url-key` in OpenStack as described [here](https://docs.openstack.org/developer/swift/api/temporary_url_middleware.html#secret-keys).
+Configure a `Temp-url-key` in OpenStack as described [here](https://docs.openstack.org/swift/latest/api/temporary_url_middleware.html#secret-keys).
 The 'tempurl' feature also needs to be configured in Swift by an OpenStack administrator.
 
 Add the extension to your `validator.yml`:
