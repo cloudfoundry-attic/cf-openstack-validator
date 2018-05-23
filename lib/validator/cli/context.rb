@@ -12,6 +12,7 @@ module Validator::Cli
       @cpi_release_path = @cli_options[:cpi_release]
       @working_dir = @cli_options[:working_dir] || "#{ENV['HOME']}/.cf-openstack-validator"
       ensure_working_directory(@working_dir)
+      @working_dir = File.expand_path(@working_dir)
       @path_from_env = ENV['PATH']
       @openstack_cpi_bin_from_env = ENV['OPENSTACK_CPI_BIN']
       @cpi_bin_path = File.join(@working_dir, 'cpi')

@@ -1,4 +1,5 @@
 require_relative '../../spec_helper'
+require 'securerandom'
 
 module Validator::Cli
   describe Context do
@@ -70,12 +71,24 @@ module Validator::Cli
         it 'does not raise' do
           path = File.join(working_directory, '.cf-openstack-validator')
           FileUtils.mkdir_p(path)
-
           expect {
             subject.working_dir
           }.to_not raise_error
 
           expect(File.directory?(path)).to be(true)
+        end
+        context 'when path is a relative path' do
+          let(:working_directory) {
+            "relative-working-directory-#{SecureRandom.uuid}"
+          }
+
+          before(:each) {
+            FileUtils.mkdir_p(working_directory)
+          }
+          it 'is updated to an absolute path' do
+            expect(subject.working_dir).to start_with('/')
+            expect(subject.working_dir).to include(working_directory)
+          end
         end
       end
     end
