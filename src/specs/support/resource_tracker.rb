@@ -4,6 +4,6 @@ RSpec.shared_context "resource tracker" do
   end
 
   after(:all) do
-    @resource_tracker.cleanup
+    #@resource_tracker.cleanup
   end
 end
