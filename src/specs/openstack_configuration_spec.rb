@@ -165,14 +165,17 @@ openstack_suite.context 'validating configuration', position: 1, order: :global,
     end
   end
 
-  describe 'connectivity' do
-    it 'has configured MTU size' do
-      vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM with floating IP to use')
-      vm_ip_to_ssh = Validator::NetworkHelper.vm_ip_to_ssh(vm_cid, @config, @compute)
-      @resource_tracker.consumes(:vm_cid_static_ip, 'No VM with static IP to use')
+  def get_mtu_size_raw
+      get_mtu_size '-M raw'
+  end
 
+  def get_mtu_size_default
+      get_mtu_size ''
+  end
+
+  def get_mtu_size(additional_flag)
       sudo = "echo 'c1oudc0w' | sudo --prompt \"\" --stdin"
-      command = "#{sudo} traceroute -M raw -m 1 --mtu #{@config.validator['static_ip']}"
+      command = "#{sudo} traceroute #{additional_flag} -m 1 --mtu #{@config.validator['static_ip']}"
 
       output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, command)
 
@@ -180,10 +183,23 @@ openstack_suite.context 'validating configuration', position: 1, order: :global,
         error_message("SSH connection didn't succeed. MTU size could not be checked.", command, err, output)
 
       actual_mtu_size = output.match(/=(\d+)/)
-
       if actual_mtu_size
-        actual_mtu_size = actual_mtu_size[1]
+          actual_mtu_size[1]
       else
+          Nil
+      end
+  end
+
+  describe 'connectivity' do
+    it 'has configured MTU size' do
+      vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM with floating IP to use')
+      vm_ip_to_ssh = Validator::NetworkHelper.vm_ip_to_ssh(vm_cid, @config, @compute)
+      @resource_tracker.consumes(:vm_cid_static_ip, 'No VM with static IP to use')
+
+      actual_mtu_size = get_mtu_size_raw
+      actual_mtu_size = get_mtu_size_default if actual_mtu_size == Nil
+
+      if actual_mtu_size == Nil
         fail error_message('MTU size could not be checked.', command, err, output)
       end
 
