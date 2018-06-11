@@ -215,6 +215,7 @@ module Validator
       end
 
       def cleanup
+        sleep 3000
         resources.map do |resource|
           RESOURCE_HANDLER.fetch(resource[:type], Base.new).destroy(resource[:type], resource[:id])
         end.all?
