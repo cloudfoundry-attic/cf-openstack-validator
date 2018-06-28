@@ -15,5 +15,6 @@ extensions:
   config:
     object_storage:
       openstack:
+        wait_for_swift: 5
         openstack_temp_url_key: <temp-url-key>
 ```
