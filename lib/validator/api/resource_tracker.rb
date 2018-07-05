@@ -91,8 +91,20 @@ module Validator
         def destroy(type, id)
           directory = FogOpenStack.storage.directories.get(id)
           if directory
-            directory.files.each {|file| file.destroy}
-            directory.destroy
+
+            directory.files.each do |file|
+              begin
+                file.destroy
+              rescue Fog::Storage::OpenStack::NotFound
+                # Resource Tracker might have already cleaned up files before cleaning up directory.
+              end
+            end
+
+            begin
+              directory.destroy
+            rescue Fog::Storage::OpenStack::NotFound
+              true
+            end
           end
         end
       end
