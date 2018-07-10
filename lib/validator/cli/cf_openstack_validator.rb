@@ -23,6 +23,9 @@ module Validator::Cli
         generate_cpi_config
         prepare_cpi_release
         extract_stemcell
+
+        puts ">>> execute_specs"
+
         execute_specs
       rescue Validator::Api::ValidatorError => e
         $stderr.puts(e.message)
@@ -179,6 +182,8 @@ module Validator::Cli
     def execute_specs
       require 'rspec'
 
+      puts ">>> execute_specs"
+
       RSpec.configure do |config|
         config.add_setting :options
         config.options = @context.create_validator_options
@@ -198,6 +203,7 @@ module Validator::Cli
 
       log_path = File.join(log_directory, 'testsuite.log')
       File.open(log_path, 'w') do |log_file|
+        puts ">>> Runner.run"
         unless RSpec::Core::Runner.run(rspec_command, log_file, $stdout) == 0
           raise ErrorWithLogDetails.new("Running 'RSpec::Core::Runner.run' with arguments '#{rspec_command}' failed", log_path)
         end

@@ -227,6 +227,7 @@ module Validator
       end
 
       def cleanup
+        puts "resource_tracker#cleanup: #{resources}"
         resources.map do |resource|
           RESOURCE_HANDLER.fetch(resource[:type], Base.new).destroy(resource[:type], resource[:id])
         end.all?

@@ -10,8 +10,10 @@ module Validator
     end
 
     def cleanup()
+      puts "cleanup of #{@trackers}"
       @trackers.delete_if { |tracker| tracker.cleanup }
 
+      puts "cleanup done: #{@trackers}"
       @trackers.empty?
     end
 
