@@ -15,7 +15,7 @@ RSpec.configure do |config|
   config.validator_resources = Validator::Resources.new
 
   config.after(:all) do
-    puts ">>> after.all, config=#{config}"
+    puts ">>> after.all, config=#{config.inspect}"
     RSpec::configuration.validator_resources.cleanup unless RSpec::configuration.options.skip_cleanup?
   end
 end
