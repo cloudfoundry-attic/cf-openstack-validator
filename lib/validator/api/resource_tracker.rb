@@ -101,6 +101,7 @@ module Validator
             end
 
             begin
+              sleep 3
               directory.destroy
             rescue Fog::Storage::OpenStack::NotFound
               true
