@@ -2,6 +2,7 @@ require_relative '../../lib/validator'
 require_relative 'support/resource_tracker'
 
 include Validator::Api::Helpers
+include Validator::Api::CpiHelpers
 
 RSpec.configure do |config|
   config.register_ordering(:openstack) do |items|

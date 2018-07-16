@@ -1,7 +1,5 @@
 require_relative 'spec_helper'
 
-include Validator::Api::CpiHelpers
-
 openstack_suite.context 'validating configuration', position: 1, order: :global, configuration: true do
   include_context "resource tracker"
 
