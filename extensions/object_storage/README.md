@@ -10,11 +10,12 @@ The 'tempurl' feature also needs to be configured in Swift by an OpenStack admin
 Add the extension to your `validator.yml`:
 
 ```yaml
+openstack:
+  wait_for_swift: 5
 extensions:
   paths: [./extensions/object_storage]
   config:
     object_storage:
       openstack:
-        wait_for_swift: 5
         openstack_temp_url_key: <temp-url-key>
 ```

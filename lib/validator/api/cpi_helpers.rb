@@ -122,6 +122,11 @@ module Validator
         logger = Logger.new("#{log_path_arg}/testsuite.log")
         Validator::ExternalCpi.new(cpi_path_arg, logger, "#{log_path_arg}/cpi.log", "#{log_path_arg}/stats.log")
       end
+
+      def wait_for_swift
+        seconds = Validator::Api.configuration.openstack['wait_for_swift'].to_i || 0
+        sleep seconds
+      end
     end
   end
 end

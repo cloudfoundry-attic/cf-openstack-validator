@@ -105,6 +105,7 @@ jobs:
       AVAILABILITY_ZONE:              ((availability_zone))
       OBJECT_STORAGE:                 ((object_storage))
       OBJECT_STORAGE_TEMP_URL_KEY:    ((object_storage_temp_url_key))
+      WAIT_FOR_SWIFT:                 ((wait_for_swift))
       EXPECTED_FLAVORS:               ((expected_flavors))
       EXPECTED_QUOTAS:                ((expected_quotas))
       EXPECTED_ENDPOINTS:             ((expected_endpoints))

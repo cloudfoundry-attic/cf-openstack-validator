@@ -31,6 +31,10 @@ def populate(working_directory, config, context)
     config['openstack']['config_drive'] = context['CONFIG_DRIVE']
   end
 
+  if check(context['WAIT_FOR_SWIFT'])
+    config['openstack']['wait_for_swift'] = context['WAIT_FOR_SWIFT']
+  end
+
   if check(context['NETWORK_ID'])
     config['validator']['network_id'] = context['NETWORK_ID']
   end

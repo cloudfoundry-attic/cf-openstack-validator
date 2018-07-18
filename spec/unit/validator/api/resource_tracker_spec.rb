@@ -249,11 +249,15 @@ module Validator::Api
         let(:file_resources) { double('file_resources', get: file_resource) }
         let(:file_resource) { double('file_resource', key: 'my-file', wait_for: nil) }
         let(:resource) { double('directory_resource', key: 'my-resource', files: file_resources, wait_for: nil) }
+        let(:validator_config) do
+          { 'openstack' => { 'wait_for_swift' => 0 } }
+        end
 
         before do
           allow(file_resource).to receive(:destroy).and_return(true)
           allow(file_resources).to receive(:each).and_yield(file_resource).and_yield(file_resource)
           allow(RSpec::configuration).to receive(:options).and_return(double('options', cpi_bin_path: nil, log_path: nil))
+          allow(RSpec::configuration).to receive(:validator_config).and_return(double('config', validator_config))
         end
 
         context 'when a directory contains files' do

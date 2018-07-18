@@ -16,6 +16,7 @@ describe 'populate' do
             'default_security_groups' => ['default'],
             'boot_from_volume' => false,
             'config_drive' => nil,
+            'wait_for_swift' => '<replace-me>',
             'connection_options' => {
                 'ssl_verify_peer' => true,
                 'ca_cert' => nil
@@ -59,6 +60,7 @@ describe 'populate' do
       'DEFAULT_KEY_NAME' => 'DEFAULT_KEY_NAME',
       'BOOT_FROM_VOLUME' => 'true',
       'CONFIG_DRIVE' => 'CONFIG_DRIVE',
+      'WAIT_FOR_SWIFT' => 'WAIT_FOR_SWIFT',
       'NETWORK_ID' => 'NETWORK_ID',
       'FLOATING_IP' => 'FLOATING_IP',
       'STATIC_IP' => 'STATIC_IP',
@@ -112,6 +114,7 @@ describe 'populate' do
             'default_security_groups' => ['validator'],
             'boot_from_volume' => true,
             'config_drive' => 'CONFIG_DRIVE',
+            'wait_for_swift' => 'WAIT_FOR_SWIFT',
             'connection_options' => {
                 'ssl_verify_peer' => true,
                 'ca_cert' => 'CA_CERT'

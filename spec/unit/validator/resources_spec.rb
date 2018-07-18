@@ -29,6 +29,9 @@ module Validator
     let(:key_pairs) {
       OpenStackResourceCollection.new(key_pair_entries)
     }
+    let(:validator_config) do
+      { 'openstack' => { 'wait_for_swift' => 0 } }
+    end
 
     before (:each) do
       allow(Api::FogOpenStack).to receive(:compute).and_return(compute)
@@ -37,6 +40,7 @@ module Validator
       allow(Api::FogOpenStack).to receive(:volume).and_return(volume)
       allow(Api::FogOpenStack).to receive(:storage).and_return(storage)
       allow(RSpec::configuration).to receive(:options).and_return(double('options', cpi_bin_path: nil, log_path: nil))
+      allow(RSpec::configuration).to receive(:validator_config).and_return(double('config', validator_config))
     end
 
     describe '.create' do

@@ -168,11 +168,6 @@ EOT
     expect(deleted_file).to be_nil
   end
 
-  def wait_for_swift
-    seconds = Validator::Api.configuration.extensions['object_storage']['openstack']['wait_for_swift'] || 5
-    sleep seconds
-  end
-
   def test_directory
     directory_key = @resource_tracker.consumes(:root)
     Validator::Api::FogOpenStack.with_openstack('Directory could not be accessed') do
