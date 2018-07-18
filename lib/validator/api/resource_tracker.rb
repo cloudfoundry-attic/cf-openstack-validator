@@ -100,6 +100,7 @@ module Validator
               nil
             end
           end
+          puts %(<<< waiting for swift in dir.destroy)
           Base.wait_for_swift
 
           begin

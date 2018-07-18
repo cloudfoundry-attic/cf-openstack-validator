@@ -125,6 +125,7 @@ module Validator
 
       def wait_for_swift
         seconds = Validator::Api.configuration.openstack['wait_for_swift'].to_i || 0
+        puts %(<<< waiting for switft: #{seconds}s)
         sleep seconds
       end
     end
