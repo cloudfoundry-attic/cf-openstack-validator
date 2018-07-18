@@ -194,7 +194,7 @@ module Validator::Cli
         '--require',  File.join(@context.validator_root_dir, 'lib', 'validator', 'formatter.rb'),
         '--format', 'Validator::TestsuiteFormatter',
       ]
-      rspec_command += Dir.glob('src/specs/*')
+      rspec_command += Dir.glob('src/specs/*_spec.rb')
 
       log_path = File.join(log_directory, 'testsuite.log')
       File.open(log_path, 'w') do |log_file|

@@ -90,9 +90,22 @@ module Validator
 
         def destroy(type, id)
           directory = FogOpenStack.storage.directories.get(id)
-          if directory
-            directory.files.each {|file| file.destroy}
+          return unless directory
+
+          directory.files.each do |file|
+            begin
+              file.destroy
+            rescue Fog::Storage::OpenStack::NotFound
+              # surpress exception, resource will eventually be consistent
+              nil
+            end
+          end
+          Base.wait_for_swift
+
+          begin
             directory.destroy
+          rescue Fog::Storage::OpenStack::NotFound
+            true
           end
         end
       end

@@ -364,7 +364,7 @@ EOF
             '--require', "#{spec_formatter_path}",
             '--format', 'Validator::TestsuiteFormatter',
         ]
-        args += Dir.glob('src/specs/*')
+        args += Dir.glob('src/specs/*_spec.rb')
         args
       }
 
