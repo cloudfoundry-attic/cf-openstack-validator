@@ -34,9 +34,9 @@ pushd ~/openstack-cpi-src
 popd
 
 # Copy to user's home, because we don't have write permissions on the source directory
-cp -r validator-src ~
+cp -r validator-src-in ~
 
-pushd ~/validator-src
+pushd ~/validator-src-in
 
 echo "${PRIVATE_KEY}" > cf-validator.rsa_id
 chmod 400 cf-validator.rsa_id

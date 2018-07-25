@@ -10,6 +10,7 @@ groups:
   - cleanup
   - test
   - validate
+  - bump-openstack-cpi
   - release
 
 jobs:
@@ -19,13 +20,14 @@ jobs:
   build_logs_to_retain: *build_logs_to_retain
   plan:
     - aggregate:
-      - {trigger: true, get: validator-src,   tags: ((worker_tags)), timeout: *timeouts-long}
+      - {trigger: true, get: validator-src-in,   tags: ((worker_tags)), timeout: *timeouts-long}
       - {trigger: true, get: pipeline-time-trigger,   tags: ((worker_tags)), timeout: *timeouts-long}
+      - {trigger: true, get: bosh-openstack-cpi-release,   tags: ((worker_tags)), timeout: *timeouts-long}
 
     - task: cleanup
       tags: ((worker_tags))
       timeout: *timeouts-long
-      file: validator-src/ci/tasks/cleanup.yml
+      file: validator-src-in/ci/tasks/cleanup.yml
       params:
         BOSH_OPENSTACK_DOMAIN_NAME:          ((domain))
         BOSH_OPENSTACK_AUTH_URL:             ((auth_url))
@@ -42,21 +44,25 @@ jobs:
     trigger: true
     tags: ((worker_tags))
     timeout: *timeouts-long
-  - get: validator-src
+  - get: validator-src-in
+    trigger: true
+    tags: ((worker_tags))
+    timeout: *timeouts-long
+  - get: bosh-openstack-cpi-release
     trigger: true
     tags: ((worker_tags))
     timeout: *timeouts-long
   - task: validate
     tags: ((worker_tags))
     timeout: *timeouts-long
-    file: validator-src/ci/tasks/test.yml
+    file: validator-src-in/ci/tasks/test.yml
 
 - name: validate
   serial: true
   serial_groups: [openstack-project]
   build_logs_to_retain: *build_logs_to_retain
   plan:
-  - get: validator-src
+  - get: validator-src-in
     passed: [cleanup, test]
     trigger: true
     tags: ((worker_tags))
@@ -66,11 +72,16 @@ jobs:
     trigger: true
     tags: ((worker_tags))
     timeout: *timeouts-long
+  - get: bosh-openstack-cpi-release
+    passed: [cleanup, test]
+    trigger: true
+    tags: ((worker_tags))
+    timeout: *timeouts-long
   - put: terraform-validator
     tags: ((worker_tags))
     timeout: *timeouts-long
     params:
-      terraform_source: validator-src/ci/terraform/
+      terraform_source: validator-src-in/ci/terraform/
       env_name: validator
       vars:
         auth_url: ((auth_url))
@@ -85,10 +96,14 @@ jobs:
         ext_net_name: ((ext_net_name))
         availability_zone: ((availability_zone))
         dns_nameservers: ((dns_nameservers))
+  - task: bump-openstack-cpi
+    tags: ((worker_tags))
+    timeout: *timeouts-long
+    file: validator-src-in/ci/tasks/bump-openstack-cpi.yml
   - task: validate
     tags: ((worker_tags))
     timeout: *timeouts-long
-    file: validator-src/ci/tasks/validate.yml
+    file: validator-src-in/ci/tasks/validate.yml
     params:
       USERNAME:                       ((username))
       AUTH_URL:                       ((auth_url))
@@ -117,11 +132,35 @@ jobs:
       MTU_SIZE:                       ((mtu_size))
       AUTO_ANTI_AFFINITY:             ((auto_anti_affinity))
 
+- name: bump-openstack-cpi
+  serial: true
+  serial_groups: [openstack-project]
+  build_logs_to_retain: *build_logs_to_retain
+  plan:
+  - get: validator-src-in
+    passed: [validate]
+    trigger: true
+    tags: ((worker_tags))
+    timeout: *timeouts-long
+  - get: bosh-openstack-cpi-release
+    passed: [validate]
+    trigger: true
+    tags: ((worker_tags))
+    timeout: *timeouts-long
+  - task: bump-openstack-cpi
+    tags: ((worker_tags))
+    timeout: *timeouts-long
+    file: validator-src-in/ci/tasks/bump-openstack-cpi.yml
+  - put: validator-src-out
+    tags: ((worker_tags))
+    timeout: *timeouts-long
+    params: {repository: validator-src-cpi-bumped, rebase: true}
+
 - name: release
   build_logs_to_retain: *build_logs_to_retain
   plan:
   - aggregate:
-    - {get: validator-src, passed: [validate], tags: ((worker_tags)), timeout: *timeouts-long }
+    - {get: validator-src-out, passed: [bump-openstack-cpi], tags: ((worker_tags)), timeout: *timeouts-long }
     - {get: release-semver, tags: ((worker_tags)), timeout: *timeouts-long }
 
   - task: generate-commitish
@@ -133,14 +172,14 @@ jobs:
         type: docker-image
         source: {repository: boshcpi/openstack-cpi-release}
       inputs:
-      - name: validator-src
+      - name: validator-src-out
       outputs:
       - name: generated-commitish
       run:
         path: sh
         args:
         - -c
-        - "git -C validator-src rev-parse HEAD > generated-commitish/commitish && echo 'Commitish to release:' $(cat generated-commitish/commitish)"
+        - "git -C validator-src-out rev-parse HEAD > generated-commitish/commitish && echo 'Commitish to release:' $(cat generated-commitish/commitish)"
 
   - put: gh-release
     tags: ((worker_tags))
@@ -162,12 +201,20 @@ resource_types:
   source:
     repository: ljfranklin/terraform-resource
 resources:
-- name: validator-src
+- name: validator-src-in
   type: git
   tags: ((worker_tags))
   source:
     uri: https://github.com/cloudfoundry-incubator/cf-openstack-validator
     branch: master
+- name: validator-src-out
+  type: git
+  tags: ((worker_tags))
+  source:
+    uri: https://github.com/cloudfoundry-incubator/cf-openstack-validator
+    branch: master
+    username: openstack-cpi
+    password: ((github_release_access_token))
 - name: gh-release
   type: github-release
   tags: ((worker_tags))
@@ -200,3 +247,7 @@ resources:
       access_key_id: ((s3_openstack_cpi_pipeline_access_key))
       secret_access_key: ((s3_openstack_cpi_pipeline_secret_key))
       region_name: ((s3_openstack_cpi_pipeline_bucket_region))
+- name: bosh-openstack-cpi-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-incubator/bosh-openstack-cpi-release

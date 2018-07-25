@@ -2,7 +2,7 @@
 
 set -e
 
-source validator-src/ci/tasks/utils.sh
+source validator-src-in/ci/tasks/utils.sh
 
 init_openstack_cli_env
 

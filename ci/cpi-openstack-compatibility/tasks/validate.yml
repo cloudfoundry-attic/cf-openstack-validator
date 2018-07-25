@@ -8,7 +8,7 @@ image_resource:
     tag: 'latest'
 
 inputs:
-- name: validator-src
+- name: validator-src-in
 - name: openstack-cpi-src
 - name: bosh-cli
 - name: terraform-validator
@@ -33,4 +33,4 @@ params:
   AUTO_ANTI_AFFINITY: ""
 
 run:
-  path: validator-src/ci/cpi-openstack-compatibility/tasks/validate.sh
+  path: validator-src-in/ci/cpi-openstack-compatibility/tasks/validate.sh

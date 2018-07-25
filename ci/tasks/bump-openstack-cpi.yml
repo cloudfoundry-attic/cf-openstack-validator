@@ -8,6 +8,10 @@ image_resource:
 
 inputs:
 - name: validator-src-in
+- name: bosh-openstack-cpi-release
+
+outputs:
+- name: validator-src-cpi-bumped
 
 run:
-  path: validator-src-in/ci/tasks/test.sh
+  path: validator-src-in/ci/tasks/bump-openstack-cpi.sh

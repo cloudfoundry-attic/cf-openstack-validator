@@ -36,9 +36,9 @@ report_performance_stats(){
 }
 
 # Copy to user's home, because we don't have write permissions on the source directory
-cp -r validator-src ~
+cp -r validator-src-cpi-bumped ~
 
-pushd ~/validator-src
+pushd ~/validator-src-cpi-bumped
 
 echo "${PRIVATE_KEY}" > cf-validator.rsa_id
 chmod 400 cf-validator.rsa_id

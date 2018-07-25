@@ -8,7 +8,7 @@ image_resource:
     tag: 'latest'
 
 inputs:
-- name: validator-src
+- name: validator-src-cpi-bumped
 - name: terraform-validator
 
 params:
@@ -40,4 +40,4 @@ params:
   AUTO_ANTI_AFFINITY: ""
 
 run:
-  path: validator-src/ci/tasks/validate.sh
+  path: validator-src-cpi-bumped/ci/tasks/validate.sh

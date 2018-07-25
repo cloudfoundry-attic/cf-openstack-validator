@@ -5,9 +5,9 @@ image_resource:
   source:
     repository: boshcpi/openstack-cpi-release
 inputs:
-  - name: validator-src
+  - name: validator-src-in
 run:
-  path: validator-src/ci/tasks/cleanup.sh
+  path: validator-src-in/ci/tasks/cleanup.sh
 params:
   BOSH_OPENSTACK_DOMAIN_NAME:          replace-me
   BOSH_OPENSTACK_AUTH_URL:             replace-me

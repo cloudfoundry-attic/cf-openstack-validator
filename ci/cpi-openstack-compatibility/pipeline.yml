@@ -17,14 +17,14 @@ jobs:
   build_logs_to_retain: *build_logs_to_retain
   plan:
     - aggregate:
-      - {trigger: true, get: validator-src,   tags: ((worker_tags)), timeout: *timeouts-long}
+      - {trigger: true, get: validator-src-in,   tags: ((worker_tags)), timeout: *timeouts-long}
       - {trigger: true, get: pipeline-time-trigger,   tags: ((worker_tags)), timeout: *timeouts-long}
       - {trigger: true, get: openstack-cpi-src,   tags: ((worker_tags)), timeout: *timeouts-long}
 
     - task: cleanup
       tags: ((worker_tags))
       timeout: *timeouts-long
-      file: validator-src/ci/tasks/cleanup.yml
+      file: validator-src-in/ci/tasks/cleanup.yml
       params:
         BOSH_OPENSTACK_DOMAIN_NAME:          ((domain))
         BOSH_OPENSTACK_AUTH_URL:             ((auth_url))
@@ -38,7 +38,7 @@ jobs:
   serial_groups: [openstack-project]
   build_logs_to_retain: *build_logs_to_retain
   plan:
-  - get: validator-src
+  - get: validator-src-in
     passed: [cleanup]
     trigger: true
     tags: ((worker_tags))
@@ -61,7 +61,7 @@ jobs:
     tags: ((worker_tags))
     timeout: *timeouts-long
     params:
-      terraform_source: validator-src/ci/terraform/
+      terraform_source: validator-src-in/ci/terraform/
       env_name: validator
       vars:
         auth_url: ((auth_url))
@@ -79,7 +79,7 @@ jobs:
   - task: validate
     tags: ((worker_tags))
     timeout: *timeouts-long
-    file: validator-src/ci/cpi-openstack-compatibility/tasks/validate.yml
+    file: validator-src-in/ci/cpi-openstack-compatibility/tasks/validate.yml
     params:
       USERNAME:                       ((username))
       AUTH_URL:                       ((auth_url))
@@ -105,7 +105,7 @@ resource_types:
     repository: ljfranklin/terraform-resource
 
 resources:
-- name: validator-src
+- name: validator-src-in
   type: git
   tags: ((worker_tags))
   source:
