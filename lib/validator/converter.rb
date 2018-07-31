@@ -79,13 +79,15 @@ module Validator
         'auth_url' => ->(key, value) {
           if value.end_with?('/auth/tokens')
             [key, value]
-          else
+          elsif value.end_with?('/v3')
             [key, "#{value}/auth/tokens"]
+          else
+            [key, "#{value}/v3/auth/tokens"]
           end
         },
         'tenant' => ->(key, value) {
           nil
-        },
+        }
       }.merge(base_converters)
     end
 
