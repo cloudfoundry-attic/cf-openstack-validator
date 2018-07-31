@@ -90,7 +90,7 @@ module Validator
     end
 
     def self.convert_and_apply_defaults(openstack_params)
-      converters = is_v3(openstack_params.fetch('auth_url')) ? keystone_v3_converters : keystone_v2_converters
+      converters = is_v2(openstack_params.fetch('auth_url')) ? keystone_v2_converters : keystone_v3_converters
       apply_converters(openstack_defaults.merge(openstack_params), converters)
     end
 
@@ -107,8 +107,8 @@ module Validator
       end.compact.to_h
     end
 
-    def self.is_v3(auth_url)
-      auth_url.match(/\/v3(?=\/|$)/)
+    def self.is_v2(auth_url)
+      auth_url.match(/\/v2.0(?=\/|$)/)
     end
 
     private_class_method :apply_converters

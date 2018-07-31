@@ -200,13 +200,13 @@ describe Validator::Converter do
     end
   end
 
-  describe '.is_v3' do
-    it 'should identify keystone v3 URIs' do
-      expect(Validator::Converter.is_v3('http://fake-auth-url/v3')).to be_truthy
+  describe '.is_v2' do
+    it 'should identify keystone v2 URIs' do
+      expect(Validator::Converter.is_v2('http://fake-auth-url/v2.0')).to be_truthy
     end
 
-    it 'should identify keystone v2 URIs' do
-      expect(Validator::Converter.is_v3('http://fake-auth-url/v2.0')).to be_falsey
+    it 'should identify keystone v3 URIs' do
+      expect(Validator::Converter.is_v2('http://fake-auth-url/v3')).to be_falsey
     end
   end
 end
