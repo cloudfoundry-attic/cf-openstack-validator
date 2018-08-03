@@ -49,6 +49,26 @@ describe Validator::Converter do
         end
 
         context "when 'auth_url' does not end with '/auth/tokens'" do
+          it "appends '/auth/tokens' to 'auth_url' parameter" do
+            rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(complete_config)
+
+            expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/v3/auth/tokens'
+          end
+
+          context "when 'auth_url' does not end with 'v3'" do
+            let(:auth_url) { 'https://auth.url/identity' }
+
+            it "appends '/v3/auth/tokens' to 'auth_url' parameter" do
+              rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(complete_config)
+
+              expect(rendered_cpi_config['auth_url']).to eq 'https://auth.url/identity/v3/auth/tokens'
+            end
+          end
+        end
+
+        context "when 'auth_url' ends with trailing slash" do
+          let(:auth_url) { 'https://auth.url/v3/' }
+
           it "appends 'auth/tokens' to 'auth_url' parameter" do
             rendered_cpi_config = Validator::Converter.convert_and_apply_defaults(complete_config)
 

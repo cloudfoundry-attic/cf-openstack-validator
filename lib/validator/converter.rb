@@ -59,6 +59,7 @@ module Validator
     def self.keystone_v2_converters
       {
         'auth_url' => ->(key, value) {
+          value = remove_url_trailing_slash(value)
           if value.end_with?('/tokens')
             [key, value]
           else
@@ -77,6 +78,7 @@ module Validator
     def self.keystone_v3_converters
       {
         'auth_url' => ->(key, value) {
+          value = remove_url_trailing_slash(value)
           if value.end_with?('/auth/tokens')
             [key, value]
           elsif value.end_with?('/v3')
@@ -111,6 +113,10 @@ module Validator
 
     def self.is_v2(auth_url)
       auth_url.match(/\/v2.0(?=\/|$)/)
+    end
+
+    def self.remove_url_trailing_slash(url)
+      url.end_with?('/') ? url[0..-2] : url
     end
 
     private_class_method :apply_converters
