@@ -3,6 +3,7 @@
 Is your OpenStack installation ready to run BOSH and install Cloud Foundry? Run this validator to find out.
 
 * Roadmap: [Pivotal Tracker](https://www.pivotaltracker.com/epic/show/2156200) (click on Add/View Stories)
+* Slack: `#openstack` on cloudfoundry.slack.com ([get your invite here](https://slack.cloudfoundry.org/))
 * [List of executed tests](docs/list_of_executed_tests.md)
 
 ## Prerequisites
