@@ -10,7 +10,7 @@ This is a step-by-step guide to implement an extension.
 
 ### Create Extensions File
 
-You can configure a directory from which extensions are read. Create a directory `validator_extensions` for example in your home directory and add a `my_extension_spec.rb` file. Extensions are in fact [RSpec](http://rspec.info/) tests. That's why they have to be called `*_spec.rb`. An [example extension](/extensions/dummy_extension_spec.rb) comes with the validator.
+You can configure a directory from which extensions are read. Create a directory `validator_extensions` for example in your home directory and add a `my_extension_spec.rb` file. Extensions are in fact [RSpec](http://rspec.info/) tests. That's why they have to be called `*_spec.rb`. An [example extension](/sample_extensions/dummy_extension_spec.rb) comes with the validator.
 
 Add the path of your `validator_extensions` directory into your `validator.yml` under the `extensions` section. You can also configure multiple paths if you have multiple extensions:
 ```yaml
@@ -293,7 +293,7 @@ To hook into this resource management, every extension can create a [ResourceTra
 resource_tracker = Validator::Api::ResourceTracker.create
 ```
 Such an instance provides `produce` and `consumes` methods to manage resources tied to the resource tracker.
-Each resource tracker is responsible for its own set of resources. Checkout the methods documentation [here](lib/validator/api/resource_tracker.rb).
+Each resource tracker is responsible for its own set of resources. Checkout the methods documentation [here](/lib/validator/api/resource_tracker.rb).
 
 **Remark**: Only the following collections are supported:
 
