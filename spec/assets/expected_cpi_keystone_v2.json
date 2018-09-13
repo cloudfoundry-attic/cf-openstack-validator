@@ -3,7 +3,7 @@
     "plugin": "openstack",
     "properties": {
       "openstack": {
-        "auth_url": "https://auth.url/identity/v2.0/tokens",
+        "auth_url": "https://auth.url/identity",
         "username": "username",
         "api_key": "password",
         "tenant": "tenant",

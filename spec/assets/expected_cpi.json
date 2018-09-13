@@ -3,7 +3,7 @@
     "plugin": "openstack",
     "properties": {
       "openstack": {
-        "auth_url": "https://auth.url/v3/auth/tokens",
+        "auth_url": "https://auth.url",
         "username": "username",
         "api_key": "password",
         "domain": "domain",

@@ -59,11 +59,11 @@ module Validator
     def self.keystone_v2_converters
       {
         'auth_url' => ->(key, value) {
-          value = remove_url_trailing_slash(value)
-          if value.end_with?('/tokens')
-            [key, value]
+          if value.match(/\/v2.0(?=\/|$)/)
+            url_without_version = value.slice(0..(value.index(/\/v2.0(?=\/|$)/)))
+            [key, remove_url_trailing_slash(url_without_version)]
           else
-            [key, "#{value}/tokens"]
+            [key, remove_url_trailing_slash(value)]
           end
         },
         'domain' => ->(key, value) {
@@ -78,13 +78,11 @@ module Validator
     def self.keystone_v3_converters
       {
         'auth_url' => ->(key, value) {
-          value = remove_url_trailing_slash(value)
-          if value.end_with?('/auth/tokens')
-            [key, value]
-          elsif value.end_with?('/v3')
-            [key, "#{value}/auth/tokens"]
+          if value.match(/\/v3(?=\/|$)/)
+            url_without_version = value.slice(0..(value.index(/\/v3(?=\/|$)/)))
+            [key, remove_url_trailing_slash(url_without_version)]
           else
-            [key, "#{value}/v3/auth/tokens"]
+            [key, remove_url_trailing_slash(value)]
           end
         },
         'tenant' => ->(key, value) {
