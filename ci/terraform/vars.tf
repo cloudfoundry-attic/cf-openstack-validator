@@ -57,8 +57,8 @@ variable "cacert_file" {
 }
 
 variable "dns_nameservers" {
-   default = ""
-   description = "Comma-separated list of DNS server IPs"
+   description = "list of DNS server IPs"
+   type = "list"
 }
 
 # external network coordinates

@@ -12,3 +12,4 @@ ext_net_id = "<external_network_id>"
 region_name = "<region_name>"
 availability_zone = "<availability_zone>"
 openstack_default_key_public_key = "<public_key>"
+dns_nameservers = [<list_of_dns_nameservers>]

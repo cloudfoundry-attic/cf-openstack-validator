@@ -38,7 +38,7 @@ resource "openstack_networking_subnet_v2" "validator_sub" {
   }
   gateway_ip       = "${var.gateway_ip}"
   enable_dhcp      = "true"
-  dns_nameservers = ["${compact(split(",",var.dns_nameservers))}"]
+  dns_nameservers = "${var.dns_nameservers}"
 }
 
 # router
