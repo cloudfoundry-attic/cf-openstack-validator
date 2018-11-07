@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -euxo pipefail
 
 source validator-src-in/ci/tasks/utils.sh
 
@@ -19,7 +19,9 @@ openstack_delete_entities() {
   for id in $id_list
   do
     echo "Deleting $entity $id ..."
+    unset -o pipefail
     openstack $entity delete $delete_args $id || exit_code=$?
+    set -o pipefail
   done
 }
 
@@ -37,7 +39,9 @@ openstack_delete_ports() {
     if [ ! -z ${port_to_be_deleted} ];
     then
       echo "Deleting port ${port_to_be_deleted}"
+      unset -o pipefail
       openstack port delete ${port_to_be_deleted} || exit_code=$?
+      set -o pipefail
     fi
   done
 }

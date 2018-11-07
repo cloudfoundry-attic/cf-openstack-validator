@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e -x
+set -euxo pipefail
 
 : ${AUTH_URL:?}
 : ${USERNAME:?}
@@ -29,7 +29,7 @@ export FLOATING_IP=$(cat ${metadata} | jq --raw-output ".validator_floating_ip")
 report_performance_stats(){
   echo 'Stats:'
   cat ~/.cf-openstack-validator/logs/stats.log
-  if [ ! -z ${INFLUXDB_IP} ] && [ ! -z ${INFLUXDB_PORT} ] && [ ! -z ${INFLUXDB_USER} ] && [ ! -z ${INFLUXDB_PASSWORD} ]; then
+  if [ ! -z ${INFLUXDB_IP:-} ] && [ ! -z ${INFLUXDB_PORT:-} ] && [ ! -z ${INFLUXDB_USER:-} ] && [ ! -z ${INFLUXDB_PASSWORD:-} ]; then
     echo 'Sending stats to performance database'
     ruby ci/ruby_scripts/influxdb-post/upload-stats.rb ~/.cf-openstack-validator/logs/stats.log
   fi

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -exo pipefail
 
 optional_value() {
   local name=$1
