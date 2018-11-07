@@ -11,9 +11,9 @@ OPENSTACK_PROJECT_ID=$(openstack project list --format json | jq --raw-output --
 exit_code=0
 
 openstack_delete_entities() {
-  local entity=$1
-  local list_args=$2
-  local delete_args=$3
+  local entity=${1:-}
+  local list_args=${2:-}
+  local delete_args=${3:-}
   id_list=$(openstack $entity list $list_args --format json | jq --raw-output '.[].ID')
   echo "Received list of all ${entity}s: ${id_list}"
   for id in $id_list
