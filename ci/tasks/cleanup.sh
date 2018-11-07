@@ -62,9 +62,9 @@ openstack_delete_entities "volume"
 echo "Deleting ports #########################"
 openstack_delete_ports
 
-if [ -d "$tmpdir" ]; then
+if [ -d "${tmpdir:-}" ]; then
     echo "Deleting temp dir with cacert.pem"
-    rm -rf "$tmpdir"
+    rm -rf "${tmpdir}"
 fi
 
 exit ${exit_code}
