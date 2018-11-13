@@ -61,7 +61,7 @@ module Validator::Api
         it 'includes the url on the error message' do
           expect {
             FogOpenStack.image
-          }.to raise_error(Validator::Api::ValidatorError, "Could not connect to 'http://some.url'")
+          }.to raise_error(Validator::Api::ValidatorError, /Could not connect to 'http:\/\/some.url' \nException message:.*\nBacktrace:/)
         end
       end
     end
@@ -116,7 +116,7 @@ module Validator::Api
         it 'wraps the error' do
           expect {
             FogOpenStack.volume
-          }.to raise_error(Validator::Api::ValidatorError, "Could not connect to 'http://some.url'")
+          }.to raise_error(Validator::Api::ValidatorError, /Could not connect to 'http:\/\/some.url' \nException message:.*\nBacktrace:/)
         end
       end
     end
@@ -132,7 +132,7 @@ module Validator::Api
         it 'wraps the error' do
           expect {
             FogOpenStack.compute
-          }.to raise_error(Validator::Api::ValidatorError, "Could not connect to 'http://some.url'")
+          }.to raise_error(Validator::Api::ValidatorError, /Could not connect to 'http:\/\/some.url' \nException message:.*\nBacktrace:/)
         end
       end
 
@@ -156,7 +156,7 @@ module Validator::Api
         it 'wraps the error' do
           expect {
             FogOpenStack.network
-          }.to raise_error(Validator::Api::ValidatorError, "Could not connect to 'http://some.url'")
+          }.to raise_error(Validator::Api::ValidatorError, /Could not connect to 'http:\/\/some.url' \nException message:.*\nBacktrace:/)
         end
       end
     end
@@ -172,7 +172,7 @@ module Validator::Api
         it 'wraps the error' do
           expect {
             FogOpenStack.storage
-          }.to raise_error(Validator::Api::ValidatorError, "Could not connect to 'http://some.url'")
+          }.to raise_error(Validator::Api::ValidatorError, /Could not connect to 'http:\/\/some.url' \nException message:.*\nBacktrace:/)
         end
       end
 
