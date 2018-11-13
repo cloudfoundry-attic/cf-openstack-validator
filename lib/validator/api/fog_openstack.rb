@@ -61,7 +61,7 @@ module Validator
         def handle_socket_error(&block)
           yield
         rescue Excon::Errors::SocketError => e
-          raise ValidatorError, "Could not connect to '#{openstack_params['auth_url']}'", e.backtrace
+          raise ValidatorError, "Could not connect to '#{openstack_params['auth_url']}' \nException message: #{e.message} \nBacktrace: #{e.backtrace}"
         end
 
         def openstack_params
