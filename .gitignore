@@ -4,3 +4,4 @@ cpi.json
 /*.yml
 !/validator.template.yml
 vendor/cache/
+tags
