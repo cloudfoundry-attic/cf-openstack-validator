@@ -6,6 +6,12 @@ source validator-src-in/ci/tasks/utils.sh
 
 init_openstack_cli_env
 
+ROLE_LIST_RESPONSE=$(openstack role list 2>&1)
+if [[ $ROLE_LIST_RESPONSE != *"HTTP 403"* ]]; then
+  echo "Exiting the script, since it might be executed with admin rights!"
+  exit 1
+fi
+
 OPENSTACK_PROJECT_ID=$(openstack project list --format json | jq --raw-output --arg project $BOSH_OPENSTACK_PROJECT '.[] | select(.Name == $project) | .ID')
 if [ -z "$OPENSTACK_PROJECT_ID" ]; then
   echo "Error: Failed to get OpenStack project"
