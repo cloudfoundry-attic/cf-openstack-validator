@@ -6,7 +6,9 @@ source validator-src-in/ci/tasks/utils.sh
 
 init_openstack_cli_env
 
+set +e
 ROLE_LIST_RESPONSE=$(openstack role list 2>&1)
+set -e
 if [[ $ROLE_LIST_RESPONSE != *"HTTP 403"* ]]; then
   echo "Exiting the script, since it might be executed with admin rights!"
   exit 1
