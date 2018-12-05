@@ -42,7 +42,7 @@ to remove those, before publishing your extension.
 Let's run your test. Start the validator execution as usual, just with the focus tag.
 
 ```bash
-$ ./validate --tag focus --stemcell bosh-stemcell-<xxx>-openstack-kvm-ubuntu-trusty-go_agent.tgz --config validator.yml
+$ ./validate --tag focus --stemcell bosh-stemcell-<xxx>-openstack-kvm-ubuntu-xenial-go_agent.tgz --config validator.yml
 ```
 
 ### Access OpenStack in Your Test
