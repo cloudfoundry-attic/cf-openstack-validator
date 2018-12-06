@@ -229,7 +229,7 @@ openstack_suite.context 'validating configuration', position: 1, order: :global,
       ntp = @config.validator['ntp']
       sudo = "echo 'c1oudc0w' | sudo --prompt \"\" --stdin"
       create_ntpserver_command = "#{sudo} bash -c \"echo #{ntp.join(' ')} | tee /var/vcap/bosh/etc/ntpserver\""
-      call_ntpdate_command = "#{sudo} /var/vcap/bosh/bin/ntpdate"
+      call_sync_time_command = "#{sudo} /var/vcap/bosh/bin/sync-time"
 
       output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, create_ntpserver_command)
       expect(status.exitstatus).to eq(0),
@@ -240,13 +240,13 @@ openstack_suite.context 'validating configuration', position: 1, order: :global,
           output
       )
 
-      output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, call_ntpdate_command)
-      execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, call_ntpdate_command)
+      output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, call_sync_time_command)
+      execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, call_sync_time_command)
       expect(status.exitstatus).to eq(0),
         error_message(
           "Failed to reach any of the following NTP servers: #{ntp.join(', ')}. " +
           'If your OpenStack requires an internal time server, you need to configure it in the validator.yml.',
-          call_ntpdate_command,
+          call_sync_time_command,
           err,
           output
       )
