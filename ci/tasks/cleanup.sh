@@ -28,9 +28,9 @@ openstack_delete_entities() {
   for id in $id_list
   do
     echo "Deleting $entity $id ..."
-    set +o pipefail
-    openstack $entity delete $delete_args $id || exit_code=$?
-    set -o pipefail
+    if ! openstack $entity delete $delete_args $id; then
+      exit_code=$?
+    fi
   done
 }
 
@@ -49,9 +49,9 @@ openstack_delete_ports() {
     if [ ! -z ${port_to_be_deleted} ];
     then
       echo "Deleting port ${port_to_be_deleted}"
-      set +o pipefail
-      openstack port delete ${port_to_be_deleted} || exit_code=$?
-      set -o pipefail
+      if ! openstack port delete ${port_to_be_deleted}; then
+        exit_code=$?
+      fi
     fi
   done
 }
