@@ -19,6 +19,14 @@ fi
 
 exit_code=0
 
+testcase() {
+  result=`$1`
+  tmp_exit_code=$?
+  if [ $tmp_exit_code -ne 0 ]; then
+    exit_code=$tmp_exit_code
+  fi
+}
+
 openstack_delete_entities() {
   local entity=${1:-}
   local list_args=${2:-}
@@ -28,9 +36,7 @@ openstack_delete_entities() {
   for id in $id_list
   do
     echo "Deleting $entity $id ..."
-    if ! openstack $entity delete $delete_args $id; then
-      exit_code=$?
-    fi
+    testcase "openstack $entity delete $delete_args $id"
   done
 }
 
@@ -49,9 +55,7 @@ openstack_delete_ports() {
     if [ ! -z ${port_to_be_deleted} ];
     then
       echo "Deleting port ${port_to_be_deleted}"
-      if ! openstack port delete ${port_to_be_deleted}; then
-        exit_code=$?
-      fi
+      testcase "openstack port delete ${port_to_be_deleted}"
     fi
   done
 }
