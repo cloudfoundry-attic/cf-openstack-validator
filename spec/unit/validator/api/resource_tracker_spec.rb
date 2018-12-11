@@ -1,7 +1,7 @@
 require_relative '../../spec_helper'
-require 'fog/volume/openstack/v1/models/volume'
-require 'fog/volume/openstack/v2/models/volume'
-require 'fog/compute/openstack/models/server_group'
+require 'fog/openstack/volume/v1/models/volume'
+require 'fog/openstack/volume/v2/models/volume'
+require 'fog/openstack/compute/models/server_group'
 
 module Validator::Api
   describe ResourceTracker do
@@ -88,7 +88,7 @@ module Validator::Api
         end
 
         context 'when cinder v1' do
-          let(:resource) { instance_double(Fog::Volume::OpenStack::V1::Volume, display_name: 'my-volume') }
+          let(:resource) { instance_double(Fog::OpenStack::Volume::V1::Volume, display_name: 'my-volume') }
 
           it "stores the resource 'display_name'" do
             subject.produce(:volumes, provide_as: :my_volume) { 'volume-id' }
@@ -100,7 +100,7 @@ module Validator::Api
         end
 
         context 'when cinder v2' do
-          let(:resource) { instance_double(Fog::Volume::OpenStack::V2::Volume, name: 'my-volume') }
+          let(:resource) { instance_double(Fog::OpenStack::Volume::V2::Volume, name: 'my-volume') }
 
           it "stores the resource 'name'" do
             subject.produce(:volumes, provide_as: :my_volume) { 'volume-id' }
@@ -285,7 +285,7 @@ module Validator::Api
 
           context 'when file object throws NotFound in destroy' do
             it 'ignores the exception' do
-              allow(file_resource).to receive(:destroy).and_raise(Fog::Storage::OpenStack::NotFound)
+              allow(file_resource).to receive(:destroy).and_raise(Fog::OpenStack::Storage::NotFound)
               subject.produce(:files) { ['directory_id', 'file_id'] }
 
               result = subject.cleanup
@@ -299,7 +299,7 @@ module Validator::Api
       end
 
       context 'when server group' do
-        let(:resource) { instance_double(Fog::Compute::OpenStack::ServerGroup, wait_for: nil, name: nil) }
+        let(:resource) { instance_double(Fog::OpenStack::Compute::ServerGroup, wait_for: nil, name: nil) }
         it 'deletes the server group' do
           subject.produce(:server_groups) { 'id' }
 

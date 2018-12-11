@@ -4,22 +4,22 @@ module Validator
       class << self
         def compute
           handle_socket_error do
-            Fog::Compute::OpenStack.new(convert_to_fog_params(openstack_params))
+            Fog::OpenStack::Compute.new(convert_to_fog_params(openstack_params))
           end
         end
 
         def network
           handle_socket_error do
-            Fog::Network::OpenStack.new(convert_to_fog_params(openstack_params))
+            Fog::OpenStack::Network.new(convert_to_fog_params(openstack_params))
           end
         end
 
         def image
           handle_socket_error do
             begin
-              Fog::Image::OpenStack::V2.new(convert_to_fog_params(openstack_params))
+              Fog::OpenStack::Image::V2.new(convert_to_fog_params(openstack_params))
             rescue Fog::OpenStack::Errors::ServiceUnavailable
-              Fog::Image::OpenStack::V1.new(convert_to_fog_params(openstack_params))
+              Fog::OpenStack::Image::V1.new(convert_to_fog_params(openstack_params))
             end
           end
         end
@@ -27,9 +27,9 @@ module Validator
         def volume
           handle_socket_error do
             begin
-              Fog::Volume::OpenStack::V2.new(convert_to_fog_params(openstack_params))
+              Fog::OpenStack::Volume::V2.new(convert_to_fog_params(openstack_params))
             rescue Fog::OpenStack::Errors::ServiceUnavailable, Fog::Errors::NotFound
-              Fog::Volume::OpenStack::V1.new(convert_to_fog_params(openstack_params))
+              Fog::OpenStack::Volume::V1.new(convert_to_fog_params(openstack_params))
             end
           end
         end
@@ -39,7 +39,7 @@ module Validator
           fog_params.merge!(storage_params)
 
           handle_socket_error do
-            Fog::Storage::OpenStack.new(fog_params)
+            Fog::OpenStack::Storage.new(fog_params)
           end
         end
 

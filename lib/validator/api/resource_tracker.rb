@@ -95,7 +95,7 @@ module Validator
           directory.files.each do |file|
             begin
               file.destroy
-            rescue Fog::Storage::OpenStack::NotFound
+            rescue Fog::OpenStack::Storage::NotFound
               # surpress exception, resource will eventually be consistent
               nil
             end
@@ -104,7 +104,7 @@ module Validator
 
           begin
             directory.destroy
-          rescue Fog::Storage::OpenStack::NotFound
+          rescue Fog::OpenStack::Storage::NotFound
             true
           end
         end
@@ -125,7 +125,7 @@ module Validator
         def destroy(type, id)
           begin
             super(type, id)
-          rescue Fog::Storage::OpenStack::NotFound
+          rescue Fog::OpenStack::Storage::NotFound
             true
           end
         end

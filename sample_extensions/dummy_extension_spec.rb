@@ -18,7 +18,7 @@ describe 'My extension' do
       let(:compute) { Validator::Api::FogOpenStack.compute }
 
       it 'is provided by the validator' do
-        expect(compute.servers).to be_a(Fog::Compute::OpenStack::Servers)
+        expect(compute.servers).to be_a(Fog::OpenStack::Compute::Servers)
       end
     end
 
@@ -26,7 +26,7 @@ describe 'My extension' do
       let(:network) { Validator::Api::FogOpenStack.network }
 
       it 'is provided by the validator' do
-        expect(network.networks).to be_a(Fog::Network::OpenStack::Networks)
+        expect(network.networks).to be_a(Fog::OpenStack::Network::Networks)
       end
     end
   end
