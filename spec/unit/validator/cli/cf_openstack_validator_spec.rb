@@ -469,7 +469,7 @@ EOF
     end
 
     describe '#download_cpi_release' do
-      let(:download_url) { 'https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release' }
+      let(:download_url) { 'https://bosh.io/d/github.com/cloudfoundry/bosh-openstack-cpi-release' }
       let(:expected_cpi_release_path) { File.join(context.working_dir, 'cpi-release-download') }
       let(:downloaded_temp_file_path) { File.join(working_dir, 'cpi.tgz') }
 

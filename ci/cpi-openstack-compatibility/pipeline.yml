@@ -115,7 +115,7 @@ resources:
   type: git
   tags: ((worker_tags))
   source:
-    uri: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
+    uri: https://github.com/cloudfoundry/bosh-openstack-cpi-release.git
     branch: master
 - name: bosh-cli
   type: s3

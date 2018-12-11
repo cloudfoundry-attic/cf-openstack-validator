@@ -255,7 +255,7 @@ resources:
 - name: bosh-openstack-cpi-release
   type: bosh-io-release
   source:
-    repository: cloudfoundry-incubator/bosh-openstack-cpi-release
+    repository: cloudfoundry/bosh-openstack-cpi-release
 
 - name: openstack-ubuntu-xenial-stemcell
   type: bosh-io-stemcell

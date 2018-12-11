@@ -30,8 +30,8 @@ describe 'populate' do
             'ntp' => ['0.pool.ntp.org', '1.pool.ntp.org'],
             'releases' => [{
                 'name' => 'bosh-openstack-cpi',
-                'url' => 'https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=28',
-                'sha1' => 'beae72c7a105923ee74e7dfd6930e9aa75d86e05'
+                'url' => 'https://bosh.io/d/github.com/cloudfoundry/bosh-openstack-cpi-release?v=28',
+                'sha1' => '5fb85572f3a1bfebcccd6b0b75b0afea9f6df1ea'
             }]
         },
         'cloud_config' => {
@@ -128,8 +128,8 @@ describe 'populate' do
             'ntp' => ['NTP_SERVER1', 'NTP_SERVER2', 'NTP_SERVER3'],
             'releases' => [{
                 'name' => 'bosh-openstack-cpi',
-                'url' => 'https://bosh.io/d/github.com/cloudfoundry-incubator/bosh-openstack-cpi-release?v=28',
-                'sha1' => 'beae72c7a105923ee74e7dfd6930e9aa75d86e05'
+                'url' => 'https://bosh.io/d/github.com/cloudfoundry/bosh-openstack-cpi-release?v=28',
+                'sha1' => '5fb85572f3a1bfebcccd6b0b75b0afea9f6df1ea'
             }],
             'use_external_ip' => true
         },

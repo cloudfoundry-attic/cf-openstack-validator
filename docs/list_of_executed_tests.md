@@ -34,4 +34,4 @@
 
 ### Further reading:
 * [Specification of the CPI API v1](http://bosh.io/docs/cpi-api-v1.html)
-* [Detailed list of OpenStack API calls of the OpenStack CPI](https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release/blob/master/docs/openstack-api-calls.md)
+* [Detailed list of OpenStack API calls of the OpenStack CPI](https://github.com/cloudfoundry/bosh-openstack-cpi-release/blob/master/docs/openstack-api-calls.md)
