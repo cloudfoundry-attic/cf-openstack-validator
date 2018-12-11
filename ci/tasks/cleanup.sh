@@ -28,9 +28,7 @@ openstack_delete_entities() {
   for id in $id_list
   do
     echo "Deleting $entity $id ..."
-    if ! openstack $entity delete $delete_args $id; then
-      exit_code=$?
-    fi
+    openstack $entity delete $delete_args $id || exit_code=$?
   done
 }
 
@@ -46,12 +44,9 @@ openstack_delete_ports() {
   # 'neutron:LOADBALANCERV2' and 'network:f5lbaasv2'
   # Maybe we could just filter for 'network:'?
     port_to_be_deleted=`openstack port show --format json $port | jq --raw-output '. | select(.device_owner | contains("network:floatingip") or contains("network:router_gateway") or contains("network:dhcp") or contains("network:router_interface") or contains("network:ha_router_replicated_interface") or contains("neutron:LOADBALANCERV2") or contains("network:f5lbaasv2") or contains("network:router_centralized_snat") or contains("network:router_interface_distributed") | not ) | .id'`
-    if [ ! -z ${port_to_be_deleted} ];
-    then
+    if [ ! -z ${port_to_be_deleted} ]; then
       echo "Deleting port ${port_to_be_deleted}"
-      if ! openstack port delete ${port_to_be_deleted}; then
-        exit_code=$?
-      fi
+      openstack port delete ${port_to_be_deleted} || exit_code=$?
     fi
   done
 }
