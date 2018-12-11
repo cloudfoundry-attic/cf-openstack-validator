@@ -35,18 +35,11 @@ openstack_delete_entities() {
 openstack_delete_ports() {
   for port in $(openstack port list --project=$OPENSTACK_PROJECT_ID -c ID -f value)
   do
-
-  # don't delete ports that are:
-  # 'network:floatingip', 'network:router_gateway',
-  # 'network:dhcp', 'network:router_interface',
-  # 'network:ha_router_replicated_interface',
-  # 'network:router_interface_distributed',
-  # 'neutron:LOADBALANCERV2' and 'network:f5lbaasv2'
-  # Maybe we could just filter for 'network:'?
-    port_to_be_deleted=`openstack port show --format json $port | jq --raw-output '. | select(.device_owner | contains("network:floatingip") or contains("network:router_gateway") or contains("network:dhcp") or contains("network:router_interface") or contains("network:ha_router_replicated_interface") or contains("neutron:LOADBALANCERV2") or contains("network:f5lbaasv2") or contains("network:router_centralized_snat") or contains("network:router_interface_distributed") | not ) | .id'`
-    if [ ! -z ${port_to_be_deleted} ]; then
-      echo "Deleting port ${port_to_be_deleted}"
-      openstack port delete ${port_to_be_deleted} || exit_code=$?
+    port_json=$(openstack port show --format json "$port")
+    port_id_to_be_deleted=$(jq --raw-output '. | select( (.device_owner == "" or .device_owner == null or .device_owner =="compute:nova") and (.status == "DOWN") and (.device_id == "" or .device_id == null) ) | .id' <<< "$port_json")
+    if [[ -n ${port_id_to_be_deleted} ]]; then
+      echo "Deleting port ${port_id_to_be_deleted}"
+      openstack port delete "${port_id_to_be_deleted}" || exit_code=$?
     fi
   done
 }
