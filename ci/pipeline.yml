@@ -20,9 +20,9 @@ jobs:
   build_logs_to_retain: *build_logs_to_retain
   plan:
     - aggregate:
-      - {trigger: true, get: validator-src-in,   tags: ((worker_tags)), timeout: *timeouts-long}
-      - {trigger: true, get: pipeline-time-trigger,   tags: ((worker_tags)), timeout: *timeouts-long}
-      - {trigger: true, get: bosh-openstack-cpi-release,   tags: ((worker_tags)), timeout: *timeouts-long}
+      - {trigger: true, get: validator-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
+      - {trigger: true, get: pipeline-time-trigger, tags: ((worker_tags)), timeout: *timeouts-long}
+      - {trigger: true, get: bosh-openstack-cpi-release, tags: ((worker_tags)), timeout: *timeouts-long}
 
     - task: cleanup
       tags: ((worker_tags))
@@ -75,6 +75,11 @@ jobs:
   - get: bosh-openstack-cpi-release
     passed: [cleanup, test]
     trigger: true
+    tags: ((worker_tags))
+    timeout: *timeouts-long
+  - trigger: false
+    get: stemcell
+    resource: openstack-ubuntu-xenial-stemcell
     tags: ((worker_tags))
     timeout: *timeouts-long
   - put: terraform-validator
@@ -251,3 +256,9 @@ resources:
   type: bosh-io-release
   source:
     repository: cloudfoundry-incubator/bosh-openstack-cpi-release
+
+- name: openstack-ubuntu-xenial-stemcell
+  type: bosh-io-stemcell
+  tags: ((worker_tags))
+  source:
+    name: bosh-openstack-kvm-ubuntu-xenial-go_agent

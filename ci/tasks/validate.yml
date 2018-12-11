@@ -8,6 +8,7 @@ image_resource:
     tag: 'latest'
 
 inputs:
+- name: stemcell
 - name: validator-src-cpi-bumped
 - name: terraform-validator
 

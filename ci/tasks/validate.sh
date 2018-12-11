@@ -26,6 +26,8 @@ metadata=terraform-validator/metadata
 export NETWORK_ID=$(cat ${metadata} | jq --raw-output ".validator_net_id")
 export FLOATING_IP=$(cat ${metadata} | jq --raw-output ".validator_floating_ip")
 
+STEMCELL="$(pwd)/$(ls stemcell/*.tgz)"
+
 report_performance_stats(){
   echo 'Stats:'
   cat ~/.cf-openstack-validator/logs/stats.log
@@ -48,13 +50,13 @@ cat validator.yml
 
 bundle install --path .bundle
 
-./validate -s ~/stemcell.tgz -c validator.yml
+./validate -s "$STEMCELL" -c validator.yml
 
 #report_performance_stats
 
 CONFIG_DRIVE='disk' ci/assets/config_renderer/render validator.template.yml > validator.yml
 cat validator.yml
 
-./validate -s ~/stemcell.tgz -c validator.yml
+./validate -s "$STEMCELL" -c validator.yml
 
 #report_performance_stats
