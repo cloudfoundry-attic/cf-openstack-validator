@@ -18,6 +18,7 @@ if [ -z "$OPENSTACK_PROJECT_ID" ]; then
 fi
 
 exit_code=0
+max_retries=2
 
 openstack_delete_entities() {
   local entity=${1:-}
@@ -25,10 +26,17 @@ openstack_delete_entities() {
   local delete_args=${3:-}
   id_list=$(openstack $entity list $list_args --format json | jq --raw-output '.[].ID')
   echo "Received list of all ${entity}s: ${id_list}"
-  for id in $id_list
-  do
-    echo "Deleting $entity $id ..."
-    openstack $entity delete $delete_args $id || exit_code=$?
+  for id in $id_list; do
+    n_retry=0
+    until [ $n_retry -gt $max_retries ]; do
+      n_retry+=1
+      echo "Deleting $entity $id (${n_retry}/${max_retries})..."
+      sleep $(($n_retry * 5))
+      openstack "$entity" delete "$delete_args" "$id" || exit_code=$?
+      if [ $exit_code == 0 ]; then
+        break
+      fi
+    done
   done
 }
 
