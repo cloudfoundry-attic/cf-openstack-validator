@@ -164,32 +164,6 @@ openstack_suite.context 'validating configuration', position: 1, order: :global,
   end
 
   describe 'connectivity' do
-    it 'has configured MTU size' do
-      vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM with floating IP to use')
-      vm_ip_to_ssh = Validator::NetworkHelper.vm_ip_to_ssh(vm_cid, @config, @compute)
-      @resource_tracker.consumes(:vm_cid_static_ip, 'No VM with static IP to use')
-
-      sudo = "echo 'c1oudc0w' | sudo --prompt \"\" --stdin"
-      command = "#{sudo} traceroute -M raw -m 1 --mtu #{@config.validator['static_ip']}"
-
-      output, err, status = execute_ssh_command_on_vm_with_retry(@config.private_key_path, vm_ip_to_ssh, command)
-
-      expect(status.exitstatus).to eq(0),
-        error_message("SSH connection didn't succeed. MTU size could not be checked.", command, err, output)
-
-      actual_mtu_size = output.match(/=(\d+)/)
-
-      if actual_mtu_size
-        actual_mtu_size = actual_mtu_size[1]
-      else
-        fail error_message('MTU size could not be checked.', command, err, output)
-      end
-
-      recommendation = "The available MTU size on the VMs is '#{actual_mtu_size}'. The desired MTU is '#{@config.validator['mtu_size']}'. "\
-        "If you're using GRE or VXLAN, make sure you account for the tunnel overhead buy increasing MTU in your underlay network."
-      expect(actual_mtu_size.to_s).to eq(@config.validator['mtu_size'].to_s), recommendation
-    end
-
     it 'can SSH into VM' do
       vm_cid = @resource_tracker.consumes(:vm_cid_with_floating_ip, 'No VM to use')
       vm_ip_to_ssh = Validator::NetworkHelper.vm_ip_to_ssh(vm_cid, @config, @compute)

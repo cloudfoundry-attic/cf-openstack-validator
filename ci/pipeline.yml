@@ -134,7 +134,6 @@ jobs:
       INFLUXDB_USER:                  admin
       INFLUXDB_PASSWORD:              ((influxdb_password))
       PIPELINE_NAME:                  ((pipeline_name))
-      MTU_SIZE:                       ((mtu_size))
       AUTO_ANTI_AFFINITY:             ((auto_anti_affinity))
 
 - name: bump-openstack-cpi

@@ -18,7 +18,6 @@ set -euxo pipefail
 : ${EXPECTED_FLAVORS:?}
 : ${EXPECTED_QUOTAS:?}
 : ${EXPECTED_ENDPOINTS:?}
-: ${MTU_SIZE:?}
 : ${AUTO_ANTI_AFFINITY:-""}
 
 # terraform output variables
