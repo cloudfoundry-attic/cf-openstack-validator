@@ -20,7 +20,6 @@ validator:
   static_ip: <replace-me> # String IP. This IP is used to create a VM with a static IP.
   private_key_path: cf-validator.rsa_id # relative to validator.yml, or absolute path
   ntp: [0.pool.ntp.org, 1.pool.ntp.org] # List of String
-  mtu_size: 1500 # expected network MTU size in byte
   releases:
   - name: bosh-openstack-cpi
     url: https://bosh.io/d/github.com/cloudfoundry/bosh-openstack-cpi-release?v=42
