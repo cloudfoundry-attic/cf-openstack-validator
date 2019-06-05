@@ -22,43 +22,43 @@ variable "tenant_name" {
 }
 
 variable "insecure" {
-   default = "false"
-   description = "SSL certificate validation"
+  default     = "false"
+  description = "SSL certificate validation"
 }
 
 variable "name_prefix" {
-   default = ""
-   description = "Prefix for names of infrastucture components"
+  default     = ""
+  description = "Prefix for names of infrastucture components"
 }
 
 variable "net_cidr" {
-   default = "10.0.1.0/24"
-   description = "CIDR of validator subnet"
+  default     = "10.0.1.0/24"
+  description = "CIDR of validator subnet"
 }
 
 variable "allocation_pool_start" {
-  default = "10.0.1.200"
+  default     = "10.0.1.200"
   description = "Allocation pool start"
 }
 
 variable "allocation_pool_end" {
-  default = "10.0.1.254"
+  default     = "10.0.1.254"
   description = "Allocation pool end"
 }
 
 variable "gateway_ip" {
-  default= "10.0.1.1"
+  default     = "10.0.1.1"
   description = "Default gateway"
 }
 
 variable "cacert_file" {
-  default = ""
+  default     = ""
   description = "CA File"
 }
 
 variable "dns_nameservers" {
-   description = "list of DNS server IPs"
-   type = "list"
+  description = "list of DNS server IPs"
+  type        = list(string)
 }
 
 # external network coordinates
@@ -83,17 +83,17 @@ variable "openstack_default_key_public_key" {
 }
 
 output "validator_net_id" {
-  value = "${openstack_networking_network_v2.validator_net.id}"
+  value = openstack_networking_network_v2.validator_net.id
 }
 
 output "validator_floating_ip" {
-  value = "${openstack_compute_floatingip_v2.validator_floating_ip.address}"
+  value = openstack_compute_floatingip_v2.validator_floating_ip.address
 }
 
 output "openstack_default_key_name" {
-  value = "${openstack_compute_keypair_v2.openstack_default_key_name.name}"
+  value = openstack_compute_keypair_v2.openstack_default_key_name.name
 }
 
-output "security group" {
-  value = "${openstack_networking_secgroup_v2.validator_secgroup.name}"
+output "security_group" {
+  value = openstack_networking_secgroup_v2.validator_secgroup.name
 }
