@@ -74,7 +74,9 @@ module Validator::Cli
       with_state_file(message, @context.cpi_release_path, @context.extracted_cpi_release_dir) do
         delete_old_cpi
         deep_extract_release(@context.cpi_release_path)
-        release_packages(@context.extracted_cpi_release_dir, ['ruby_openstack_cpi']).each do |package|
+        ruby_package_glob = File.join(@context.extracted_cpi_release_dir, 'packages', 'ruby-*')
+        install_order = Dir.glob(ruby_package_glob).map { |dir| File.basename(dir) if File.directory?(dir) }.compact
+        release_packages(@context.extracted_cpi_release_dir, install_order).each do |package|
           compile_package(package)
         end
         render_cpi_executable
@@ -112,6 +114,7 @@ module Validator::Cli
     def release_packages(release_path, install_order=[])
       packages = Dir.glob(File.join(release_path, 'packages', '*')).select { |path| File.directory?(path) }
       return packages if install_order.empty?
+
       ordered_packages = []
       install_order.each do |package_name|
         package_path = packages.find { |p| File.basename(p) == package_name }
@@ -135,17 +138,17 @@ module Validator::Cli
       packaging_script = File.join(package_path, 'packaging')
       FileUtils.chmod('+x', packaging_script)
       env = {
-          'BOSH_PACKAGES_DIR' => compilation_base_dir,
-          'BOSH_INSTALL_TARGET' => package_compilation_dir,
-          'PATH' => @context.path_environment
+        'BOSH_PACKAGES_DIR' => compilation_base_dir,
+        'BOSH_INSTALL_TARGET' => package_compilation_dir,
+        'PATH' => @context.path_environment
       }
       log_path = File.join(log_directory, "packaging-#{package_name}.log")
 
       execute_command(
-          env: env,
-          command: packaging_script,
-          chdir: package_path,
-          log_path: log_path
+        env: env,
+        command: packaging_script,
+        chdir: package_path,
+        log_path: log_path
       )
     end
 
