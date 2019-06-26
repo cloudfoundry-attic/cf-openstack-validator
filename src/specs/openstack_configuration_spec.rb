@@ -19,7 +19,7 @@ openstack_suite.context 'validating configuration', position: 1, order: :global,
     with_cpi('VM with floating IP could not be created.') {
       @resource_tracker.produce(:servers, provide_as: :vm_cid_with_floating_ip) {
         @cpi.create_vm(
-          'agent-id',
+          'ägent-id-在这里找到的-sebastian-�',
           stemcell_cid,
           @config.default_vm_type_cloud_properties,
           network_spec_with_floating_ip,
@@ -31,7 +31,7 @@ openstack_suite.context 'validating configuration', position: 1, order: :global,
     with_cpi('VM with static IP could not be created.') {
       @resource_tracker.produce(:servers, provide_as: :vm_cid_static_ip) {
         @cpi.create_vm(
-          'agent-id',
+          'ägent-id-在这里找到的-sebastian-�',
           stemcell_cid,
           @config.default_vm_type_cloud_properties,
           network_spec_with_static_ip,

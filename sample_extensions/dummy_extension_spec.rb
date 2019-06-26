@@ -41,7 +41,7 @@ describe 'My extension' do
     it 'produces a resource' do
       resource_id = @resource_tracker.produce(:volumes, provide_as: :test_volume) {
         compute.volumes.create({
-            :name => 'validator-test-volume',
+            :name => 'validator-test-volume-在这里找到的',
             :description => '',
             :size => 1
         }).id

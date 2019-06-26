@@ -60,7 +60,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global, cpi_api: t
       vm_cid_static_ip = with_cpi('VM with static IP could not be created.') {
         @resource_tracker.produce(:servers, provide_as: :vm_cid_static_ip) {
           @cpi.create_vm(
-            'agent-id',
+            'agent___��___-id',
             stemcell_cid,
             @config.default_vm_type_cloud_properties,
             network_spec_with_static_ip,
@@ -79,7 +79,7 @@ openstack_suite.context 'using the CPI', position: 2, order: :global, cpi_api: t
       vm_cid = with_cpi('VM could not be created.') {
         @resource_tracker.produce(:servers, provide_as: :vm_cid) {
           @cpi.create_vm(
-            'agent-id',
+            'agent-____iãäö__id',
             stemcell_id,
             @config.default_vm_type_cloud_properties,
             network_spec,
