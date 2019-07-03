@@ -19,7 +19,7 @@ jobs:
   serial_groups: [openstack-project]
   build_logs_to_retain: *build_logs_to_retain
   plan:
-    - aggregate:
+    - in_parallel:
       - {trigger: true, get: validator-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
       - {trigger: true, get: pipeline-time-trigger, tags: ((worker_tags)), timeout: *timeouts-long}
       - {trigger: true, get: bosh-openstack-cpi-release, tags: ((worker_tags)), timeout: *timeouts-long}
@@ -163,7 +163,7 @@ jobs:
 - name: release
   build_logs_to_retain: *build_logs_to_retain
   plan:
-  - aggregate:
+  - in_parallel:
     - {get: validator-src-out, passed: [bump-openstack-cpi], tags: ((worker_tags)), timeout: *timeouts-long }
     - {get: release-semver, tags: ((worker_tags)), timeout: *timeouts-long }
 
