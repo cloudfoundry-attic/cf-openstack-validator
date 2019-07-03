@@ -260,6 +260,7 @@ resources:
       secret_key: ((s3_openstack_cpi_pipeline_secret_key))
 - name: bosh-openstack-cpi-release
   type: bosh-io-release
+  tags: ((worker_tags))
   source:
     repository: cloudfoundry/bosh-openstack-cpi-release
 
