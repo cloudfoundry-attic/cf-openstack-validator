@@ -2,7 +2,8 @@
 custom:
   timeouts:
     long: &timeouts-long 2h
-  build_logs_to_retain: &build_logs_to_retain 500
+  build_log_retention:
+    builds: &build_logs_to_retain 500
 
 groups:
 - name: ((pipeline_name))
@@ -17,7 +18,8 @@ jobs:
 - name: cleanup
   serial: true
   serial_groups: [openstack-project]
-  build_logs_to_retain: *build_logs_to_retain
+  build_log_retention:
+    builds: *build_logs_to_retain
   plan:
     - in_parallel:
       - {trigger: true, get: validator-src-in, tags: ((worker_tags)), timeout: *timeouts-long}
@@ -38,7 +40,8 @@ jobs:
         BOSH_OPENSTACK_INTERFACE:            ((interface))
 
 - name: test
-  build_logs_to_retain: *build_logs_to_retain
+  build_log_retention:
+    builds: *build_logs_to_retain
   plan:
   - get: pipeline-time-trigger
     trigger: true
@@ -60,7 +63,8 @@ jobs:
 - name: validate
   serial: true
   serial_groups: [openstack-project]
-  build_logs_to_retain: *build_logs_to_retain
+  build_log_retention:
+    builds: *build_logs_to_retain
   plan:
   - get: validator-src-in
     passed: [cleanup, test]
@@ -139,7 +143,8 @@ jobs:
 - name: bump-openstack-cpi
   serial: true
   serial_groups: [openstack-project]
-  build_logs_to_retain: *build_logs_to_retain
+  build_log_retention:
+    builds: *build_logs_to_retain
   plan:
   - get: validator-src-in
     passed: [validate]
@@ -161,7 +166,8 @@ jobs:
     params: {repository: validator-src-cpi-bumped, rebase: true}
 
 - name: release
-  build_logs_to_retain: *build_logs_to_retain
+  build_log_retention:
+    builds: *build_logs_to_retain
   plan:
   - in_parallel:
     - {get: validator-src-out, passed: [bump-openstack-cpi], tags: ((worker_tags)), timeout: *timeouts-long }
