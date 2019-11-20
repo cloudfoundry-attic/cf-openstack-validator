@@ -22,8 +22,8 @@ validator:
   ntp: [0.pool.ntp.org, 1.pool.ntp.org] # List of String
   releases:
   - name: bosh-openstack-cpi
-    url: https://bosh.io/d/github.com/cloudfoundry/bosh-openstack-cpi-release?v=43
-    sha1: b9bd5fa8f06436e7b055620d3259877907f6d99a
+    url: https://bosh.io/d/github.com/cloudfoundry/bosh-openstack-cpi-release?v=44
+    sha1: 7c9be83eb11214db85ef5320f26ec9db8fab353f
 
 cloud_config:
   vm_types: # See https://bosh.io/docs/cloud-config.html#vm-types
